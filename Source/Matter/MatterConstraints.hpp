@@ -25,8 +25,8 @@
    ScalarField()
 */
 template <class matter_t>
-class [[deprecated("Use new MatterConstraints class in "
-                   "NewMatterConstraints.hpp")]] MatterConstraints
+class[[deprecated("Use new MatterConstraints class in "
+                  "NewMatterConstraints.hpp")]] MatterConstraints
     : public Constraints
 {
   public:

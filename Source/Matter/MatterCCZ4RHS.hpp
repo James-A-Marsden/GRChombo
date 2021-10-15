@@ -105,7 +105,7 @@ class MatterCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t>
         const Vars<data_t> &vars, //!< the value of the variables at the point.
         const Vars<Tensor<1, data_t>>
             &d1 //!< the value of the first derivatives of the variables.
-    ) const;
+        ) const;
 
     // Class members
     matter_t my_matter;      //!< The matter object, e.g. a scalar field.
@@ -117,7 +117,7 @@ class MatterCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t>
 // This is here for backwards compatibility though the MatterCCZ4RHS
 // class should be used in future hence mark as deprecated
 template <class matter_t>
-using MatterCCZ4 [[deprecated("Use MatterCCZ4RHS instead")]] =
+using MatterCCZ4[[deprecated("Use MatterCCZ4RHS instead")]] =
     MatterCCZ4RHS<matter_t>;
 
 #endif /* MATTERCCZ4RHS_HPP_ */

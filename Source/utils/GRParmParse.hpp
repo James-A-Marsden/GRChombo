@@ -132,7 +132,8 @@ class GRParmParse : public ParmParse
               std::enable_if_t<
                   !ArrayTools::is_std_array_or_vector<data_t>::value,
                   bool> = true> // this won't work for std::arrays and vectors
-    void default_message(const char *name, const data_t &default_value) const
+    void
+    default_message(const char *name, const data_t &default_value) const
     {
         pout() << "Parameter: " << name << " not found in parameter file. "
                << "It has been set to its default value = " << default_value
@@ -143,7 +144,8 @@ class GRParmParse : public ParmParse
               std::enable_if_t<
                   ArrayTools::is_std_array_or_vector<data_t>::value,
                   bool> = true> // use this code for std::arrays and vectors
-    void default_message(const char *name, const data_t &default_value) const
+    void
+    default_message(const char *name, const data_t &default_value) const
     {
         pout() << "Parameter: " << name << " not found in parameter file. "
                << "It has been set to its default "
