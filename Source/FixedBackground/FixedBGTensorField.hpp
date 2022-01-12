@@ -19,18 +19,13 @@
 //!  Calculates the matter type specific elements such as the EMTensor and
 //   matter evolution
 /*!
-     This class is an example of a matter_t object which calculates the
-     matter type specific elements for the RHS update and the evaluation
-     of the constraints. This includes the Energy Momentum Tensor, and
-     the matter evolution terms. In this case, a tensor field,
-     the matter elements are phi and (minus) its conjugate momentum, Pi.
-     It is templated over a potential function potential_t which the
-     user must specify in a class, although a default is provided which
-     sets dVdphi and V_of_phi to zero.
-     It assumes minimal coupling of the field to gravity.
+    work in progress :v)
+
      \sa MatterCCZ4(), ConstraintsMatter()
 */
-template <class potential_t = DefaultPotential> class FixedBGTensorField
+//template <class potential_t = DefaultPotential> class FixedBGTensorField
+//Changed from ^^
+template <class potential_t = TensorPotential> class FixedBGTensorField
 {
   protected:
     //! The local copy of the potential
@@ -47,24 +42,43 @@ template <class potential_t = DefaultPotential> class FixedBGTensorField
     //! Structure containing the rhs variables for the matter fields
     template <class data_t> struct Vars
     {
+        //data_t Pi;
+        //data_t phi;
+        
         //Tensor field components
-        Tensor<2,data_t> h_spatial //Spatial component of the tensor field
-        Tensor<1,data_t> hbar //Half-projected component of the tensor field
-        data_t hhat //Scalar part of the tensor field 
+        Tensor<2,data_t> fspatial; //Spatial component of the tensor field
+        Tensor<1,data_t> fbar; //Half-projected component of the tensor field
+        data_t fhat; //Scalar part of the tensor field 
         //Conjugate components
-        Tensor<2,data_t> A_field; // Spatial rank 2 A field
-        Tensor<2,data_t> B_field; //Spatial rank 2 B field
-        Tensor<1,data_t> W_field; //Spatial rank 1 W field
-        Tensor<1,data_t> V_field; //Spatial rank 1 V field
-        data_t Sigmahat; //Scalar component 
+        Tensor<2,data_t> u; // Spatial rank 2 u field
+        Tensor<2,data_t> v; //Spatial rank 2 v field
+        Tensor<1,data_t> p; //Spatial rank 1 p field
+        Tensor<1,data_t> q; //Spatial rank 1 q field
+        data_t w; //Scalar component 
 
         /// Defines the mapping between members of Vars and Chombo grid
         /// variables (enum in User_Variables)
         template <typename mapping_function_t>
         void enum_mapping(mapping_function_t mapping_function)
         {
-            VarsTools::define_enum_mapping(mapping_function, c_phi, phi);
-            VarsTools::define_enum_mapping(mapping_function, c_Pi, Pi);
+            //Map the components defined in user parameters to their full objects.
+            //Field variables 
+            VarsTools::define_symmetric_enum_mapping(mapping_function, GRInterval<c_fspatial11,c_fspatial33>(), fspatial);
+
+            VarsTools::define_enum_mapping(mapping_function, GRInterval<c_fbar1, c_fbar3>(), fbar);
+
+            VarsTools::define_enum_mapping(mapping_function, c_fhat, fhat);
+
+            //conjugate variables 
+            VarsTools::define_symmetric_enum_mapping(mapping_function, GRInterval<c_u11,c_u33>(), u);
+            VarsTools::define_symmetric_enum_mapping(mapping_function, GRInterval<c_v11,c_v33>(), v);
+
+            VarsTools::define_enum_mapping(mapping_function, GRInterval<c_p1,c_p3>(), p);
+            VarsTools::define_enum_mapping(mapping_function, GRInterval<c_q1,c_p3>(), q);
+
+            VarsTools::define_enum_mapping(mapping_function, c_w, w);
+
+
         }
     };
 
@@ -72,7 +86,10 @@ template <class potential_t = DefaultPotential> class FixedBGTensorField
     //!  2nd derivs
     template <class data_t> struct Diff2Vars
     {
-        data_t phi;
+        //data_t phi;
+        Tensor<2,data_t> fspatial ;//Spatial component of the tensor field
+        Tensor<1,data_t> fbar ;//Half-projected component of the tensor field
+        data_t fhat ;//Scalar part of the tensor field 
 
         /// Defines the mapping between members of Vars and Chombo grid
         ///  variables (enum in User_Variables)
