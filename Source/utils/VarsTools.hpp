@@ -59,6 +59,35 @@ void define_symmetric_enum_mapping(
 #endif
 }
 
+template <typename mapping_function_t, typename data_t, int start_var,
+          int end_var>
+void define_tensor_enum_mapping(
+    mapping_function_t mapping_function,
+    const GRInterval<start_var, end_var> interval, Tensor<2, data_t> &tensor)
+{
+    static_assert(interval.size() ==
+                      DEFAULT_TENSOR_DIM * DEFAULT_TENSOR_DIM,
+                  "Interval has wrong size");
+#if DEFAULT_TENSOR_DIM == 3
+    mapping_function(start_var, tensor[0][0]);
+    mapping_function(start_var + 1, tensor[0][1]);
+    mapping_function(start_var + 2, tensor[0][2]);
+
+    mapping_function(start_var + 3, tensor[1][0]);
+    mapping_function(start_var + 4, tensor[1][1]);
+    mapping_function(start_var + 5, tensor[1][2]);
+
+    mapping_function(start_var + 6, tensor[2][0]);
+    mapping_function(start_var + 7, tensor[2][1]);
+    mapping_function(start_var + 8, tensor[2][2]);    
+#else
+#error DEFAULT_TENSOR_DIM not equal to three not implemented yet...
+#endif
+}
+
+
+
+
 //--> Begin: Helper for the assign function
 template <class nested_template> struct strip_nested_template;
 
