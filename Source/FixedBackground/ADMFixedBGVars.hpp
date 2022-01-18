@@ -19,11 +19,13 @@ template <class data_t> struct Vars
     // ADM vars needed in matter only rhs (ok for Proca and SF)
     Tensor<2, data_t> gamma;
     Tensor<2, data_t> K_tensor;
+    Tensor<2, Tensor<1,data_t>> d1_K_tensor; 
     data_t K;
     data_t lapse;
     Tensor<1, data_t> shift;
     Tensor<2, Tensor<1, data_t>> d1_gamma;
     Tensor<2, Tensor<2, data_t>> d2_gamma;
+    Tensor<3, Tensor<1, data_t>> d1_chris_phys; 
     Tensor<1, data_t> d1_lapse;
     Tensor<2, data_t> d1_shift;
     //Extra derivatives needed for tensor field case

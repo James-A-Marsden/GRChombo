@@ -128,6 +128,15 @@ class KerrSchildFixedBG
                 2.0 * (el[i] * el[j] * dHdx[k] + H * el[i] * dldx[j][k] +
                        H * el[j] * dldx[i][k]);
         }
+        
+        Tensor<2, Tensor<1, data_t>> d1_gamma_UU;
+
+        FOR3(i,j,k)
+        {
+            2.0 * (dHdx[k] * el[i] * el[j] + H * dldx[i][k] * el[j] + H * el[i] * dldx[j][k]
+            + 2.0 * vars.lapse * vars.d1_lapse[k] * vars.shift[i] * vars.shift[j]
+            + vars.lapse * vars.lapse * (vars.d1_shift[i][k] * vars.shift[j] + vars.shift[i] * vars.d1_shift[j][k]));
+        }
         //Second derivative of the spatial metric (can simplify further)
         //2 loops as no FOR4
         FOR1(i)
@@ -135,11 +144,20 @@ class KerrSchildFixedBG
             FOR3(j,k,m)
             {
                 vars.d2_gamma[i][j][k][m] = 
-                    2 * (d2Hdx2[k][m] * el[i] * el[j] + dHdx[k] * dldx[i][m] * el[j] + dHdx[k] * el[i] * dldx[j][m]
+                    2.0 * (d2Hdx2[k][m] * el[i] * el[j] + dHdx[k] * dldx[i][m] * el[j] + dHdx[k] * el[i] * dldx[j][m]
                     + dHdx[m] * dldx[i][k] * el[j] + H * d2ldx2[i][k][m] * el[j] + H * dldx[i][k] * dldx[j][m]
                     + dHdx[m] * el[i] * dldx[j][k] + H * dldx[i][m] * dldx[j][k] + H * el[i] * d2ldx2[j][k][m]);
             }
 
+        }
+        //Calculate derivative of the Christoffel symbol (phys)
+        FOR2(i, j)
+        {
+            FOR3(k, m, n)
+            {
+                vars.d1_chris_phys[i][j][k][m] = d1_gamma_UU[i][n][m] * (vars.d1_gamma[k][n][j] + vars.d1_gamma[n][j][k] - vars.d1_gamma[j][k][n])
+                + gamma_UU[i][n] * (vars.d2_gamma[k][n][j][m] + vars.d2_gamma[n][j][k][m] - vars.d2_gamma[j][k][n][m]);
+            }
         }
 
         // calculate derivs of lapse and shift
@@ -151,10 +169,10 @@ class KerrSchildFixedBG
 
         FOR2(i, j)
         {
-            vars.d2_lapse[i][j] = (3 * vars.d1_lapse[i] * vars.d1_lapse[j] / vars.lapse) 
+            vars.d2_lapse[i][j] = (3.0 * vars.d1_lapse[i] * vars.d1_lapse[j] / vars.lapse) 
             - pow(vars.lapse, 3.0) * ( el_t * (d2Hdx2[i][j] * el_t 
-            + 2 * dHdx[i] * dltdx[j] + 2 * dHdx[j] * dltdx[i] + 2 * H * d2ltdx2[i][j])
-            + 2 * H * dltdx[i] * dltdx[j]); 
+            + 2.0 * dHdx[i] * dltdx[j] + 2.0 * dHdx[j] * dltdx[i] + 2.0 * H * d2ltdx2[i][j])
+            + 2.0 * H * dltdx[i] * dltdx[j]); 
         }
 
         // use the fact that shift^i = lapse^2 * shift_i
@@ -205,6 +223,25 @@ class KerrSchildFixedBG
             vars.K_tensor[i][j] *= 0.5 / vars.lapse;
         }
         vars.K = compute_trace(gamma_UU, vars.K_tensor);
+
+        FOR3(i, j, k)
+        {
+            vars.d1_K_tensor[i][j][k] = 0;
+
+            FOR1(m)
+            {
+                vars.d1_K_tensor[i][j][k] = vars.d1_gamma[m][j][k] * vars.d1_shift[m][i] + vars.gamma[m][j] * vars.d2_shift[m][i][k]
+                + vars.d1_gamma[m][i][k] * vars.d1_shift[m][j] + vars.gamma[m][i] * vars.d2_shift[m][j][k]
+                + (vars.d2_gamma[i][j][m][k] + vars.d2_gamma[m][j][i][k]) * vars.shift[m]
+                + (vars.d1_gamma[i][j][m] + vars.d1_gamma[m][j][i]) * vars.d1_shift[m][k];
+                FOR1(n)
+                {
+                    vars.d1_K_tensor[i][j][k] += -2.0 * (vars.d1_chris_phys[m][i][j][k] * vars.gamma[m][n] * vars.shift[n]
+                    + chris_phys.ULL[m][i][j] * vars.d1_gamma[m][n][k] * vars.shift[n]
+                    + chris_phys.ULL[m][i][j] * vars.gamma[m][n] * vars.d1_shift[n][k]);
+                }
+            }
+        }
     }
 
   protected:
