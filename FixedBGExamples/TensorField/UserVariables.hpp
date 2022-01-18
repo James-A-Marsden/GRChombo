@@ -44,8 +44,8 @@ enum
     c_u21,
     c_u22,
     c_u23,
-    c_u13,
-    c_u23,
+    c_u31,
+    c_u32,
     c_u33, 
 
     //Second Rank 2 component conjugate field

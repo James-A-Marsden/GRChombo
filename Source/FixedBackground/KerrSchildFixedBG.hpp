@@ -96,7 +96,12 @@ class KerrSchildFixedBG
         Tensor<1, data_t> dHdx;
         Tensor<1, data_t> dltdx;
         Tensor<2, data_t> dldx;
-        get_KS_derivs(dHdx, dldx, dltdx, H, coords);
+        Tensor<3, data_t> d2ldx2;
+
+        //NEW (pass in below)
+        Tensor<2, data_t> d2ltdx2;
+        Tensor<2, data_t> d2Hdx2; 
+        get_KS_derivs(dHdx, d2Hdx2, dldx, d2ldx2, dltdx, d2ltdx2, H, coords);
 
         // populate ADM vars
         vars.lapse = pow(1.0 + 2.0 * H * el_t * el_t, -0.5);
@@ -123,12 +128,33 @@ class KerrSchildFixedBG
                 2.0 * (el[i] * el[j] * dHdx[k] + H * el[i] * dldx[j][k] +
                        H * el[j] * dldx[i][k]);
         }
+        //Second derivative of the spatial metric (can simplify further)
+        //2 loops as no FOR4
+        FOR1(i)
+        {
+            FOR3(j,k,m)
+            {
+                vars.d2_gamma[i][j][k][m] = 
+                    2 * (d2Hdx2[k][m] * el[i] * el[j] + dHdx[k] * dldx[i][m] * el[j] + dHdx[k] * el[i] * dldx[j][m]
+                    + dHdx[m] * dldx[i][k] * el[j] + H * d2ldx2[i][k][m] * el[j] + H * dldx[i][k] * dldx[j][m]
+                    + dHdx[m] * el[i] * dldx[j][k] + H * dldx[i][m] * dldx[j][k] + H * el[i] * d2ldx2[j][k][m]);
+            }
+
+        }
 
         // calculate derivs of lapse and shift
         FOR1(i)
         {
             vars.d1_lapse[i] = -pow(vars.lapse, 3.0) * el_t *
                                (el_t * dHdx[i] + 2.0 * H * dltdx[i]);
+        }
+
+        FOR2(i, j)
+        {
+            vars.d2_lapse[i][j] = (3 * vars.d1_lapse[i] * vars.d1_lapse[j] / vars.lapse) 
+            - pow(vars.lapse, 3.0) * ( el_t * (d2Hdx2[i][j] * el_t 
+            + 2 * dHdx[i] * dltdx[j] + 2 * dHdx[j] * dltdx[i] + 2 * H * d2ltdx2[i][j])
+            + 2 * H * dltdx[i] * dltdx[j]); 
         }
 
         // use the fact that shift^i = lapse^2 * shift_i
@@ -139,6 +165,21 @@ class KerrSchildFixedBG
                 4.0 * el_t * H * vars.lapse * vars.d1_lapse[j] * el[i] +
                 2.0 * el_t * H * pow(vars.lapse, 2.0) * dldx[i][j] +
                 2.0 * dltdx[j] * H * pow(vars.lapse, 2.0) * el[i];
+        }
+
+        FOR3(i,j,k)
+        {
+            vars.d2_shift[i][j][k] = 4* el[i] * el_t * vars.d2_lapse[j][k] * vars.lapse *H + 
+            2* vars.lapse *( vars.lapse *( dHdx[j] * dltdx[k] * el[i]  + 
+            dHdx[j] * dldx[i][k] * el_t  +  d2Hdx2[j][k] * el[i] * el_t  + 
+            dHdx[k] *( dltdx[j] * el[i]  +  dldx[i][j] * el_t ) + 
+            dldx[i][k] * dltdx[j] *H +  dldx[i][j] * dltdx[k] *H + 
+            d2ltdx2[j][k] * el[i] *H +  d2ldx2[i][j][k] * el_t *H) + 
+            2* vars.d1_lapse[k] *( dHdx[j] * el[i] * el_t  +  dltdx[j] * el[i] *H + 
+            dldx[i][j] * el_t *H)) + 
+            4* vars.d1_lapse[j] *( el[i] * el_t * vars.d1_lapse[k] *H + 
+            vars.lapse *( dHdx[k] * el[i] * el_t  +  dltdx[k] * el[i] *H + 
+            dldx[i][k] * el_t *H));
         }
 
         // calculate the extrinsic curvature, using the fact that
@@ -170,8 +211,8 @@ class KerrSchildFixedBG
     /// Work out the gradients of the quantities H and el appearing in the Kerr
     /// Schild solution
     template <class data_t>
-    void get_KS_derivs(Tensor<1, data_t> &dHdx, Tensor<2, data_t> &dldx,
-                       Tensor<1, data_t> &dltdx, const data_t &H,
+    void get_KS_derivs(Tensor<1, data_t> &dHdx, Tensor<2, data_t> &d2Hdx2, Tensor<2, data_t> &dldx, Tensor<3,data_t> &d2ldx2,
+                       Tensor<1, data_t> &dltdx, Tensor<2, data_t> &d2ltdx2, const data_t &H,
                        const Coordinates<data_t> &coords) const
     {
         // black hole params - mass M and boost v
@@ -200,6 +241,15 @@ class KerrSchildFixedBG
         Tensor<1, data_t> drhodx;
         FOR1(i) { drhodx[i] = x[i] / rho; }
 
+        ///NEW
+        Tensor<2,data_t> d2rhodx2;
+        FOR2(i,j) { d2rhodx2[i][j] = delta(i,j) / rho - x[i] * x[j] / rho2; }
+        //
+
+
+
+
+
         Tensor<1, data_t> drdx;
         FOR1(i)
         {
@@ -210,9 +260,27 @@ class KerrSchildFixedBG
                      (drhodx[i] * rho * (rho2 - a2) +
                       delta(i, 2) * 2.0 * a2 * z));
         }
+        Tensor<2, data_t> d2rdx2;
+        const data_t radicand = 0.25 * (rho2 - a2) * (rho2 - a2) + a2 * z * z;
+        //replace 1/sqrt radicand, 1/r much faster that way
+        // x * x not pow(x,2) 
+        FOR2(i,j)
+        {
+            d2rdx2[i][j] = 0.5 * (1.0/r) * (drdx[j]/ r * (drhodx[i] * rho + (0.5 * drhodx[i] * (rho2 - a2) + delta(i,2) * z * a2 ) * 1.0/sqrt(radicand))
+            + d2rhodx2[i][j] * rho + drhodx[i] * drhodx[j] + 0.5 * d2rhodx2[i][j] * (rho2 - a2) * 1.0/sqrt(radicand)
+            + drhodx[i] * drhodx[j] * rho * 1.0/sqrt(radicand) + delta(i,2) * delta(j,2) * a2 * 1.0/sqrt(radicand)
+            + (0.5 * drhodx[i] * (rho2 - a2) + delta(2,i) * z * a2 ) * (-0.5 * drhodx[j] * (rho2 - a2) + 2 * delta(2,j) * z * a2) * 1.0/sqrt(pow(radicand, 3)));
+            
+        }
 
         Tensor<1, data_t> dcosthetadx;
         FOR1(i) { dcosthetadx[i] = -z / r2 * drdx[i] + delta(i, 2) / r; }
+
+        Tensor<2, data_t> d2costhetadx2;
+        FOR2(i, j) 
+        {
+            d2costhetadx2[i][j] = (1.0 / r2) * (-delta(2,i) * drdx[j] - delta(2,j) * drdx[i] + (2.0 / r) * z * drdx[i] * drdx[j] - z*d2rdx2[i][j] ); 
+        }
 
         FOR1(i)
         {
@@ -221,6 +289,12 @@ class KerrSchildFixedBG
                                (r * drdx[i] + a2 * cos_theta * dcosthetadx[i]));
         }
 
+        FOR2(i, j)
+        {
+            d2Hdx2[i][j] = dHdx[i] * dHdx[j] / H + H * (d2rdx2[i][j] / r - drdx[i] * drdx[j] / r2 
+            + (2.0 / (r2 + a2 * cos_theta2)) *  ( (r * drdx[j] + a2 * dcosthetadx[j] * cos_theta ) * (r * drdx[i] + a2 * dcosthetadx[i] * cos_theta) / (r2 + a2 * cos_theta2)
+            - (drdx[j] * drdx[i] + r * d2rdx2[i][j] + dcosthetadx[i] * dcosthetadx[j] + cos_theta * d2costhetadx2[i][j]) ) );
+        }
         // note to use convention as in rest of tensors the last index is the
         // derivative index so these are d_i l_j
         FOR1(i)
@@ -239,8 +313,29 @@ class KerrSchildFixedBG
             dldx[2][i] = -x[2] * drdx[i] / r2 + delta(i, 2) / r;
         }
 
+        // Second order partial derivatives for el
+
+        FOR2(i,j)
+        {
+            //el_x component
+            d2ldx2[0][i][j] = delta(j,0) * drdx[i] + x[0] * d2rdx2[i][j] + drdx[j] * delta(i,0)
+            - ((2.0 * drdx[i] * drdx[j] - 2.0 * r * d2rdx2[i][j]) * (r * x[0] + a * x[1]) - 2.0 * r * drdx[i] * (drdx[j] * x[0] + r * delta(j,0) + a * delta(j,1) )) / (r2 + a2) / (r2 + a2)
+            + 8.0 * r2 * drdx[i] * drdx[j] * (r * x[0] + a * x[1]) * pow((r2 + a2),-3.0);
+
+            //el_y component
+            d2ldx2[1][i][j] = delta(j,1) * drdx[i] + x[1] * d2rdx2[i][j] + drdx[j] * delta(i,0)
+            - ((2.0 * drdx[i] * drdx[j] - 2.0 * r * d2rdx2[i][j]) * (r * x[1] - a * x[0]) - 2.0 * r * drdx[i] * (drdx[j] * x[1] + r * delta(j,1) - a * delta(j,0) )) / (r2 + a2) / (r2 + a2)
+            + 8.0 * r2 * drdx[i] * drdx[j] * (r * x[1] - a * x[0]) * pow((r2 + a2),-3.0);
+
+            //el_z component
+            d2ldx2[2][i][j] = -(delta(j,2) * drdx[i] + x[2] * d2rdx2[i][j] + 2 * x[2] * drdx[i] * drdx[j] - delta(i,2) * drdx[j]) / r2;
+        }
+
         // then dltdi
         FOR1(i) { dltdx[i] = 0.0; }
+
+        //NEW
+        FOR2(i,j) { d2ltdx2[i][j] = 0.0; }
     }
 
   public:

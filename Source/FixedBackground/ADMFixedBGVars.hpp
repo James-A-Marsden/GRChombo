@@ -23,8 +23,12 @@ template <class data_t> struct Vars
     data_t lapse;
     Tensor<1, data_t> shift;
     Tensor<2, Tensor<1, data_t>> d1_gamma;
+    Tensor<2, Tensor<2, data_t>> d2_gamma;
     Tensor<1, data_t> d1_lapse;
     Tensor<2, data_t> d1_shift;
+    //Extra derivatives needed for tensor field case
+    Tensor<2, data_t> d2_lapse;
+    Tensor<3, data_t> d2_shift;
 };
 
 } // namespace ADMFixedBGVars
