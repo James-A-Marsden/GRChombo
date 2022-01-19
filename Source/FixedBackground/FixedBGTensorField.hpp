@@ -20,7 +20,6 @@
 //!  Calculates the matter type specific elements such as the EMTensor and
 //   matter evolution
 /*!
-    work in progress :v)
 
      \sa MatterCCZ4(), ConstraintsMatter()
 */

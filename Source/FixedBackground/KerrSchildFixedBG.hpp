@@ -133,7 +133,7 @@ class KerrSchildFixedBG
 
         FOR3(i,j,k)
         {
-            2.0 * (dHdx[k] * el[i] * el[j] + H * dldx[i][k] * el[j] + H * el[i] * dldx[j][k]
+            d1_gamma_UU[i][j][k] = 2.0 * (dHdx[k] * el[i] * el[j] + H * dldx[i][k] * el[j] + H * el[i] * dldx[j][k]
             + 2.0 * vars.lapse * vars.d1_lapse[k] * vars.shift[i] * vars.shift[j]
             + vars.lapse * vars.lapse * (vars.d1_shift[i][k] * vars.shift[j] + vars.shift[i] * vars.d1_shift[j][k]));
         }
@@ -241,6 +241,13 @@ class KerrSchildFixedBG
                     + chris_phys.ULL[m][i][j] * vars.gamma[m][n] * vars.d1_shift[n][k]);
                 }
             }
+        }
+
+        //Derivative of the trace, \partial_i K = \partial_i(gamma^jk K_jk)
+
+        FOR3(i,j,k)
+        {
+            vars.d1_K[i] = d1_gamma_UU[j][k][i] * vars.K_tensor[j][k] + gamma_UU[j][k] * vars.d1_K_tensor[j][k][i];
         }
     }
 

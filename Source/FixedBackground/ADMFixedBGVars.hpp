@@ -21,6 +21,7 @@ template <class data_t> struct Vars
     Tensor<2, data_t> K_tensor;
     Tensor<2, Tensor<1,data_t>> d1_K_tensor; 
     data_t K;
+    Tensor<1, data_t> d1_K;
     data_t lapse;
     Tensor<1, data_t> shift;
     Tensor<2, Tensor<1, data_t>> d1_gamma;
