@@ -34,15 +34,16 @@ class SimulationParameters : public FixedBGSimulationParametersBase
         //        pp.load("bh_velocity", bg_params.velocity, 0.0);
         pp.load("bh_spin", bg_params.spin, 0.0);
         pp.load("bh_center", bg_params.center, center);
-        pp.load("field_amplitude_re", field_amplitude_re);
-        pp.load("field_amplitude_im", field_amplitude_im);
+        //pp.load("field_amplitude_re", field_amplitude_re);
+        //pp.load("field_amplitude_im", field_amplitude_im);
         pp.load("tensor_mass", potential_params.tensor_mass);
         pp.load("inner_r", inner_r, 1.0);
         pp.load("outer_r", outer_r, 0.75 * L);
     }
 
     // Problem specific parameters
-    double field_amplitude_re, field_amplitude_im, regrid_length;
+    //double field_amplitude_re, field_amplitude_im, regrid_length;
+    double regrid_length;
     double inner_r, outer_r;
     std::string integral_filename;
     // Collection of parameters necessary for the sims

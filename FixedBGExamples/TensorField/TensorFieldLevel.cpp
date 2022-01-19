@@ -47,8 +47,9 @@ void TensorFieldLevel::initialData()
     // constraints etc, then initial conditions for fields
     SetValue set_zero(0.0);
     KerrSchildFixedBG boosted_bh(m_p.bg_params, m_dx); // just calculates chi
-    InitialConditions set_phi(m_p.field_amplitude_re, m_p.field_amplitude_im,
-                              m_p.potential_params.tensor_mass, m_p.center,
+    //m_p.field_amplitude_re, m_p.field_amplitude_im,
+
+    InitialConditions set_phi(m_p.potential_params.tensor_mass, m_p.center,
                               m_p.bg_params, m_dx);
     auto compute_pack = make_compute_pack(set_zero, boosted_bh);
     BoxLoops::loop(compute_pack, m_state_diagnostics, m_state_diagnostics,
@@ -74,6 +75,7 @@ void TensorFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     // zero these
     TensorPotential potential(m_p.potential_params);
     TensorFieldWithPotential tensor_field(potential);
+    //TensorFieldWithPotential;
     KerrSchildFixedBG boosted_bh(m_p.bg_params, m_dx);
     FixedBGEvolution<TensorFieldWithPotential, KerrSchildFixedBG> my_matter(
         tensor_field, boosted_bh, m_p.sigma, m_dx, m_p.center);
@@ -114,6 +116,7 @@ void TensorFieldLevel::specificPostTimeStep()
     }
 
     // write out the integral after each coarse timestep
+    /*
     if (m_level == 0)
     {
         bool first_step = (m_time == m_dt);
@@ -142,6 +145,7 @@ void TensorFieldLevel::specificPostTimeStep()
                                       m_restart_time);
         my_extraction.execute_query(m_gr_amr.m_interpolator);
     }
+    */
 }
 
 void TensorFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,

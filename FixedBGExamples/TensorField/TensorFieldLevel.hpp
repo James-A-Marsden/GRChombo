@@ -30,7 +30,8 @@ class TensorFieldLevel : public GRAMRLevel
     // Typedef for tensor field
     typedef FixedBGTensorField<TensorPotential>
         TensorFieldWithPotential;
-
+    //typedef FixedBGTensorField
+    //    TensorFieldWithPotential;
     //! Things to do at the end of the advance step, after RK4 calculation
     virtual void specificAdvance();
 

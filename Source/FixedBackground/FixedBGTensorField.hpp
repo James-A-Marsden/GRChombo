@@ -16,6 +16,8 @@
 #include "TensorAlgebra.hpp"
 #include "UserVariables.hpp" //This files needs NUM_VARS, total num of components
 #include "VarsTools.hpp"
+#include "simd.hpp"
+
 
 //!  Calculates the matter type specific elements such as the EMTensor and
 //   matter evolution
@@ -25,6 +27,28 @@
 */
 //template <class potential_t = DefaultPotential> class FixedBGTensorField
 //Changed from ^^
+
+/*
+//Load in the tensor field mass 
+
+class TensorPotential
+{
+public:
+    struct params_t
+    {
+        double tensor_mass;
+    };
+
+private:
+    const params_t m_params;
+
+const double m = m_params.tensor_mass;
+}
+*/
+
+
+
+
 template <class potential_t = TensorPotential> class FixedBGTensorField
 {
   protected:
@@ -33,7 +57,7 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
 
   public:
     //!  Constructor of class FixedBGTensorField, inputs are the matter
-    //!  parameters.
+    // //!  parameters.
     FixedBGTensorField(const potential_t a_potential)
         : my_potential(a_potential)
     {

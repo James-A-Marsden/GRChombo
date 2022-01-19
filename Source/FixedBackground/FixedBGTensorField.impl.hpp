@@ -11,6 +11,8 @@
 #define FIXEDBGTENSORFIELD_IMPL_HPP_
 
 // Calculate the stress energy tensor elements
+
+//emtensor_t<data_t> FixedBGTensorField<potential_t>
 template <class potential_t>
 template <class data_t, template <typename> class vars_t>
 emtensor_t<data_t> FixedBGTensorField<potential_t>::compute_emtensor(
@@ -25,9 +27,9 @@ emtensor_t<data_t> FixedBGTensorField<potential_t>::compute_emtensor(
                             chris_phys_ULL);
 
     // set the potential values
-    data_t V_of_F = 0.0;
-    data_t dVdF = 0.0;
-    my_potential.compute_potential(V_of_F, dVdF, vars);
+    //data_t V_of_F = 0.0;
+    //data_t dVdF = 0.0;
+    //my_potential.compute_potential(V_of_F, dVdF, vars);
 
     out.rho += 0;//V_of_phi;
     out.S += 0;//-3.0 * V_of_phi;
@@ -37,6 +39,8 @@ emtensor_t<data_t> FixedBGTensorField<potential_t>::compute_emtensor(
 }
 
 // Calculate the stress energy tensor elements
+
+//void FixedBGTensorField<potential_t>
 template <class potential_t>
 template <class data_t, template <typename> class vars_t>
 void FixedBGTensorField<potential_t>::emtensor_excl_potential(
@@ -68,6 +72,8 @@ void FixedBGTensorField<potential_t>::emtensor_excl_potential(
 }
 
 // Adds in the RHS for the matter vars
+
+//void FixedBGTensorField<potential_t>
 template <class potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t,
@@ -82,17 +88,19 @@ void FixedBGTensorField<potential_t>::matter_rhs(
     matter_rhs_excl_potential(total_rhs, vars, metric_vars, d1, d2, advec);
 
     // set the potential values
-    data_t V_of_F = 0.0;
-    data_t dVdF = 0.0;
+    //data_t V_of_F = 0.0;
+    //data_t dVdF = 0.0;
 
     // compute potential
-    my_potential.compute_potential(V_of_F, dVdF, vars);
+    //my_potential.compute_potential(V_of_F, dVdF, vars);
 
     // adjust RHS for the potential term
     //total_rhs.Pi += -metric_vars.lapse * dVdphi;
 }
 
 // the RHS excluding the potential terms
+
+//void FixedBGTensorField<potential_t>
 template <class potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t,
@@ -120,6 +128,9 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     //const double temp_F 0; 
     const double temp_d1_F =0;
     const double temp_T =0;
+
+
+    
 
     //Define some quantities
     data_t Tr_K;
@@ -169,6 +180,9 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
       w           0
     */
     //No summation indices
+
+    cout << vars.fhat << " fhat"; 
+
     rhs.fhat = advec.fhat + metric_vars.lapse * vars.w;
 
     rhs.w = advec.w + metric_vars.lapse * metric_vars.K * vars.w; 

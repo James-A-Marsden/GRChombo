@@ -22,14 +22,15 @@ class InitialConditions
 {
   protected:
     const double m_dx;
-    const double m_amplitude_re, m_amplitude_im;
-    const double m_omega;
+    //const double m_amplitude_re, m_amplitude_im;
+    //const double m_omega;
     const std::array<double, CH_SPACEDIM> m_center;
     const KerrSchildFixedBG::params_t m_bg_params;
-
+    const double m_tensor_mass;
 
     //load in Vars from the field
     // The evolution vars
+  
     template <class data_t>
     using Vars = FixedBGTensorField<TensorPotential>::template Vars<data_t>;
     // Now the non grid ADM vars
@@ -39,14 +40,14 @@ class InitialConditions
 
   public:
     //! The constructor for the class
-    InitialConditions(const double a_amplitude_re, const double a_amplitude_im,
-                      const double a_omega,
-                      const std::array<double, CH_SPACEDIM> a_center,
+    //const double a_amplitude_re, const double a_amplitude_im, const double a_omega,
+    InitialConditions(const double tensor_mass, const std::array<double, CH_SPACEDIM> a_center,
                       const KerrSchildFixedBG::params_t a_bg_params,
                       const double a_dx)
-        : m_dx(a_dx), m_amplitude_re(a_amplitude_re),
-          m_amplitude_im(a_amplitude_im), m_center(a_center), m_omega(a_omega),
-          m_bg_params(a_bg_params)
+        : m_dx(a_dx), m_center(a_center), m_bg_params(a_bg_params), m_tensor_mass(tensor_mass)
+        //, m_amplitude_re(a_amplitude_re),   
+        //m_amplitude_im(a_amplitude_im)
+        //m_omega(a_omega),
     {
     }
 
@@ -68,7 +69,6 @@ class InitialConditions
 
         Vars<data_t> vars;
         VarsTools::assign(vars,0.);
-
         Tensor<2,data_t> fspatial; //Spatial component of the tensor field
         Tensor<1,data_t> fbar; //Half-projected component of the tensor field
         data_t fhat; //Scalar part of the tensor field 
@@ -78,17 +78,17 @@ class InitialConditions
         Tensor<1,data_t> p; //Spatial rank 1 p field
         Tensor<1,data_t> q; //Spatial rank 1 q field
         data_t w; //Scalar component
-
-        vars.fhat = 0;
+        const data_t initial_constant = 1e-5; 
+        vars.fhat = initial_constant;
         vars.w = 0;
         for(int i = 0; i < 3; i++)
         {
-          vars.fbar[i] = 0;
+          vars.fbar[i] = initial_constant;
           vars.p[i] = 0;
           vars.q[i] = 0;
           for(int j = 0; j < 3; j++)
           {
-            vars.fspatial[i][j] = 0;
+            vars.fspatial[i][j] = initial_constant;
             vars.u[i][j] = 0;
             vars.v[i][j] = 0;
           }
