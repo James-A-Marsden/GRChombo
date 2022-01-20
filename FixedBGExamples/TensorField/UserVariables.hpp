@@ -82,7 +82,7 @@ static const std::array<std::string, NUM_VARS> variable_names = {
     "u11", "u12", "u13", "u21", "u22", "u23", "u31", "u32", "u33", 
     "v11", "v12", "v13", "v22", "v23", "v33", 
     "p1", "p2", "p3", 
-    "q1", "q2", "q3" 
+    "q1", "q2", "q3",
     "w"};
     //"phi_Re", "Pi_Re", "phi_Im", "Pi_Im"};
 }

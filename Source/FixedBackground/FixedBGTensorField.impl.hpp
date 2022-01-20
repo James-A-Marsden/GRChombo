@@ -181,7 +181,6 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     */
     //No summation indices
 
-    cout << vars.fhat << " fhat"; 
 
     rhs.fhat = advec.fhat + metric_vars.lapse * vars.w;
 

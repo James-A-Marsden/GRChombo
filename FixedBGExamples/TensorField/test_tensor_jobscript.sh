@@ -11,10 +11,10 @@
 #SBATCH -o standard_output_file.%J.out
 #SBATCH -e standard_error_file.%J.err
 
-#SBATCH -p cosma7-pauper #or some other partition, e.g. cosma, cosma6, etc.
+#SBATCH -p cosma7 #or some other partition, e.g. cosma, cosma6, etc.
 
 #SBATCH -A dp092 #e.g. dp004
-#SBATCH -t 10:00
+#SBATCH -t 30:00
 
 #Set working directory
 #SBATCH -D ./
