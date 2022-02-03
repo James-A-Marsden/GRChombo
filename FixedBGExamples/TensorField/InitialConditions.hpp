@@ -27,6 +27,7 @@ class InitialConditions
     const std::array<double, CH_SPACEDIM> m_center;
     const KerrSchildFixedBG::params_t m_bg_params;
     const double m_tensor_mass;
+    const double m_initial_constant; 
 
     //load in Vars from the field
     // The evolution vars
@@ -43,8 +44,10 @@ class InitialConditions
     //const double a_amplitude_re, const double a_amplitude_im, const double a_omega,
     InitialConditions(const double tensor_mass, const std::array<double, CH_SPACEDIM> a_center,
                       const KerrSchildFixedBG::params_t a_bg_params,
-                      const double a_dx)
-        : m_dx(a_dx), m_center(a_center), m_bg_params(a_bg_params), m_tensor_mass(tensor_mass)
+                      const double a_dx, const double a_initial_constant)//, const double a_fhat, const Tensor<1,data_t> a_fbar, const Tensor<2,data_t> a_fspatial)
+        : m_dx(a_dx), m_center(a_center), m_bg_params(a_bg_params), m_tensor_mass(tensor_mass),
+        m_initial_constant(a_initial_constant)
+        //m_fhat(a_fhat), m_fbar(a_fbar), m_fspatial(a_fspatial)
         //, m_amplitude_re(a_amplitude_re),   
         //m_amplitude_im(a_amplitude_im)
         //m_omega(a_omega),
@@ -64,51 +67,44 @@ class InitialConditions
         const data_t det_gamma =
             TensorAlgebra::compute_determinant_sym(metric_vars.gamma);
 
+        //Populate the field variables with their initial conditions
+        //data_t fhat = m_fhat; 
+        //Tensor<1, data_t> fbar = m_fbar;
+        //Tensor<2, data_t> fspatial = m_fspatial;
+        const double initial_constant = m_initial_constant; 
+        //const mass = tensor_mass; 
         //data_t phi_Re = m_amplitude_re;
         //data_t Pi_Im = m_amplitude_im * m_omega;
 
         Vars<data_t> vars;
         VarsTools::assign(vars,0.);
-        Tensor<2,data_t> fspatial; //Spatial component of the tensor field
-        Tensor<1,data_t> fbar; //Half-projected component of the tensor field
-        data_t fhat; //Scalar part of the tensor field 
+        //Tensor<2,data_t> fspatial; //Spatial component of the tensor field
+        //Tensor<1,data_t> fbar; //Half-projected component of the tensor field
+        //data_t fhat; //Scalar part of the tensor field 
         //Conjugate components
-        Tensor<2,data_t> u; // Spatial rank 2 u field
+        //Tensor<2,data_t> u; // Spatial rank 2 u field
         Tensor<2,data_t> v; //Spatial rank 2 v field
-        Tensor<1,data_t> p; //Spatial rank 1 p field
+        //Tensor<1,data_t> p; //Spatial rank 1 p field
         Tensor<1,data_t> q; //Spatial rank 1 q field
         data_t w; //Scalar component
-        const data_t initial_constant = 1e-5; 
+        //const data_t initial_constant = 1; 
+
         vars.fhat = initial_constant;
-        vars.w = 0;
+        vars.w = 0.0;
+
         for(int i = 0; i < 3; i++)
         {
           vars.fbar[i] = initial_constant;
-          vars.p[i] = 0;
-          vars.q[i] = 0;
+          //vars.p[i] = 0.0;
+          vars.q[i] = 0.0;
           for(int j = 0; j < 3; j++)
           {
             vars.fspatial[i][j] = initial_constant;
-            vars.u[i][j] = 0;
-            vars.v[i][j] = 0;
+            //vars.u[i][j] = 0.0;
+            vars.v[i][j] = 0.0;
           }
         }
         current_cell.store_vars(vars);
-        // Store the initial values of the variables
-        //current_cell.store_vars(phi_Re, c_phi_Re);
-        //current_cell.store_vars(0.0, c_phi_Im);
-        //current_cell.store_vars(0.0, c_Pi_Re);
-        //current_cell.store_vars(Pi_Im, c_Pi_Im);
-        /*
-        current_cell.store_vars(fspatial, c_fspatial);
-        current_cell.store_vars(fbar, c_fbar);
-        current_cell.store_vars(fhat, c_fhat);
-        current_cell.store_vars(u, c_u);
-        current_cell.store_vars(v, c_v);
-        current_cell.store_vars(p, c_p);
-        current_cell.store_vars(q, c_q);
-        current_cell.store_vars(0, c_w);
-        */
     }
 };
 

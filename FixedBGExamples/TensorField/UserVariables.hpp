@@ -38,6 +38,7 @@ enum
 
     //First Rank 2 component conjugate field 
     //Recall that this is not symmetric!
+    /*
     c_u11,
     c_u12,
     c_u13,
@@ -47,7 +48,7 @@ enum
     c_u31,
     c_u32,
     c_u33, 
-
+    */
     //Second Rank 2 component conjugate field
     c_v11,
     c_v12,
@@ -57,10 +58,11 @@ enum
     c_v33,
     
     //Rank 1 component conjugate field
+    /*
     c_p1,
     c_p2,
     c_p3,
-
+    */
     //Rank 1 component conjugate field 
     c_q1,
     c_q2,
@@ -79,9 +81,9 @@ static const std::array<std::string, NUM_VARS> variable_names = {
     "fspatial11", "fspatial12", "fspatial13", "fspatial22", "fspatial23", "fspatial33", 
     "fbar1", "fbar2", "fbar3", 
     "fhat", 
-    "u11", "u12", "u13", "u21", "u22", "u23", "u31", "u32", "u33", 
+    //"u11", "u12", "u13", "u21", "u22", "u23", "u31", "u32", "u33", 
     "v11", "v12", "v13", "v22", "v23", "v33", 
-    "p1", "p2", "p3", 
+    //"p1", "p2", "p3", 
     "q1", "q2", "q3",
     "w"};
     //"phi_Re", "Pi_Re", "phi_Im", "Pi_Im"};

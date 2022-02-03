@@ -120,7 +120,6 @@ class KerrSchildFixedBG
                 vars.shift[i] += gamma_UU[i][j] * 2.0 * H * el[j] * el_t;
             }
         }
-
         // Calculate partial derivative of spatial metric
         FOR3(i, j, k)
         {
@@ -129,13 +128,42 @@ class KerrSchildFixedBG
                        H * el[j] * dldx[i][k]);
         }
         
-        Tensor<2, Tensor<1, data_t>> d1_gamma_UU;
+        //Tensor<2, Tensor<1, data_t>> d1_gamma_UU;
+                // First define some useful quantities:
+        Tensor<2, data_t> lambda_UU; 
+        //Manually define its contents as there isn't any nice symmetry we can use 
+        lambda_UU[0][0] = el[1] * el[1] + el[2] * el[2]; 
+        lambda_UU[0][1] = -el[0] * el[1];
+        lambda_UU[0][2] = -el[0] * el[2];
+        lambda_UU[1][1] = el[0] * el[0] + el[2] * el[2];
+        lambda_UU[1][2] = el[1] * el[2];
+        lambda_UU[2][2] = el[0] * el[0] + el[1] * el[1];
+        //Symmetries
+        lambda_UU[1][0] = lambda_UU[0][1];
+        lambda_UU[2][0] = lambda_UU[0][2];
+        lambda_UU[2][1] = lambda_UU[1][2];
+        //Deivatives of lambda_UU
+        Tensor<2, Tensor<1, data_t>> d1_lambda_UU;
+        FOR1(i)
+            d1_lambda_UU[0][0][i] = 2.0 * dldx[1][i] * el[1] + 2.0 * dldx[2][i] * el[2];
+            d1_lambda_UU[0][1][i] = -dldx[0][i] * el[1] - el[0] * dldx[1][i]; 
+            d1_lambda_UU[0][2][i] = -dldx[0][i] * el[2] - el[0] * dldx[2][i];
+            d1_lambda_UU[1][1][i] = 2.0 * dldx[0][i] * el[0] + 2.0 * dldx[2][i] * el[2];
+            d1_lambda_UU[1][2][i] = -dldx[1][i] * el[2] - el[1] * dldx[2][i];
+            d1_lambda_UU[2][2][i] = 2.0 * dldx[0][i] * el[0] + 2.0 * dldx[1][i] * el[1]; 
+            //Symmetries
+            d1_lambda_UU[1][0][i] = d1_lambda_UU[0][1][i];
+            d1_lambda_UU[2][0][i] = d1_lambda_UU[0][2][i];
+            d1_lambda_UU[2][1][i] = d1_lambda_UU[1][2][i];
 
         FOR3(i,j,k)
         {
-            d1_gamma_UU[i][j][k] = 2.0 * (dHdx[k] * el[i] * el[j] + H * dldx[i][k] * el[j] + H * el[i] * dldx[j][k]
-            + 2.0 * vars.lapse * vars.d1_lapse[k] * vars.shift[i] * vars.shift[j]
-            + vars.lapse * vars.lapse * (vars.d1_shift[i][k] * vars.shift[j] + vars.shift[i] * vars.d1_shift[j][k]));
+            vars.d1_gamma_UU[i][j][k] = -2.0 * dHdx[k] / (1 + 2.0 * H) / (1 + 2.0 * H) * (TensorAlgebra::delta(i, j) + 2.0 * H * lambda_UU[i][j])
+            + 1/(1 + 2.0 * H) * (2.0 * dHdx[k] * lambda_UU[i][j]) + 1/(1 + 2.0 * H) * (2.0 * H * d1_lambda_UU[i][j][k]);
+            /*vars.d1_gamma_UU[i][j][k] = 2.0 * (dHdx[k] * el[i] * el[j] + H * dldx[i][k] * el[j] + H * el[i] * dldx[j][k])
+            - 2.0 * pow(vars.lapse,-3) * vars.d1_lapse[k] * vars.shift[i] * vars.shift[j]
+            + (vars.d1_shift[i][k] * vars.shift[j] + vars.shift[i] * vars.d1_shift[j][k])/ (vars.lapse * vars.lapse));
+            */
         }
         //Second derivative of the spatial metric (can simplify further)
         //2 loops as no FOR4
@@ -155,7 +183,7 @@ class KerrSchildFixedBG
         {
             FOR3(k, m, n)
             {
-                vars.d1_chris_phys[i][j][k][m] = d1_gamma_UU[i][n][m] * (vars.d1_gamma[k][n][j] + vars.d1_gamma[n][j][k] - vars.d1_gamma[j][k][n])
+                vars.d1_chris_phys[i][j][k][m] = vars.d1_gamma_UU[i][n][m] * (vars.d1_gamma[k][n][j] + vars.d1_gamma[n][j][k] - vars.d1_gamma[j][k][n])
                 + gamma_UU[i][n] * (vars.d2_gamma[k][n][j][m] + vars.d2_gamma[n][j][k][m] - vars.d2_gamma[j][k][n][m]);
             }
         }
@@ -247,7 +275,7 @@ class KerrSchildFixedBG
 
         FOR3(i,j,k)
         {
-            vars.d1_K[i] = d1_gamma_UU[j][k][i] * vars.K_tensor[j][k] + gamma_UU[j][k] * vars.d1_K_tensor[j][k][i];
+            vars.d1_K[i] = vars.d1_gamma_UU[j][k][i] * vars.K_tensor[j][k] + gamma_UU[j][k] * vars.d1_K_tensor[j][k][i];
         }
     }
 
@@ -335,7 +363,8 @@ class KerrSchildFixedBG
 
         FOR2(i, j)
         {
-            d2Hdx2[i][j] = dHdx[i] * dHdx[j] / H + H * (d2rdx2[i][j] / r - drdx[i] * drdx[j] / r2 
+            d2Hdx2[i][j] = dHdx[j] * (drdx[i] / r - 2.0 / (r2 + a2 * cos_theta2) * (r * drdx[i] + a2 * cos_theta * dcosthetadx[i]))
+            + H * (d2rdx2[i][j] / r - drdx[i] * drdx[j] / r2 
             + (2.0 / (r2 + a2 * cos_theta2)) *  ( (r * drdx[j] + a2 * dcosthetadx[j] * cos_theta ) * (r * drdx[i] + a2 * dcosthetadx[i] * cos_theta) / (r2 + a2 * cos_theta2)
             - (drdx[j] * drdx[i] + r * d2rdx2[i][j] + dcosthetadx[i] * dcosthetadx[j] + cos_theta * d2costhetadx2[i][j]) ) );
         }

@@ -30,4 +30,4 @@ module load intel_comp/2019 intel_mpi/2019 parallel_hdf5/1.10.3
 
 # Run the program
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
-mpirun -np $SLURM_NTASKS ./Main_TensorField3d.Linux.64.mpiicpc.ifort.OPT.MPI.OPENMPCC.ex params_tensor_test.txt
+mpirun -np $SLURM_NTASKS ../Main_TensorField3d.Linux.64.mpiicpc.ifort.OPT.MPI.OPENMPCC.ex params_tensor_test.txt

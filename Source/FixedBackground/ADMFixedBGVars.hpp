@@ -26,6 +26,7 @@ template <class data_t> struct Vars
     Tensor<1, data_t> shift;
     Tensor<2, Tensor<1, data_t>> d1_gamma;
     Tensor<2, Tensor<2, data_t>> d2_gamma;
+    Tensor<2, Tensor<1, data_t>> d1_gamma_UU;
     Tensor<3, Tensor<1, data_t>> d1_chris_phys; 
     Tensor<1, data_t> d1_lapse;
     Tensor<2, data_t> d1_shift;

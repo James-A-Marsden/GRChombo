@@ -39,12 +39,16 @@ class SimulationParameters : public FixedBGSimulationParametersBase
         pp.load("tensor_mass", potential_params.tensor_mass);
         pp.load("inner_r", inner_r, 1.0);
         pp.load("outer_r", outer_r, 0.75 * L);
+        pp.load("initial_constant", initial_constant, 1.0); 
+        //pp.load("tensor_field_mass", tensor_mass, 1);
     }
 
     // Problem specific parameters
     //double field_amplitude_re, field_amplitude_im, regrid_length;
     double regrid_length;
     double inner_r, outer_r;
+    double initial_constant; 
+    //double tensor_mass; 
     std::string integral_filename;
     // Collection of parameters necessary for the sims
     KerrSchildFixedBG::params_t bg_params;

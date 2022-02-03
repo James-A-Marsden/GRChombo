@@ -50,7 +50,7 @@ void TensorFieldLevel::initialData()
     //m_p.field_amplitude_re, m_p.field_amplitude_im,
 
     InitialConditions set_phi(m_p.potential_params.tensor_mass, m_p.center,
-                              m_p.bg_params, m_dx);
+                              m_p.bg_params, m_dx, m_p.initial_constant);
     auto compute_pack = make_compute_pack(set_zero, boosted_bh);
     BoxLoops::loop(compute_pack, m_state_diagnostics, m_state_diagnostics,
                    SKIP_GHOST_CELLS);

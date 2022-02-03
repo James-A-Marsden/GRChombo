@@ -7,11 +7,24 @@
 #define CHOMBOPARAMETERS_HPP_
 
 // General includes
+#include "ArrayTools.hpp"
 #include "BoundaryConditions.hpp"
+#include "FilesystemTools.hpp"
 #include "GRParmParse.hpp"
 #include "UserVariables.hpp"
+#include "unistd.h" // gives 'access'
 #include "VariableType.hpp"
 #include <algorithm>
+#include <string>
+
+// General includes
+
+
+
+
+
+
+
 
 class ChomboParameters
 {
@@ -117,6 +130,85 @@ class ChomboParameters
             }
         }
     }
+
+      void read_filesystem_params(GRParmParse &pp)
+    {
+        // In this function, cannot use default value - it may print a 'default
+        // message' to pout and a 'setPoutBaseName' must happen before
+        bool restart_from_checkpoint; 
+        restart_from_checkpoint = pp.contains("restart_file");
+        #ifdef CH_USE_HDF5
+                if (restart_from_checkpoint)
+                {
+                    pp.load("restart_file", restart_file);
+                }
+                pp.load("chk_prefix", checkpoint_prefix);
+                pp.load("plot_prefix", plot_prefix);
+        #endif
+
+        #ifdef CH_MPI
+                // Again, cannot use default value
+                if (pp.contains("pout_prefix"))
+                    pp.load("pout_prefix", pout_prefix);
+                else
+                    pout_prefix = "pout";
+        #endif
+
+                std::string default_path = "";
+                if (pp.contains("output_path"))
+                    pp.load("output_path", output_path);
+                else
+                    output_path = default_path;
+
+        #ifdef CH_MPI
+                // user sets the 'subpath', we prepend 'output_path'
+                if (pp.contains("pout_subpath"))
+                    pp.load("pout_subpath", pout_path);
+                else
+                    pout_path = default_path;
+        #endif
+
+        #ifdef CH_USE_HDF5
+                // user sets the 'subpath', we prepend 'output_path'
+                if (pp.contains("hdf5_subpath"))
+                    pp.load("hdf5_subpath", hdf5_path);
+                else
+                    hdf5_path = default_path;
+        #endif
+
+                // add backslash to paths
+                if (!output_path.empty() && output_path.back() != '/')
+                    output_path += "/";
+        #ifdef CH_MPI
+                if (!pout_path.empty() && pout_path.back() != '/')
+                    pout_path += "/";
+        #endif
+        #ifdef CH_USE_HDF5
+                if (!hdf5_path.empty() && hdf5_path.back() != '/')
+                    hdf5_path += "/";
+        #endif
+
+                if (output_path != "./" && !output_path.empty())
+                {
+        #ifdef CH_MPI
+                    pout_path = output_path + pout_path;
+        #endif
+        #ifdef CH_USE_HDF5
+                    hdf5_path = output_path + hdf5_path;
+        #endif
+                }
+
+        #ifdef CH_MPI
+                // change pout base name!
+                if (!FilesystemTools::directory_exists(pout_path))
+                    FilesystemTools::mkdir_recursive(pout_path);
+                setPoutBaseName(pout_path + pout_prefix);
+        #endif
+
+                // only create hdf5 directory in setupAMRObject (when it becomes needed)
+            }
+
+
 
     void read_grid_params(GRParmParse &pp)
     {
@@ -266,17 +358,40 @@ class ChomboParameters
     Vector<int> ref_ratios;      // ref ratios between levels
     Vector<int> regrid_interval; // steps between regrid at each level
     int max_steps;
+
+    bool restart_from_checkpoint; // whether or not to restart or start afresh
+#ifdef CH_USE_HDF5
+    std::string restart_file;             // The path to the restart_file
     bool ignore_checkpoint_name_mismatch;   // ignore mismatch of variable names
                                             // between restart file and program
-    double dt_multiplier, stop_time;        // The Courant factor and stop time
-    int checkpoint_interval, plot_interval; // Steps between outputs
-    int max_grid_size, block_factor;        // max and min box sizes
-    double fill_ratio; // determines how fussy the regridding is about tags
+#endif
+    
+#ifdef CH_USE_HDF5
     std::string checkpoint_prefix, plot_prefix; // naming of files
+#endif
+    std::string output_path; // base path to use for all files
+#ifdef CH_MPI
+    std::string pout_prefix; // pout file prefix
+    std::string pout_path;   // base path for pout files
+#endif
+#ifdef CH_USE_HDF5
+    std::string hdf5_path; // base path for pout files
     bool write_plot_ghosts;
     int num_plot_vars;
     std::vector<std::pair<int, VariableType>>
         plot_vars; // vars to write to plot file
+#endif
+
+
+
+
+    
+    double dt_multiplier, stop_time;        // The Courant factor and stop time
+    int checkpoint_interval, plot_interval; // Steps between outputs
+    int max_grid_size, block_factor;        // max and min box sizes
+    double fill_ratio; // determines how fussy the regridding is about tags
+    
+    
 
     std::array<double, CH_SPACEDIM> origin,
         dx; // location of coarsest origin and dx
