@@ -34,7 +34,7 @@ num_plot_vars = 1
 plot_vars = fhat
 
 
-dt_multiplier = 0.1
+dt_multiplier = 0.05
 stop_time = 1300.0
 
 
@@ -45,9 +45,9 @@ stop_time = 1300.0
 #N1 = 16
 #N2 = 16
 #N3 = 16
-N1 = 64
-N2 = 64
-N3 = 64
+N1 = 32
+N2 = 32
+N3 = 32
 L = 2048
 
 #N_full = 32

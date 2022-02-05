@@ -87,7 +87,6 @@ class InitialConditions
         //Tensor<1,data_t> p; //Spatial rank 1 p field
         Tensor<1,data_t> q; //Spatial rank 1 q field
         data_t w; //Scalar component
-        //const data_t initial_constant = 1; 
 
         vars.fhat = initial_constant;
         vars.w = 0.0;

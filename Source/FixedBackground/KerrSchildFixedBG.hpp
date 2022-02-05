@@ -136,7 +136,7 @@ class KerrSchildFixedBG
         lambda_UU[0][1] = -el[0] * el[1];
         lambda_UU[0][2] = -el[0] * el[2];
         lambda_UU[1][1] = el[0] * el[0] + el[2] * el[2];
-        lambda_UU[1][2] = el[1] * el[2];
+        lambda_UU[1][2] = -el[1] * el[2];
         lambda_UU[2][2] = el[0] * el[0] + el[1] * el[1];
         //Symmetries
         lambda_UU[1][0] = lambda_UU[0][1];
@@ -145,6 +145,7 @@ class KerrSchildFixedBG
         //Deivatives of lambda_UU
         Tensor<2, Tensor<1, data_t>> d1_lambda_UU;
         FOR1(i)
+        {
             d1_lambda_UU[0][0][i] = 2.0 * dldx[1][i] * el[1] + 2.0 * dldx[2][i] * el[2];
             d1_lambda_UU[0][1][i] = -dldx[0][i] * el[1] - el[0] * dldx[1][i]; 
             d1_lambda_UU[0][2][i] = -dldx[0][i] * el[2] - el[0] * dldx[2][i];
@@ -155,18 +156,20 @@ class KerrSchildFixedBG
             d1_lambda_UU[1][0][i] = d1_lambda_UU[0][1][i];
             d1_lambda_UU[2][0][i] = d1_lambda_UU[0][2][i];
             d1_lambda_UU[2][1][i] = d1_lambda_UU[1][2][i];
-
+        }
         FOR3(i,j,k)
         {
+            
             vars.d1_gamma_UU[i][j][k] = -2.0 * dHdx[k] / (1 + 2.0 * H) / (1 + 2.0 * H) * (TensorAlgebra::delta(i, j) + 2.0 * H * lambda_UU[i][j])
             + 1/(1 + 2.0 * H) * (2.0 * dHdx[k] * lambda_UU[i][j]) + 1/(1 + 2.0 * H) * (2.0 * H * d1_lambda_UU[i][j][k]);
-            /*vars.d1_gamma_UU[i][j][k] = 2.0 * (dHdx[k] * el[i] * el[j] + H * dldx[i][k] * el[j] + H * el[i] * dldx[j][k])
+            
+            /*
+            vars.d1_gamma_UU[i][j][k] = 2.0 * (dHdx[k] * el[i] * el[j] + H * dldx[i][k] * el[j] + H * el[i] * dldx[j][k])
             - 2.0 * pow(vars.lapse,-3) * vars.d1_lapse[k] * vars.shift[i] * vars.shift[j]
-            + (vars.d1_shift[i][k] * vars.shift[j] + vars.shift[i] * vars.d1_shift[j][k])/ (vars.lapse * vars.lapse));
+            + (vars.d1_shift[i][k] * vars.shift[j] + vars.shift[i] * vars.d1_shift[j][k])/ (vars.lapse * vars.lapse);
             */
         }
         //Second derivative of the spatial metric (can simplify further)
-        //2 loops as no FOR4
         FOR1(i)
         {
             FOR3(j,k,m)
@@ -276,6 +279,21 @@ class KerrSchildFixedBG
         FOR3(i,j,k)
         {
             vars.d1_K[i] = vars.d1_gamma_UU[j][k][i] * vars.K_tensor[j][k] + gamma_UU[j][k] * vars.d1_K_tensor[j][k][i];
+        }
+
+        //spatial riemann curvature tensor 
+        
+        FOR1(i)
+        {
+            FOR3(j,k,l)
+            {
+                vars.riemann_phys_ULLL[i][j][k][l] = vars.d1_chris_phys[i][l][j][k] - vars.d1_chris_phys[i][k][j][l];
+
+                FOR1(m)
+                {
+                    vars.riemann_phys_ULLL[i][j][k][l] += chris_phys.ULL[m][l][j] * chris_phys.ULL[i][m][k] - chris_phys.ULL[m][k][j] * chris_phys.ULL[i][m][l]; 
+                }
+            }
         }
     }
 
