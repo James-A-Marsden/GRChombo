@@ -188,9 +188,10 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
     FOR3(i,j,k)
     {
+        scalarRiemannTerm = 0;
         FOR1(l)
         {
-            scalarRiemannTerm = gamma_UU[i][k] * gamma_UU[j][l] * Lie_n_K_tensor[i][j] * vars.fspatial[k][l]
+            scalarRiemannTerm += gamma_UU[i][k] * gamma_UU[j][l] * Lie_n_K_tensor[i][j] * vars.fspatial[k][l]
             + 1/metric_vars.lapse * metric_vars.d2_lapse[i][j] * gamma_UU[l][i] * gamma_UU[k][j] * vars.fspatial[l][k];
 
             FOR1(m)
@@ -207,23 +208,27 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
     Tensor<1, data_t> vectorRiemannTerm; 
 
-    FOR3(i,j,k)
+    FOR1(i)
     {
-        vectorRiemannTerm[i] = gamma_UU[j][k] * (Lie_n_K_tensor[i][j] + 1/metric_vars.lapse * metric_vars.d2_lapse[i][j])* vars.fbar[k];
-
-        FOR1(l)
+        vectorRiemannTerm[i] = 0; 
+        FOR2(j,k)
         {
-            vectorRiemannTerm[i] += -gamma_UU[j][k] / metric_vars.lapse * chris_phys.ULL[l][i][j] * metric_vars.d1_lapse[l] * vars.fbar[k];
-
-            FOR1(m)
+            vectorRiemannTerm[i] += gamma_UU[j][k] * (Lie_n_K_tensor[i][j] + 1/metric_vars.lapse * metric_vars.d2_lapse[i][j])* vars.fbar[k];
+        
+            FOR1(l)
             {
-                vectorRiemannTerm[i] += gamma_UU[j][k] * gamma_UU[l][m] * metric_vars.K_tensor[j][m] * metric_vars.K_tensor[i][l] / metric_vars.lapse
-                + gamma_UU[j][l] * gamma_UU[k][m] * (metric_vars.d1_K_tensor[j][k][i] - metric_vars.d1_K_tensor[i][k][j]) * vars.fspatial[l][m];
+                vectorRiemannTerm[i] += -gamma_UU[j][k] / metric_vars.lapse * chris_phys.ULL[l][i][j] * metric_vars.d1_lapse[l] * vars.fbar[k];
 
-                FOR1(n)
+                FOR1(m)
                 {
-                    vectorRiemannTerm[i] += gamma_UU[j][k] * gamma_UU[k][m] * (-chris_phys.ULL[n][i][k] * metric_vars.K_tensor[j][n] + chris_phys.ULL[n][j][k] * metric_vars.K_tensor[i][n]) * vars.fspatial[l][m];
-                } 
+                    vectorRiemannTerm[i] += gamma_UU[j][k] * gamma_UU[l][m] * metric_vars.K_tensor[j][m] * metric_vars.K_tensor[i][l] / metric_vars.lapse
+                    + gamma_UU[j][l] * gamma_UU[k][m] * (metric_vars.d1_K_tensor[j][k][i] - metric_vars.d1_K_tensor[i][k][j]) * vars.fspatial[l][m];
+
+                    FOR1(n)
+                    {
+                        vectorRiemannTerm[i] += gamma_UU[j][k] * gamma_UU[k][m] * (-chris_phys.ULL[n][i][k] * metric_vars.K_tensor[j][n] + chris_phys.ULL[n][j][k] * metric_vars.K_tensor[i][n]) * vars.fspatial[l][m];
+                    } 
+                }
             }
         }
     }
