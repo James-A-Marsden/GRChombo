@@ -96,6 +96,7 @@ class KerrSchildFixedBG
         Tensor<1, data_t> dHdx;
         Tensor<1, data_t> dltdx;
         Tensor<2, data_t> dldx;
+        Tensor<3, data_t> d2ldx2;
         Tensor<2, data_t> d2ltdx2;
         Tensor<2, data_t> d2Hdx2; 
         get_KS_derivs(dHdx, d2Hdx2, dldx, d2ldx2, dltdx, d2ltdx2, H, coords);

@@ -23,5 +23,5 @@ time.table.*
 *.patch
 *.log
 ipo_out.optrpt
-
+*.err
 Doxygen/html
