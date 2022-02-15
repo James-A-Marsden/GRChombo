@@ -87,7 +87,9 @@ class InitialConditions
         //Tensor<1,data_t> p; //Spatial rank 1 p field
         Tensor<1,data_t> q; //Spatial rank 1 q field
         data_t w; //Scalar component
-
+        data_t rad = coords.get_radius();
+        data_t value = 100*(exp(-rad) * sin(-rad));
+        
         vars.fhat = initial_constant;
         vars.w = 0.0;
 
@@ -101,7 +103,7 @@ class InitialConditions
             vars.fspatial[i][j] = initial_constant;
             //vars.u[i][j] = 0.0;
             vars.v[i][j] = 0.0;
-          }
+          } 
         }
         current_cell.store_vars(vars);
     }

@@ -258,14 +258,14 @@ class KerrSchildFixedBG
 
         FOR3(i, j, k)
         {
-            vars.d1_K_tensor[i][j][k] = 0;
+            vars.d1_K_tensor[i][j][k] = 0.0;
 
             FOR1(m)
             {
-                vars.d1_K_tensor[i][j][k] = vars.d1_gamma[m][j][k] * vars.d1_shift[m][i] + vars.gamma[m][j] * vars.d2_shift[m][i][k]
+                vars.d1_K_tensor[i][j][k] += vars.d1_gamma[m][j][k] * vars.d1_shift[m][i] + vars.gamma[m][j] * vars.d2_shift[m][i][k]
                 + vars.d1_gamma[m][i][k] * vars.d1_shift[m][j] + vars.gamma[m][i] * vars.d2_shift[m][j][k]
-                + (vars.d2_gamma[i][j][m][k] + vars.d2_gamma[m][j][i][k]) * vars.shift[m]
-                + (vars.d1_gamma[i][j][m] + vars.d1_gamma[m][j][i]) * vars.d1_shift[m][k];
+                + (vars.d2_gamma[m][i][j][k] + vars.d2_gamma[m][j][i][k]) * vars.shift[m]
+                + (vars.d1_gamma[m][i][j] + vars.d1_gamma[m][j][i]) * vars.d1_shift[m][k];
                 FOR1(n)
                 {
                     vars.d1_K_tensor[i][j][k] += -2.0 * (vars.d1_chris_phys[m][i][j][k] * vars.gamma[m][n] * vars.shift[n]
@@ -364,9 +364,9 @@ class KerrSchildFixedBG
         {
  
             d2rdx2[i][j] = -0.5/r * drdx[j] * drdx[i] + 0.5/r * (drhodx[i] * drhodx[j] + rho * d2rhodx2[i][j])
-            + 0.5/r * (d2rhodx2[i][j] * rho * (rho2 - a2) + drhodx[i] * drhodx[j] * (rho2 - a2) + 2.0 * drhodx[i] * drhodx[j] * rho
-            + 2.0 * delta(i,2) * delta(j,2) * a2) /denom
-            -0.5/r * (drhodx[i] * rho * (rho2 - a2) + 2.0 * delta(i,2) * a2 * z) /denom / denom * d1_denom[i];   
+            + 0.25/r * (d2rhodx2[i][j] * rho * (rho2 - a2) + drhodx[i] * drhodx[j] * (rho2 - a2) + 2.0 * drhodx[i] * drhodx[j] * rho2
+            + 2.0 * delta(i,2) * delta(j,2) * a2) * pow(0.25 * (rho2 - a2) * (rho2 - a2) + a2 * z * z, -0.5)
+            -0.25/r * (drhodx[i] * rho * (rho2 - a2) + 2.0 * delta(i,2) * a2 * z) * 0.5 * (drhodx[j] * rho * (rho2 - a2) + 2.0 * delta(j,2) * a2 * z) * pow(0.25 * (rho2 - a2) * (rho2 - a2) + a2 * z * z, -1.5);   
         }
 
         Tensor<1, data_t> dcosthetadx;
@@ -413,17 +413,29 @@ class KerrSchildFixedBG
         FOR2(i,j)
         {
             //el_x component
-            d2ldx2[0][i][j] = delta(j,0) * drdx[i] + x[0] * d2rdx2[i][j] + drdx[j] * delta(i,0)
-            - ((2.0 * drdx[i] * drdx[j] - 2.0 * r * d2rdx2[i][j]) * (r * x[0] + a * x[1]) - 2.0 * r * drdx[i] * (drdx[j] * x[0] + r * delta(j,0) + a * delta(j,1) )) / (r2 + a2) / (r2 + a2)
+            /*
+            d2ldx2[0][i][j] = delta(j,0) * drdx[i] + x[0] * d2rdx2[i][j] + drdx[j] * delta(i,0) +
+             ((-2.0 * drdx[i] * drdx[j] - 2.0 * r * d2rdx2[i][j]) * (r * x[0] + a * x[1]) - 2.0 * r * drdx[i] * (drdx[j] * x[0] + r * delta(j,0) + a * delta(j,1) )) / (r2 + a2) / (r2 + a2)
             + 8.0 * r2 * drdx[i] * drdx[j] * (r * x[0] + a * x[1]) * pow((r2 + a2),-3.0);
-
+            */
+            d2ldx2[0][i][j] = (delta(j,0) * drdx[i] + drdx[j] * delta(i,0)) / (r2 + a2)
+                            - 2.0 * drdx[j] * r * (x[0] * drdx[i] + r * delta(i,0) + a * delta(i,1)) / (r2 + a2) / (r2 + a2) +
+                            (-2.0 * drdx[j] * drdx[i] * (r * x[0] + a * x[1]) - 2.0 * r * d2rdx2[i][j] * (r * x[0] + a * x[1]) 
+                            - 2.0 * r * drdx[i] * (drdx[j] * x[0] + r * delta(j,0) + a * delta(j,1))) / (r2 + a2) / (r2 + a2)
+                            + 4.0 * r * drdx[i] * (r * x[0] + a * x[1]) * 2.0 * r * drdx[j] * pow((r2 + a2),-3.0);
             //el_y component
-            d2ldx2[1][i][j] = delta(j,1) * drdx[i] + x[1] * d2rdx2[i][j] + drdx[j] * delta(i,0)
-            - ((2.0 * drdx[i] * drdx[j] - 2.0 * r * d2rdx2[i][j]) * (r * x[1] - a * x[0]) - 2.0 * r * drdx[i] * (drdx[j] * x[1] + r * delta(j,1) - a * delta(j,0) )) / (r2 + a2) / (r2 + a2)
+            /*
+            d2ldx2[1][i][j] = delta(j,1) * drdx[i] + x[1] * d2rdx2[i][j] + drdx[j] * delta(i,0) +
+            ((-2.0 * drdx[i] * drdx[j] - 2.0 * r * d2rdx2[i][j]) * (r * x[1] - a * x[0]) - 2.0 * r * drdx[i] * (drdx[j] * x[1] + r * delta(j,1) - a * delta(j,0) )) / (r2 + a2) / (r2 + a2)
             + 8.0 * r2 * drdx[i] * drdx[j] * (r * x[1] - a * x[0]) * pow((r2 + a2),-3.0);
-
+            */
+            d2ldx2[1][i][j] = (delta(j,1) * drdx[i] + drdx[j] * delta(i,1)) / (r2 + a2)
+                - 2.0 * drdx[j] * r * (x[1] * drdx[i] + r * delta(i,1) - a * delta(i,0)) / (r2 + a2) / (r2 + a2) + 
+                (-2.0 * drdx[j] * drdx[i] * (r * x[1] - a * x[0]) - 2.0 * r * d2rdx2[i][j] * (r * x[1] - a * x[0]) 
+                - 2.0 * r * drdx[i] * (drdx[j] * x[1] + r * delta(j,1) - a * delta(j,0))) / (r2 + a2) / (r2 + a2)
+                + 4.0 * r * drdx[i] * (r * x[1] - a * x[0]) * 2.0 * r * drdx[j] * pow((r2 + a2),-3.0);
             //el_z component
-            d2ldx2[2][i][j] = -(delta(j,2) * drdx[i] + x[2] * d2rdx2[i][j] - 2 * x[2] * drdx[i] * drdx[j] /r + delta(i,2) * drdx[j]) / r2;
+            d2ldx2[2][i][j] = -(delta(j,2) * drdx[i] + x[2] * d2rdx2[i][j] - 2.0 * x[2] * drdx[i] * drdx[j] /r + delta(i,2) * drdx[j]) / r2;
         }
 
         // then dltdi
