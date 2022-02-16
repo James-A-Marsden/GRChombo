@@ -88,23 +88,33 @@ class InitialConditions
         Tensor<1,data_t> q; //Spatial rank 1 q field
         data_t w; //Scalar component
         data_t rad = coords.get_radius();
-        data_t value = 100*(exp(-rad) * sin(-rad));
+        data_t value = 200*(exp(-rad) * sin(-rad));
+        const double frequency = 2 * M_PI /128.0 ;
+        data_t amplitude = cos( - frequency * coords.x);
         
-        vars.fhat = initial_constant;
+        data_t momentum = -frequency * sin(-frequency * coords.x); 
+
+        vars.fhat = 0.0;
         vars.w = 0.0;
 
         for(int i = 0; i < 3; i++)
         {
-          vars.fbar[i] = initial_constant;
-          //vars.p[i] = 0.0;
+          vars.fbar[i] = 0.0;
           vars.q[i] = 0.0;
+
           for(int j = 0; j < 3; j++)
           {
-            vars.fspatial[i][j] = initial_constant;
-            //vars.u[i][j] = 0.0;
+            vars.fspatial[i][j] = 0.0;
             vars.v[i][j] = 0.0;
           } 
         }
+        vars.fspatial[0][0] = initial_constant * amplitude;
+        vars.fspatial[1][1] = -initial_constant * amplitude;
+        vars.fspatial[0][1] = initial_constant * amplitude;
+
+        vars.v[0][0] = initial_constant * momentum;
+        vars.v[1][1] = -initial_constant * momentum;
+        vars.v[0][1] = initial_constant * momentum;
         current_cell.store_vars(vars);
     }
 };

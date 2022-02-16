@@ -145,11 +145,11 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
         FOR1(l)
         {
             d1_i_F[i][j][k][l] = d2.fspatial[j][k][i][l] - d1.fbar[j][l] * metric_vars.K_tensor[i][k] - vars.fbar[j] * metric_vars.d1_K_tensor[i][k][l]
-            - d1.fbar[k][l] * metric_vars.K_tensor[i][j] - vars.fbar[k] * metric_vars.d1_K_tensor[i][j][l];  
+                                                        - d1.fbar[k][l] * metric_vars.K_tensor[i][j] - vars.fbar[k] * metric_vars.d1_K_tensor[i][j][l];  
             FOR1(m)
             {
                 d1_i_F[i][j][k][l] += - metric_vars.d1_chris_phys[m][i][j][l] * vars.fspatial[m][k] - chris_phys.ULL[m][i][j] * d1.fspatial[m][k][l]
-                - metric_vars.d1_chris_phys[m][i][k][l] * vars.fspatial[j][m] - chris_phys.ULL[m][i][k] * d1.fspatial[j][m][l]; 
+                                    - metric_vars.d1_chris_phys[m][i][k][l] * vars.fspatial[j][m] - chris_phys.ULL[m][i][k] * d1.fspatial[j][m][l]; 
             }
         }
     }
@@ -341,7 +341,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     
     FOR2(i,j)
     {
-        i_u[i][j] = d1.fbar[i][j] - vars.fhat * metric_vars.K_tensor[i][j];
+        i_u[i][j] = d1.fbar[j][i] - vars.fhat * metric_vars.K_tensor[i][j];
 
         FOR1(k)
         {
@@ -349,7 +349,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
             FOR1(l)
             {
-                i_u[i][j] += gamma_UU[l][k] * vars.fspatial[i][k] * metric_vars.K_tensor[j][l];
+                i_u[i][j] += -gamma_UU[l][k] * vars.fspatial[j][k] * metric_vars.K_tensor[i][l];
             }
         }
     }
@@ -359,7 +359,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     Tensor<2, Tensor<1, data_t>> d1_i_u; 
     FOR3(i,j,k)
     {
-        d1_i_u[i][j][k] = -d1.fhat[k] * metric_vars.K_tensor[i][j] - vars.fhat * metric_vars.d1_K_tensor[i][j][k] + d2.fbar[i][j][k]; 
+        d1_i_u[i][j][k] = -d1.fhat[k] * metric_vars.K_tensor[i][j] - vars.fhat * metric_vars.d1_K_tensor[i][j][k] + d2.fbar[j][i][k]; 
 
         FOR1(l)
         {
@@ -367,8 +367,8 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
             FOR1(m)
             {
-                d1_i_u[i][j][k] += metric_vars.d1_gamma_UU[l][m][k] * vars.fspatial[i][m] * metric_vars.K_tensor[j][l] + gamma_UU[l][m] * d1.fspatial[i][m][k] * metric_vars.K_tensor[j][l]
-                + gamma_UU[l][m] * vars.fspatial[i][m] * metric_vars.d1_K_tensor[j][l][k];
+                d1_i_u[i][j][k] += metric_vars.d1_gamma_UU[l][m][k] * vars.fspatial[j][m] * metric_vars.K_tensor[i][l] + gamma_UU[l][m] * d1.fspatial[j][m][k] * metric_vars.K_tensor[i][l]
+                + gamma_UU[l][m] * vars.fspatial[j][m] * metric_vars.d1_K_tensor[i][l][k];
             }
         }
     }

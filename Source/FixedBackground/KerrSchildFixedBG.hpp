@@ -185,7 +185,7 @@ class KerrSchildFixedBG
             FOR3(k, m, n)
             {
                 vars.d1_chris_phys[i][j][k][m] = vars.d1_gamma_UU[i][n][m] * (vars.d1_gamma[k][n][j] + vars.d1_gamma[n][j][k] - vars.d1_gamma[j][k][n])
-                + gamma_UU[i][n] * (vars.d2_gamma[k][n][j][m] + vars.d2_gamma[n][j][k][m] - vars.d2_gamma[j][k][n][m]);
+                                                + gamma_UU[i][n] * (vars.d2_gamma[k][n][j][m] + vars.d2_gamma[n][j][k][m] - vars.d2_gamma[j][k][n][m])/2.0;
             }
         }
 
@@ -222,15 +222,23 @@ class KerrSchildFixedBG
             dldx[i][k] * el_t *H));
             */
             vars.d2_shift[i][j][k] =
-            4.0 * vars.lapse * vars.d1_lapse[k] * dHdx[j] * el[i] * el_t + 2.0 * alpha2 * d2Hdx2[j][k] * el[i] * el_t
-            + 2.0 * alpha2 * dHdx[j] * dldx[i][k] * el_t + 2.0 * alpha2 * dHdx[j] * el[i] * dltdx[k]
-            + 4.0 * vars.d1_lapse[k] * vars.d1_lapse[j] * H * el[i] * el_t + 4.0 * vars.lapse * vars.d2_lapse[j][k] * H * el[i] * el_t
-            + 4.0 * vars.lapse * vars.d1_lapse[j] * dHdx[k] * el[i] * el_t + 4.0 * vars.lapse * vars.d1_lapse[j] * H * dldx[i][k] * el_t
+            4.0 * vars.lapse * vars.d1_lapse[k] * dHdx[j] * el[i] * el_t 
+            + 2.0 * alpha2 * d2Hdx2[j][k] * el[i] * el_t
+            + 2.0 * alpha2 * dHdx[j] * dldx[i][k] * el_t 
+            + 2.0 * alpha2 * dHdx[j] * el[i] * dltdx[k]
+            + 4.0 * vars.d1_lapse[k] * vars.d1_lapse[j] * H * el[i] * el_t 
+            + 4.0 * vars.lapse * vars.d2_lapse[j][k] * H * el[i] * el_t
+            + 4.0 * vars.lapse * vars.d1_lapse[j] * dHdx[k] * el[i] * el_t 
+            + 4.0 * vars.lapse * vars.d1_lapse[j] * H * dldx[i][k] * el_t
             + 4.0 * vars.lapse * vars.d1_lapse[j] * H * el[i] * dltdx[k]
-            + 4.0 * vars.d1_lapse[k] * vars.lapse * H * dldx[i][j] * el_t + 2.0 * alpha2 * dHdx[k] * dldx[i][j] * el_t
-            + 2.0 * alpha2 * H * d2ldx2[i][j][k] * el_t + 2.0 * alpha2 * H * dldx[i][j] * dltdx[k]
-            + 4.0 * vars.d1_lapse[k] * vars.lapse * H * el[i] * dltdx[j] + 2.0 * alpha2 * dHdx[k] * el[i] * dltdx[j] 
-            + 2.0 * alpha2 * H * dldx[i][k] * dltdx[j] + 2.0 * alpha2 * H * el[i] * d2ltdx2[j][k];
+            + 4.0 * vars.d1_lapse[k] * vars.lapse * H * dldx[i][j] * el_t 
+            + 2.0 * alpha2 * dHdx[k] * dldx[i][j] * el_t
+            + 2.0 * alpha2 * H * d2ldx2[i][j][k] * el_t 
+            + 2.0 * alpha2 * H * dldx[i][j] * dltdx[k]
+            + 4.0 * vars.d1_lapse[k] * vars.lapse * H * el[i] * dltdx[j] 
+            + 2.0 * alpha2 * dHdx[k] * el[i] * dltdx[j] 
+            + 2.0 * alpha2 * H * dldx[i][k] * dltdx[j] 
+            + 2.0 * alpha2 * H * el[i] * d2ltdx2[j][k];
         }
         // calculate the extrinsic curvature, using the fact that
         // 2 * lapse * K_ij = D_i \beta_j + D_j \beta_i - dgamma_ij dt
@@ -263,7 +271,7 @@ class KerrSchildFixedBG
             FOR1(m)
             {
                 vars.d1_K_tensor[i][j][k] += vars.d1_gamma[m][j][k] * vars.d1_shift[m][i] + vars.gamma[m][j] * vars.d2_shift[m][i][k]
-                + vars.d1_gamma[m][i][k] * vars.d1_shift[m][j] + vars.gamma[m][i] * vars.d2_shift[m][j][k]
+                                            + vars.d1_gamma[m][i][k] * vars.d1_shift[m][j] + vars.gamma[m][i] * vars.d2_shift[m][j][k]
                 + (vars.d2_gamma[m][i][j][k] + vars.d2_gamma[m][j][i][k]) * vars.shift[m]
                 + (vars.d1_gamma[m][i][j] + vars.d1_gamma[m][j][i]) * vars.d1_shift[m][k];
                 FOR1(n)
@@ -387,7 +395,7 @@ class KerrSchildFixedBG
 
         FOR2(i, j)
         {
-            d2Hdx2[i][j] = dHdx[j] * (drdx[i] / r - 2.0 / (r2 + a2 * cos_theta2) * (r * drdx[i] + a2 * cos_theta * dcosthetadx[i]))
+            d2Hdx2[i][j] = H * (drdx[j] / r - 2.0 / (r2 + a2 * cos_theta2) * (r * drdx[j] + a2 * cos_theta * dcosthetadx[j])) * (drdx[i] / r - 2.0 / (r2 + a2 * cos_theta2) * (r * drdx[i] + a2 * cos_theta * dcosthetadx[i]))
             + H * (d2rdx2[i][j] / r - drdx[i] * drdx[j] / r2 
             + 4.0 / (r2 + a2 * cos_theta2) *  (r * drdx[j] + a2 * dcosthetadx[j] * cos_theta ) * (r * drdx[i] + a2 * dcosthetadx[i] * cos_theta) / (r2 + a2 * cos_theta2)
             - 2.0 * (drdx[j] * drdx[i] + r * d2rdx2[i][j] + a2 * dcosthetadx[i] * dcosthetadx[j] + a2 * cos_theta * d2costhetadx2[i][j]) / (r2 + a2 * cos_theta2));

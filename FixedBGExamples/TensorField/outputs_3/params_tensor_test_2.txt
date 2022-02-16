@@ -5,7 +5,7 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/TensorBH/Test5/"
+output_path = "/cosma7/data/dp092/dc-mars4/TensorBH/GWTest/"
 #chk_prefix = TensorTest_
 chk_prefix = TensorTestChk_
 plot_prefix = TensorTestPlot_
@@ -48,7 +48,7 @@ stop_time = 1300.0
 N1 = 32
 N2 = 32
 N3 = 32
-L = 256
+L = 128
 
 #N_full = 32
 #L_full = 16
@@ -62,7 +62,7 @@ L = 256
 
 # Level data
 # Maximum number of times you can regrid above coarsest level
-max_level = 8 # There are (max_level+1) grids, so min is zero
+max_level = 3 # There are (max_level+1) grids, so min is zero
 # Frequency of regridding at each level
 # Need one for each level, ie max_level+1 items
 # Generally you do not need to regrid frequently on every level
@@ -83,7 +83,7 @@ isPeriodic = 1 1 1
 # (see BoundaryConditions.hpp for details)
 #hi_boundary = 0 0 0
 #lo_boundary = 0 0 0
-center = 128.0 128.0 128.0
+center = 64.0 64.0 64.0
 
 # if reflective boundaries selected, must select 
 # parity values (in order given by UserVariables.hpp)
@@ -111,14 +111,14 @@ sigma = 0.3
 
 # Tensor Field Initial data
 
-initial_constant = 1.00
+initial_constant = 10.00
 tensor_mass = 0.00
 
 # not used
 #f_axion = 0.0
 
 # Boosted BH initial data, boost in x direction, spin in z direction
-bh_mass = 1.0
+bh_mass = 0.0
 bh_spin = 0.0 # This is a, so needs to be <= M
 #inner_r = 5.0
 #outer_r = 500.0
