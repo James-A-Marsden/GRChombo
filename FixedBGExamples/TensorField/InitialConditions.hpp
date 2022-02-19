@@ -90,9 +90,12 @@ class InitialConditions
         data_t rad = coords.get_radius();
         data_t value = 200*(exp(-rad) * sin(-rad));
         const double frequency = 2 * M_PI /128.0 ;
-        data_t amplitude = cos( - frequency * coords.x);
+
+        data_t factor = 1.0 * exp(-pow((coords.x - 5.0),2)/2 /2. /2.);
+        factor = 1;
+        data_t amplitude = factor * cos( - frequency * coords.x);
         
-        data_t momentum = -frequency * sin(-frequency * coords.x); 
+        data_t momentum = -frequency * factor * sin(-frequency * coords.x); 
 
         vars.fhat = 0.0;
         vars.w = 0.0;
@@ -100,7 +103,7 @@ class InitialConditions
         for(int i = 0; i < 3; i++)
         {
           vars.fbar[i] = 0.0;
-          vars.q[i] = 0.0;
+          //vars.q[i] = 0.0;
 
           for(int j = 0; j < 3; j++)
           {
@@ -108,6 +111,23 @@ class InitialConditions
             vars.v[i][j] = 0.0;
           } 
         }
+        vars.fspatial[0][0] = 10.0;
+        vars.fspatial[1][1] = -10.0;
+        
+        FOR1(i)
+        {
+          vars.q[i] = 0.0;
+          FOR2(k,j)
+          {
+            vars.q[i] += metric_vars.gamma_UU[j][k] * d1.fspatial[i][j][k]; 
+            FOR1(l)
+            {
+              vars.q[i] += -metric_vars.gamma_UU[j][k] * (metric_vars.chris_phys.ULL[l][i][k] * vars.fspatial[l][j] + metric_vars.chris_phys.ULL[l][j][k] * metric_vars.fspatial[i][l]);  
+            }
+          }
+        }
+        //vars.fspatial[2][2] = 0.0;
+        /*
         vars.fspatial[0][0] = initial_constant * amplitude;
         vars.fspatial[1][1] = -initial_constant * amplitude;
         vars.fspatial[0][1] = initial_constant * amplitude;
@@ -115,6 +135,7 @@ class InitialConditions
         vars.v[0][0] = initial_constant * momentum;
         vars.v[1][1] = -initial_constant * momentum;
         vars.v[0][1] = initial_constant * momentum;
+        */
         current_cell.store_vars(vars);
     }
 };

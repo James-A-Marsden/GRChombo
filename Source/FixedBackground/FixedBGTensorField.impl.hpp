@@ -128,6 +128,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     //Temp
     //Tr_K = -0.01;
     //Defining the F variable for convenience
+
     Tensor<3, data_t> i_F;
 
     FOR3(i,j,k)
@@ -137,9 +138,10 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
         {
             i_F[i][j][k] += -chris_phys.ULL[l][i][j] * vars.fspatial[l][k] - chris_phys.ULL[l][i][k] * vars.fspatial[j][l]; 
         }
+        //i_F[i][j][k] = 0.0;
     }
     //and its first derivative
-    Tensor<3, Tensor<1,data_t>> d1_i_F;
+    Tensor<4, data_t> d1_i_F;
     FOR3(i,j,k)
     {
         FOR1(l)
@@ -151,12 +153,13 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
                 d1_i_F[i][j][k][l] += - metric_vars.d1_chris_phys[m][i][j][l] * vars.fspatial[m][k] - chris_phys.ULL[m][i][j] * d1.fspatial[m][k][l]
                                     - metric_vars.d1_chris_phys[m][i][k][l] * vars.fspatial[j][m] - chris_phys.ULL[m][i][k] * d1.fspatial[j][m][l]; 
             }
+            //d1_i_F[i][j][k][l] = 0.0;
         }
     }
 
     //Projections of the Riemann term, R_alpha mu beta nu f^alpha beta
     //First, define the Lie derivative of the extrinsic curvature along the normal vector
-    Tensor<2, Tensor<1, data_t>> cd1_K_tensor;
+    Tensor<3, data_t> cd1_K_tensor;
     FOR3(i,j,k)
     {
         cd1_K_tensor[i][j][k] = metric_vars.d1_K_tensor[i][j][k];
@@ -234,7 +237,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
             
             FOR1(l)
             {
-                vectorRiemannTerm[i] += -gamma_UU[j][k] * metric_vars.riemann_phys_ULLL[l][i][l][k] * vars.fbar[k];
+                vectorRiemannTerm[i] += -gamma_UU[j][k] * metric_vars.riemann_phys_ULLL[l][i][l][k] * vars.fbar[j];
                 
                 FOR1(m)
                 {
@@ -285,7 +288,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
                 FOR2(m,n)
                 {
                     tensorRiemannTerm[i][j] += gamma_UU[k][m] * gamma_UU[l][n] * (metric_vars.K_tensor[i][j] * metric_vars.K_tensor[k][l]
-                    - metric_vars.K_tensor[i][k] * metric_vars.K_tensor[j][l]) * vars.fspatial[m][n];
+                                                                                - metric_vars.K_tensor[i][k] * metric_vars.K_tensor[j][l]) * vars.fspatial[m][n];
                     FOR1(o)
                     {
                     tensorRiemannTerm[i][j] += gamma_UU[k][m] * gamma_UU[l][n] * metric_vars.gamma[i][o] * vars.fspatial[m][n] * metric_vars.riemann_phys_ULLL[o][k][j][l];
@@ -352,11 +355,13 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
                 i_u[i][j] += -gamma_UU[l][k] * vars.fspatial[j][k] * metric_vars.K_tensor[i][l];
             }
         }
+        //TESTING
+        //i_u[i][j] = 0.0;
     }
 
     // d1_u <-> d1_v
     
-    Tensor<2, Tensor<1, data_t>> d1_i_u; 
+    Tensor<3, data_t> d1_i_u; 
     FOR3(i,j,k)
     {
         d1_i_u[i][j][k] = -d1.fhat[k] * metric_vars.K_tensor[i][j] - vars.fhat * metric_vars.d1_K_tensor[i][j][k] + d2.fbar[j][i][k]; 
@@ -367,10 +372,11 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
             FOR1(m)
             {
-                d1_i_u[i][j][k] += metric_vars.d1_gamma_UU[l][m][k] * vars.fspatial[j][m] * metric_vars.K_tensor[i][l] + gamma_UU[l][m] * d1.fspatial[j][m][k] * metric_vars.K_tensor[i][l]
-                + gamma_UU[l][m] * vars.fspatial[j][m] * metric_vars.d1_K_tensor[i][l][k];
+                d1_i_u[i][j][k] += -metric_vars.d1_gamma_UU[l][m][k] * vars.fspatial[j][m] * metric_vars.K_tensor[i][l] - gamma_UU[l][m] * d1.fspatial[j][m][k] * metric_vars.K_tensor[i][l]
+                - gamma_UU[l][m] * vars.fspatial[j][m] * metric_vars.d1_K_tensor[i][l][k];
             }
         }
+        //d1_i_u[i][j][k] = 0.0;
     }
 
     Tensor<1, data_t> i_p;
@@ -383,7 +389,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
         {
             i_p[i] += -2.0 * gamma_UU[j][k] * vars.fbar[j] * metric_vars.K_tensor[i][k];
         }
-        
+        //i_p[i] = 0.0;
     }
     Tensor<2, data_t> d1_i_p;
     // d1_p <-> d1_q
@@ -396,6 +402,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
             d1_i_p[i][j] += -2.0 * (metric_vars.d1_gamma_UU[l][k][j] * vars.fbar[l] * metric_vars.K_tensor[i][k] 
             + gamma_UU[l][k] * d1.fbar[l][j] * metric_vars.K_tensor[i][k] + gamma_UU[l][k] * vars.fbar[l] * metric_vars.d1_K_tensor[i][k][j]); 
         }
+        //d1_i_p[i][j] = 0.0;
     }
     
 
@@ -412,6 +419,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
         rhs.q[i] = advec.q[i] + metric_vars.lapse * vars.q[i] * metric_vars.K - vars.w * metric_vars.d1_lapse[i] + metric_vars.lapse * temp_mass * temp_mass * vars.fbar[i] - 2.0 * metric_vars.lapse * vectorRiemannTerm[i];
 
+        
        //2 summation indices 
         FOR1(j)
         {   
@@ -433,7 +441,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
             //3 summation indices 
             FOR1(k)
             {   
-                rhs.fbar[i] += - gamma_UU[j][k] * vars.fspatial[i][j] * metric_vars.d1_lapse[k] - metric_vars.lapse * gamma_UU[j][k] * vars.fbar[j] * metric_vars.K_tensor[i][k];
+                rhs.fbar[i] += - gamma_UU[j][k] * vars.fspatial[i][j] * metric_vars.d1_lapse[k] - metric_vars.lapse * gamma_UU[j][k] * vars.fbar[j] * metric_vars.K_tensor[k][i];
 
                 rhs.fspatial[i][j] += vars.fspatial[k][j] * metric_vars.d1_shift[k][i] + vars.fspatial[i][k] * metric_vars.d1_shift[k][j];
 
@@ -461,6 +469,13 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
                         rhs.q[i] += metric_vars.lapse * gamma_UU[j][l] * gamma_UU[k][m] * i_F[j][k][i] * metric_vars.K_tensor[l][m];
 
                         rhs.v[i][j] += metric_vars.lapse * gamma_UU[k][l] * (chris_phys.ULL[m][l][k] * i_F[m][i][j] + chris_phys.ULL[m][l][i] * i_F[k][m][j] + chris_phys.ULL[m][l][j] * i_F[k][i][m]);
+                    
+                        //rhs.fhat = 0;
+                        //rhs.fbar[i] = 0.0;
+                        //rhs.fspatial[i][j] = 0.0;
+                        //rhs.w = 0.0;
+                        //rhs.q[i] = 0.0;
+                        //rhs.v[i][j] = 0.0;
                     }
 
                 }

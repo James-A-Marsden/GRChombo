@@ -28,13 +28,14 @@ template <class data_t> struct Vars
 
     //Extra variables needed for tensor field case
     Tensor<1, data_t> d1_K;    
-    Tensor<2, Tensor<1,data_t>> d1_K_tensor; 
+    Tensor<3, data_t> d1_K_tensor; 
     Tensor<2, data_t> d2_lapse;
     Tensor<3, data_t> d2_shift;
-    Tensor<2, Tensor<2, data_t>> d2_gamma;
-    Tensor<2, Tensor<1, data_t>> d1_gamma_UU;
-    Tensor<3, Tensor<1, data_t>> d1_chris_phys; 
-    Tensor<4, data_t> riemann_phys_ULLL;     
+    Tensor<4, data_t> d2_gamma;
+    Tensor<3, data_t> d1_gamma_UU;
+    Tensor<4, data_t> d1_chris_phys; 
+    Tensor<4, data_t> riemann_phys_ULLL;
+    Tensor<2, data_t> ricci_phys;     
 };
 
 } // namespace ADMFixedBGVars
