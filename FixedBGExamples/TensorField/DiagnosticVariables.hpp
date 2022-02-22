@@ -68,6 +68,7 @@ enum
     c_ricci_phys23,
     c_ricci_phys33,
     */
+    /*
     c_d1_K_tensor111,
     c_d1_K_tensor121,
     c_d1_K_tensor131,
@@ -86,6 +87,8 @@ enum
     c_d1_K_tensor223,
     c_d1_K_tensor233,
     c_d1_K_tensor333,
+    */
+    c_traceF,
 
     NUM_DIAGNOSTIC_VARS
 };
@@ -103,9 +106,12 @@ static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
     "d1_gamma_UU112", "d1_gamma_UU122", "d1_gamma_UU132", "d1_gamma_UU222", "d1_gamma_UU232", "d1_gamma_UU332",
     "d1_gamma_UU113", "d1_gamma_UU123", "d1_gamma_UU133", "d1_gamma_UU223", "d1_gamma_UU233", "d1_gamma_UU333"
     */
+    /*
     "d1_K_tensor111", "d1_K_tensor121", "d1_K_tensor131", "d1_K_tensor221", "d1_K_tensor231", "d1_K_tensor331",
     "d1_K_tensor112", "d1_K_tensor122", "d1_K_tensor132", "d1_K_tensor222", "d1_K_tensor232", "d1_K_tensor332",
     "d1_K_tensor113", "d1_K_tensor123", "d1_K_tensor133", "d1_K_tensor223", "d1_K_tensor233", "d1_K_tensor333",
+    */
+    "traceF"
     };
 /*
     

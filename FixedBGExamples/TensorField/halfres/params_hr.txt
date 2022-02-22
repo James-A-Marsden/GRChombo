@@ -5,7 +5,7 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/TensorBH/fullres/"
+output_path = "/cosma7/data/dp092/dc-mars4/TensorBH/halfres/"
 #chk_prefix = TensorTest_
 chk_prefix = TensorTestChk_
 plot_prefix = TensorTestPlot_
@@ -46,12 +46,10 @@ stop_time = 1300.0
 # Set up grid spacings and regrid params
 # NB - the N values need to be multiples of block_factor
 
-#N1 = 16
-#N2 = 16
-#N3 = 16
-N1 = 32
-N2 = 32
-N3 = 32
+
+N1 = 16
+N2 = 16
+N3 = 16
 L = 128
 
 #N_full = 32

@@ -64,7 +64,26 @@ void TensorFieldLevel::initialData()
 }
 
 // Things to do before outputting a plot file
-void TensorFieldLevel::prePlotLevel() {}
+void TensorFieldLevel::prePlotLevel() {
+
+    fillAllGhosts();
+    TensorPotential potential(m_p.potential_params);
+    TensorFieldWithPotential tensor_field(potential);
+    KerrSchildFixedBG boosted_bh(m_p.bg_params, m_dx);
+    FixedBGDensities<TensorFieldWithPotential, KerrSchildFixedBG>
+        densities(tensor_field, boosted_bh, m_dx, m_p.center);
+    FixedBGFluxes<TensorFieldWithPotential,
+                                    KerrSchildFixedBG>
+        energy_fluxes(tensor_field, boosted_bh, m_dx, m_p.center);
+    BoxLoops::loop(make_compute_pack(densities, energy_fluxes),
+                    m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS);
+    // excise within horizon
+    BoxLoops::loop(
+        ExcisionDiagnostics<TensorFieldWithPotential, KerrSchildFixedBG>(
+            m_dx, m_p.center, boosted_bh, m_p.inner_r, m_p.outer_r),
+        m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
+        disable_simd());     
+}
 
 // Things to do in RHS update, at each RK4 step
 void TensorFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,

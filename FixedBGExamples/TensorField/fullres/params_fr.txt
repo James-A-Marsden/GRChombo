@@ -46,9 +46,7 @@ stop_time = 1300.0
 # Set up grid spacings and regrid params
 # NB - the N values need to be multiples of block_factor
 
-#N1 = 16
-#N2 = 16
-#N3 = 16
+
 N1 = 32
 N2 = 32
 N3 = 32

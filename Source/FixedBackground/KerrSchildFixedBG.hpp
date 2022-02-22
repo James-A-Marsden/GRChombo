@@ -194,6 +194,11 @@ class KerrSchildFixedBG
         }
 
                 // First define some useful quantities:
+
+         
+        //ADDED
+        vars.gamma_UU = compute_inverse_sym(vars.gamma);
+
         Tensor<2, data_t> lambda_UU; 
         //Manually define its contents as there isn't any nice symmetry we can use 
         lambda_UU[0][0] = el[1] * el[1] + el[2] * el[2]; 
@@ -362,7 +367,7 @@ class KerrSchildFixedBG
             vars.d1_K[i] = 0;
             FOR2(j,k)
             {
-                vars.d1_K[i] = vars.d1_gamma_UU[j][k][i] * vars.K_tensor[j][k] + gamma_UU[j][k] * vars.d1_K_tensor[j][k][i];
+                vars.d1_K[i] += vars.d1_gamma_UU[j][k][i] * vars.K_tensor[j][k] + gamma_UU[j][k] * vars.d1_K_tensor[j][k][i];
             }
         }
 
