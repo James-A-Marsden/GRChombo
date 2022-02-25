@@ -1,12 +1,12 @@
 #!/bin/bash -l
 
-#SBATCH --nodes 2
+#SBATCH --nodes 1
 
 # NB cosma7 has 28 cores per node so product of #s below = 28
 #SBATCH --ntasks-per-node=14
 #SBATCH --cpus-per-task=2
 
-#SBATCH -J tensfr #Give it something meaningful.
+#SBATCH -J tenscs #Give it something meaningful.
 
 #SBATCH -o standard_output_file.%J.out
 #SBATCH -e standard_error_file.%J.err
@@ -14,7 +14,7 @@
 #SBATCH -p cosma7-pauper #or some other partition, e.g. cosma, cosma6, etc.
 
 #SBATCH -A dp092 #e.g. dp004
-#SBATCH -t 30:00
+#SBATCH -t 20:00
 
 #Set working directory
 #SBATCH -D ./

@@ -5,7 +5,7 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/TensorBH/constraint/"
+output_path = "/cosma7/data/dp092/dc-mars4/TensorBH/constraint4/"
 #chk_prefix = ConstraintTensorTest_
 chk_prefix = ConstraintTensorTestChk_
 plot_prefix = ConstraintTensorTestPlot_
@@ -30,8 +30,8 @@ plot_prefix = ConstraintTensorTestPlot_
 checkpoint_interval = 1
 plot_interval = 1
 
-num_plot_vars = 12
-plot_vars = Kout traceF fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33
+num_plot_vars = 16
+plot_vars = Kout d1Kout1 d1Kout2 d1Kout3 traceF traceB fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33
 #d1_K_tensor111 d1_K_tensor121 d1_K_tensor131 d1_K_tensor221 d1_K_tensor231 d1_K_tensor331 d1_K_tensor112 d1_K_tensor122 d1_K_tensor132 d1_K_tensor222 d1_K_tensor232 d1_K_tensor332 d1_K_tensor113 d1_K_tensor123 d1_K_tensor133 d1_K_tensor223 d1_K_tensor233 d1_K_tensor333
 #ricci_phys11 ricci_phys12 ricci_phys13 ricci_phys22 ricci_phys23 ricci_phys33
 # d1_gamma_UU111 d1_gamma_UU121 d1_gamma_UU131 d1_gamma_UU221 d1_gamma_UU231 d1_gamma_UU331 d1_gamma_UU112 d1_gamma_UU122 d1_gamma_UU132 d1_gamma_UU222 d1_gamma_UU232 d1_gamma_UU332 d1_gamma_UU113 d1_gamma_UU123 d1_gamma_UU133 d1_gamma_UU223 d1_gamma_UU233 d1_gamma_UU333     
@@ -64,7 +64,7 @@ L = 128
 
 # Level data
 # Maximum number of times you can regrid above coarsest level
-max_level = 7 # There are (max_level+1) grids, so min is zero
+max_level = 8 # There are (max_level+1) grids, so min is zero
 # Frequency of regridding at each level
 # Need one for each level, ie max_level+1 items
 # Generally you do not need to regrid frequently on every level

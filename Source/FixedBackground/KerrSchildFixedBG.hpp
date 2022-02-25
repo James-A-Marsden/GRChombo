@@ -59,6 +59,9 @@ class KerrSchildFixedBG
         chi = pow(chi, -1.0 / 3.0);
         current_cell.store_vars(chi, c_chi);
         current_cell.store_vars(metric_vars.K, c_Kout);
+        current_cell.store_vars(metric_vars.d1_K[0], c_d1Kout1);
+        current_cell.store_vars(metric_vars.d1_K[1], c_d1Kout2);
+        current_cell.store_vars(metric_vars.d1_K[2], c_d1Kout3);
         
         /*
         current_cell.store_vars(metric_vars.d2_shift[0][0][0], c_d2_shift111);
@@ -184,6 +187,8 @@ class KerrSchildFixedBG
                 vars.shift[i] += gamma_UU[i][j] * 2.0 * H * el[j] * el_t;
             }
         }
+        FOR2(i, j)
+
 
         // Calculate partial derivative of spatial metric
         FOR3(i, j, k)
@@ -229,8 +234,8 @@ class KerrSchildFixedBG
         FOR3(i,j,k)
         {
             
-            vars.d1_gamma_UU[i][j][k] = -2.0 * dHdx[k] / (1 + 2.0 * H) / (1 + 2.0 * H) * (TensorAlgebra::delta(i, j) + 2.0 * H * lambda_UU[i][j])
-            + 1/(1 + 2.0 * H) * (2.0 * dHdx[k] * lambda_UU[i][j]) + 1/(1 + 2.0 * H) * (2.0 * H * d1_lambda_UU[i][j][k]);
+            vars.d1_gamma_UU[i][j][k] = -2.0 * dHdx[k] * (TensorAlgebra::delta(i, j) + 2.0 * H * lambda_UU[i][j]) / ((1 + 2.0 * H) * (1 + 2.0 * H))
+            + ((2.0 * dHdx[k] * lambda_UU[i][j]) + (2.0 * H * d1_lambda_UU[i][j][k]))/(1 + 2.0 * H);
             
             //vars.d1_gamma_UU[i][j][k] = 0;
             /*
@@ -301,15 +306,18 @@ class KerrSchildFixedBG
             + 2.0 * alpha2 * d2Hdx2[j][k] * el[i] * el_t
             + 2.0 * alpha2 * dHdx[j] * dldx[i][k] * el_t 
             + 2.0 * alpha2 * dHdx[j] * el[i] * dltdx[k]
+
             + 4.0 * vars.d1_lapse[k] * vars.d1_lapse[j] * H * el[i] * el_t 
             + 4.0 * vars.lapse * vars.d2_lapse[j][k] * H * el[i] * el_t
             + 4.0 * vars.lapse * vars.d1_lapse[j] * dHdx[k] * el[i] * el_t 
             + 4.0 * vars.lapse * vars.d1_lapse[j] * H * dldx[i][k] * el_t
             + 4.0 * vars.lapse * vars.d1_lapse[j] * H * el[i] * dltdx[k]
+
             + 4.0 * vars.d1_lapse[k] * vars.lapse * H * dldx[i][j] * el_t 
             + 2.0 * alpha2 * dHdx[k] * dldx[i][j] * el_t
             + 2.0 * alpha2 * H * d2ldx2[i][j][k] * el_t 
             + 2.0 * alpha2 * H * dldx[i][j] * dltdx[k]
+
             + 4.0 * vars.d1_lapse[k] * vars.lapse * H * el[i] * dltdx[j] 
             + 2.0 * alpha2 * dHdx[k] * el[i] * dltdx[j] 
             + 2.0 * alpha2 * H * dldx[i][k] * dltdx[j] 

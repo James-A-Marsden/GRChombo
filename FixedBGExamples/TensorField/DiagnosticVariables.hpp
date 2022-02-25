@@ -15,6 +15,9 @@ enum
     c_Edot,   // the energy density of the SF
     c_Jdot,   // the energy density of the SF
     c_Kout,
+    c_d1Kout1,
+    c_d1Kout2,
+    c_d1Kout3,
     /*
     c_d2_shift111,
     c_d2_shift112,
@@ -89,6 +92,7 @@ enum
     c_d1_K_tensor333,
     */
     c_traceF,
+    c_traceB,
 
     NUM_DIAGNOSTIC_VARS
 };
@@ -96,7 +100,7 @@ enum
 namespace DiagnosticVariables
 {
 static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
-    "chi", "rho", "rhoJ", "Edot", "Jdot", "Kout",
+    "chi", "rho", "rhoJ", "Edot", "Jdot", "Kout", "d1Kout1", "d1Kout2", "d1Kout3",
     //"ricci_phys11", "ricci_phys12", "ricci_phys13", "ricci_phys22", "ricci_phys23", "ricci_phys33"
     /*
     "d2_shift111", "d2_shift112", "d2_shift113", "d2_shift121", "d2_shift122", "d2_shift123", "d2_shift131","d2_shift132","d2_shift133",
@@ -111,7 +115,8 @@ static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
     "d1_K_tensor112", "d1_K_tensor122", "d1_K_tensor132", "d1_K_tensor222", "d1_K_tensor232", "d1_K_tensor332",
     "d1_K_tensor113", "d1_K_tensor123", "d1_K_tensor133", "d1_K_tensor223", "d1_K_tensor233", "d1_K_tensor333",
     */
-    "traceF"
+    "traceF",
+    "traceB"
     };
 /*
     

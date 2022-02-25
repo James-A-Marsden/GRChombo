@@ -28,6 +28,7 @@ class InitialConditions
     const KerrSchildFixedBG::params_t m_bg_params;
     const double m_tensor_mass;
     const double m_initial_constant;
+    const FourthOrderDerivatives m_deriv;
 
     //load in Vars from the field
     // The evolution vars
@@ -46,7 +47,7 @@ class InitialConditions
                       const KerrSchildFixedBG::params_t a_bg_params,
                       const double a_dx, const double a_initial_constant)//, const double a_fhat, const Tensor<1,data_t> a_fbar, const Tensor<2,data_t> a_fspatial)
         : m_dx(a_dx), m_center(a_center), m_bg_params(a_bg_params), m_tensor_mass(tensor_mass),
-        m_initial_constant(a_initial_constant)
+        m_initial_constant(a_initial_constant), m_deriv(a_dx)
         //m_fhat(a_fhat), m_fbar(a_fbar), m_fspatial(a_fspatial)
         //, m_amplitude_re(a_amplitude_re),   
         //m_amplitude_im(a_amplitude_im)
@@ -67,6 +68,7 @@ class InitialConditions
         const data_t det_gamma =
             TensorAlgebra::compute_determinant_sym(metric_vars.gamma);
         const auto gamma_UU = TensorAlgebra::compute_inverse_sym(metric_vars.gamma);
+        const auto chris_phys = TensorAlgebra::compute_christoffel(metric_vars.d1_gamma, gamma_UU);
 
         //const auto d1 = m_deriv.template diff1<Vars>(current_cell);
         //Populate the field variables with their initial conditions
@@ -134,22 +136,70 @@ class InitialConditions
  
         //Traceless condition
         vars.fhat = TensorAlgebra::compute_trace(gamma_UU, vars.fspatial);
+        //Traceless for derivatives 
 
+        //test
+        Tensor<3, data_t> chris_local; 
+        FOR3(i,j,k)
+        {
+          chris_local[i][j][k] = 0.0;
+          FOR1(l)
+          {
+            chris_local[i][j][k] += metric_vars.gamma_UU[i][l] * (metric_vars.d1_gamma[l][k][j] + metric_vars.d1_gamma[j][l][k] - metric_vars.d1_gamma[j][k][l]);
+          }
+          chris_local[i][j][k] /= 2.0;
+        }
         //(Riemann constraint?) R = 0 for vacuum
         
-        vars.fbar[0] = 0.0;
+        //Defining for convenience:
+        Tensor<3, data_t> cd1_K_tensor;
+        FOR3(i,j,k)
+        {
+            cd1_K_tensor[i][j][k] = metric_vars.d1_K_tensor[i][j][k];
+            FOR1(l)
+            {
+                cd1_K_tensor[i][j][k] += -chris_local[l][k][i] * metric_vars.K_tensor[l][j] -chris_local[l][k][j] * metric_vars.K_tensor[i][l];
+            }
+        }
+
+
+        vars.fbar[2] = metric_vars.K * metric_vars.K;
         FOR2(i,j)
         {
           FOR2(k,l)
           {
-            vars.fbar[0] += -gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.K_tensor[i][j] * metric_vars.K_tensor[k][l];
+            vars.fbar[2] += -gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.K_tensor[i][j] * metric_vars.K_tensor[k][l];
           }
         }
-        vars.fbar[0] += metric_vars.K * metric_vars.K;
-        vars.fbar[0] *= vars.fhat;
-        vars.fbar[0] /= metric_vars.d1_K[0];
+        data_t denom = 0.0;
+        FOR1(i)
+        {
+          denom += -gamma_UU[2][i] * metric_vars.d1_K[i];
+
+          FOR3(j,k,l)
+          {
+            ///denom += 0.0;//metric_vars.riemann_phys_ULLL[i][j][i][k] * gamma_UU[j]
+            //denom += gamma_UU[0][i] * gamma_UU[j][k] * cd1_K_tensor[k][i][j];//0.0;//chris_local[i][j][k];//cd1_K_tensor[k][i][j];//gamma_UU[j][k] * cd1_K_tensor[k][i][j];//gamma_UU[0][i] * gamma_UU[j][k] * cd1_K_tensor[k][i][j];
+            //denom += gamma_UU[0][i] * gamma_UU[j][k] * chris_local[l][k][i] * metric_vars.K_tensor[l][j];
+            denom += gamma_UU[2][i] * gamma_UU[j][k] * metric_vars.d1_K_tensor[k][i][j];
+            FOR1(l)
+            {
+              denom += gamma_UU[2][i] * gamma_UU[j][k] * (-chris_local[l][j][k] * metric_vars.K_tensor[l][i] - chris_local[l][i][j] * metric_vars.K_tensor[l][k]);
+            }
+          }
+          
+        }
+        //vars.fbar[0] = denom;
+
+        vars.fbar[2] *= vars.fhat / (4.0 * denom);
+        //vars.fbar[0] = //denom;//gamma_UU[0][0] * metric_vars.gamma[0][0] * chris_local[0][0][0];//denom;
+        //vars.fbar[0] = denom;
+        //vars.fbar[0] /= (4 * denom);
 
         //Spatial projection of Lorentz condition
+
+        
+
         FOR1(i)
         {
           vars.q[i] = -metric_vars.K * vars.fbar[i];
@@ -162,7 +212,7 @@ class InitialConditions
         vars.w = -metric_vars.K * vars.fhat;
         FOR2(i,j)
         {
-          vars.w += 0.0;//DERIVATIVE OF fbar
+          vars.w += 0.0;//ADD DERIVATIVE OF fbar
           FOR2(k,l)
           {
             vars.w += -metric_vars.K_tensor[i][j] * vars.fspatial[k][l] * gamma_UU[i][k] * gamma_UU[j][l]; 
@@ -171,7 +221,7 @@ class InitialConditions
         //Momentum traceless condition spatial projection of
         vars.v[0][0] = vars.w / gamma_UU[0][0];
 
-
+        
 
         //vars.fhat = 0.0;
         /*
@@ -191,7 +241,7 @@ class InitialConditions
                       - gamma_UU[j][k] * metric_vars.K_tensor[i][k] * vars.fbar[j]; 
             FOR1(l)
             {
-              vars.q[i] += -gamma_UU[j][k] * (chris_phys.ULL[l][i][k] * vars.fspatial[l][j] + chris_phys.ULL[l][j][k] * vars.fspatial[i][l]);  
+              vars.q[i] += -gamma_UU[j][k] * (chris_local[l][i][k] * vars.fspatial[l][j] + chris_local[l][j][k] * vars.fspatial[i][l]);  
             }
           }
         }

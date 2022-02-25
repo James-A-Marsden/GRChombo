@@ -85,7 +85,9 @@ template <class matter_t, class background_t> class FixedBGDensities
         // assign values of conserved density in output box,
         current_cell.store_vars(rho, c_rho);
         current_cell.store_vars(rhoJ, c_rhoJ);
-        
+
+
+        //TRACE DIAGNOSTICS
         data_t trace_of_F = -vars.fhat;
 
         FOR2(i,j)
@@ -93,7 +95,16 @@ template <class matter_t, class background_t> class FixedBGDensities
             trace_of_F += gamma_UU[i][j] * vars.fspatial[i][j]; 
         }
 
+        data_t trace_of_B = -vars.w;
+
+        FOR2(i,j)
+        {
+            trace_of_B += gamma_UU[i][j] * vars.v[i][j];
+        }
+
+
         current_cell.store_vars(trace_of_F, c_traceF);  
+        current_cell.store_vars(trace_of_B, c_traceB); 
 
     }
 };
