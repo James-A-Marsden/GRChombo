@@ -5,7 +5,7 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/TensorBH/halfres/"
+output_path = "/cosma7/data/dp092/dc-mars4/TensorBH/reslo/"
 #chk_prefix = TensorTest_
 chk_prefix = TensorTestChk_
 plot_prefix = TensorTestPlot_

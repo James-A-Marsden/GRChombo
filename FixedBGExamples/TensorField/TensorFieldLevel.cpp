@@ -25,6 +25,8 @@
 #include "FixedBGEvolution.hpp"
 #include "FluxExtraction.hpp"
 #include "InitialConditions.hpp"
+#include "Sethbar.hpp"
+#include "SetRest.hpp"
 #include "KerrSchildFixedBG.hpp"
 
 // Things to do at each advance step, after the RK4 is calculated
@@ -49,12 +51,27 @@ void TensorFieldLevel::initialData()
     KerrSchildFixedBG boosted_bh(m_p.bg_params, m_dx); // just calculates chi
     //m_p.field_amplitude_re, m_p.field_amplitude_im,
 
-    InitialConditions set_phi(m_p.potential_params.tensor_mass, m_p.center,
+    InitialConditions set_vars(m_p.potential_params.tensor_mass, m_p.center,
                               m_p.bg_params, m_dx, m_p.initial_constant);
+
+    Sethbar set_hbar(m_p.potential_params.tensor_mass, m_p.center,
+                            m_p.bg_params, m_dx, m_p.initial_constant);
+
+    SetRest set_rest(m_p.potential_params.tensor_mass, m_p.center,
+    m_p.bg_params, m_dx, m_p.initial_constant);
+
     auto compute_pack = make_compute_pack(set_zero, boosted_bh);
+
     BoxLoops::loop(compute_pack, m_state_diagnostics, m_state_diagnostics,
                    SKIP_GHOST_CELLS);
-    BoxLoops::loop(set_phi, m_state_new, m_state_new, FILL_GHOST_CELLS);
+    //fillAllGhosts();
+
+    //BoxLoops::loop(set_vars, m_state_new, m_state_new, FILL_GHOST_CELLS, disable_simd());
+    BoxLoops::loop(set_vars, m_state_new, m_state_new, FILL_GHOST_CELLS, disable_simd());
+    fillAllGhosts();
+    BoxLoops::loop(set_hbar, m_state_new, m_state_new, FILL_GHOST_CELLS, disable_simd());
+    fillAllGhosts();
+    BoxLoops::loop(set_rest, m_state_new, m_state_new, FILL_GHOST_CELLS, disable_simd());
 
     // excise within horizon, no simd
     BoxLoops::loop(

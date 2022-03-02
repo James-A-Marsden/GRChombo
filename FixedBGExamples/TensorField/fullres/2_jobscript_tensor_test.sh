@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-#SBATCH --nodes 1
+#SBATCH --nodes 2
 
 # NB cosma7 has 28 cores per node so product of #s below = 28
 #SBATCH --ntasks-per-node=14

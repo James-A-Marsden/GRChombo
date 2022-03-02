@@ -3,8 +3,8 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#ifndef INITIALCONDITIONS_HPP_
-#define INITIALCONDITIONS_HPP_
+#ifndef SETHBAR_HPP_
+#define SETHBAR_HPP_
 
 #include "ADMFixedBGVars.hpp"
 #include "Cell.hpp"
@@ -17,8 +17,8 @@
 #include "VarsTools.hpp"
 #include "simd.hpp"
 #include "FourthOrderDerivatives.hpp"
-//! Class which creates the initial conditions
-class InitialConditions
+//! Class which creates the initial constraints
+class Sethbar
 {
   protected:
     const double m_dx;
@@ -43,7 +43,7 @@ class InitialConditions
   public:
     //! The constructor for the class
     //const double a_amplitude_re, const double a_amplitude_im, const double a_omega,
-    InitialConditions(const double tensor_mass, const std::array<double, CH_SPACEDIM> a_center,
+    Sethbar(const double tensor_mass, const std::array<double, CH_SPACEDIM> a_center,
                       const KerrSchildFixedBG::params_t a_bg_params,
                       const double a_dx, const double a_initial_constant)//, const double a_fhat, const Tensor<1,data_t> a_fbar, const Tensor<2,data_t> a_fspatial)
         : m_dx(a_dx), m_center(a_center), m_bg_params(a_bg_params), m_tensor_mass(tensor_mass),
@@ -70,15 +70,15 @@ class InitialConditions
         const auto gamma_UU = TensorAlgebra::compute_inverse_sym(metric_vars.gamma);
         const auto chris_phys = TensorAlgebra::compute_christoffel(metric_vars.d1_gamma, gamma_UU);
 
-        //const auto d1 = m_deriv.template diff1<Vars>(current_cell);
-        //Populate the field variables with their initial conditions
+        
+        //Populate the field variables with their initial constraints
         //data_t fhat = m_fhat; 
         //Tensor<1, data_t> fbar = m_fbar;
         //Tensor<2, data_t> fspatial = m_fspatial;
         const double initial_constant = m_initial_constant; 
         //const mass = tensor_mass; 
-
-
+        //data_t phi_Re = m_amplitude_re;
+        //data_t Pi_Im = m_amplitude_im * m_omega;
 
         Vars<data_t> vars;
         VarsTools::assign(vars,0.);
@@ -92,55 +92,33 @@ class InitialConditions
         Tensor<1,data_t> q; //Spatial rank 1 q field
         data_t w; //Scalar component
 
+        const auto local_vars = current_cell.template load_vars<Vars>();
 
-
-        /*
-        data_t rad = coords.get_radius();
-        data_t value = 200*(exp(-rad) * sin(-rad));
-        const double frequency = 2 * M_PI /128.0 ;
-
-        data_t factor = 1.0 * exp(-pow((coords.x - 5.0),2)/2 /2. /2.);
-        factor = 1;
-        data_t amplitude = factor * cos( - frequency * coords.x);
-        
-        data_t momentum = -frequency * factor * sin(-frequency * coords.x); 
-        */
-
+        vars.fhat = local_vars.fhat;
+        FOR1(i)
+        {
+          vars.fbar[i] = local_vars.fbar[i];
+          FOR1(j)
+          {
+            vars.fspatial[i][j] = local_vars.fspatial[i][j];
+          }
+        }
+        //Calculate the derivatives
         const auto d1 = m_deriv.template diff1<Vars>(current_cell);
-
-        vars.fhat = 0.0;
-       
-
-        FOR(i)
+    
+ 
+        const auto K_inverse_UU = TensorAlgebra::compute_inverse_sym(metric_vars.K_tensor);
+        FOR1(i)
         {
           vars.fbar[i] = 0.0;
-          vars.q[i] = 0.0;
-
-          FOR(j)
+          FOR2(j,k)
           {
-            vars.fspatial[i][j] = 0.0;
-            vars.v[i][j] = 0.0;
-          } 
+            vars.fbar[i] += 0.5 * metric_vars.gamma[i][k] * K_inverse_UU[j][k] * d1.fhat[j];
+          }
         }
-        vars.fspatial[0][0] = 1.0;
-       
-        //vars.fspatial[1][1] = -1.0;
-        /*
-        vars.fspatial[0][0] = initial_constant * amplitude;
-        vars.fspatial[1][1] = -initial_constant * amplitude;
-        vars.fspatial[0][1] = initial_constant * amplitude;
-        vars.fspatial[1][0] = initial_constant * amplitude;
-
-        vars.v[0][0] = initial_constant * momentum;
-        vars.v[1][1] = -initial_constant * momentum;
-        vars.v[0][1] = initial_constant * momentum;
-        vars.v[1][0] = initial_constant * momentum;
-        */   
-
-        vars.fhat = TensorAlgebra::compute_trace(gamma_UU, vars.fspatial);
-
+  
         current_cell.store_vars(vars);
     }
 };
 
-#endif /* INITIALCONDITIONS_HPP_ */
+#endif /* SETHBAR_HPP_ */
