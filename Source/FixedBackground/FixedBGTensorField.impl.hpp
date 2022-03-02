@@ -355,7 +355,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
                 rhs.w += metric_vars.lapse * gamma_UU[i][j] * chris_phys.ULL[k][i][j] * i_p[k];
 
                 rhs.q[i] += - gamma_UU[j][k] * (vars.v[j][i] + i_u[j][i]) * metric_vars.d1_lapse[k] + metric_vars.lapse * gamma_UU[j][k] * (i_p[j] - vars.q[j]) * metric_vars.K_tensor[i][k]
-                - gamma_UU[j][k] * d1_i_u[j][i][k];
+                - metric_vars.lapse * gamma_UU[j][k] * d1_i_u[j][i][k];
 
                 rhs.v[i][j] += vars.v[k][j] * metric_vars.d1_shift[k][i] + vars.v[i][k] * metric_vars.d1_shift[k][j];
 
@@ -366,7 +366,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
                     rhs.w += 2.0 * metric_vars.lapse * gamma_UU[i][k] * gamma_UU[j][l] * i_u[i][j] * metric_vars.K_tensor[k][l];
 
-                    rhs.q[i] += gamma_UU[j][k] * (chris_phys.ULL[l][k][j] * i_u[k][i] + chris_phys.ULL[l][k][i] * i_u[j][l]);
+                    rhs.q[i] += metric_vars.lapse * gamma_UU[j][k] * (chris_phys.ULL[l][k][j] * i_u[k][i] + chris_phys.ULL[l][k][i] * i_u[j][l]);
 
                     rhs.v[i][j] += - gamma_UU[k][l] * i_F[k][i][j] * metric_vars.d1_lapse[l] - metric_vars.lapse * gamma_UU[k][l] * d1_i_F[k][i][j][l]
                     - gamma_UU[k][l] * metric_vars.lapse * (vars.v[k][i] - i_u[k][i]) * metric_vars.K_tensor[l][j] - gamma_UU[k][l] * metric_vars.lapse * (vars.v[k][j] - i_u[k][j]) * metric_vars.K_tensor[l][i];

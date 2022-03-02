@@ -88,12 +88,24 @@ template <class matter_t, class background_t> class FixedBGDensities
 
 
         //TRACE DIAGNOSTICS
-        data_t trace_of_F = -vars.fhat;
+        data_t trace_of_field = -vars.fhat;
 
         FOR2(i,j)
         {
-            trace_of_F += gamma_UU[i][j] * vars.fspatial[i][j]; 
+            trace_of_field += gamma_UU[i][j] * vars.fspatial[i][j]; 
         }
+
+        Tensor<1, data_t> trace_of_F;
+
+        FOR1(i)
+        {
+            trace_of_F[i] = -0.5 * d1.fhat[i];
+            FOR2(j,k)
+            {
+                trace_of_F[i] += gamma_UU[j][k] * metric_vars.K_tensor[i][j] * vars.fbar[k];
+            }
+        }
+
 
         data_t trace_of_B = -vars.w;
 
@@ -102,8 +114,10 @@ template <class matter_t, class background_t> class FixedBGDensities
             trace_of_B += gamma_UU[i][j] * vars.v[i][j];
         }
 
-
-        current_cell.store_vars(trace_of_F, c_traceF);  
+        current_cell.store_vars(trace_of_field, c_trace_field); 
+        current_cell.store_vars(trace_of_F[0], c_traceF1);
+        current_cell.store_vars(trace_of_F[1], c_traceF2);  
+        current_cell.store_vars(trace_of_F[2], c_traceF3);    
         current_cell.store_vars(trace_of_B, c_traceB); 
 
     }
