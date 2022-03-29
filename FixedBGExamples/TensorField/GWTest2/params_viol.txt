@@ -5,11 +5,10 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/TensorBH/GWTest5/"
-
-#chk_prefix = GWTest_
-chk_prefix = GWTestChk_
-plot_prefix = GWTestPlot_
+output_path = "/cosma7/data/dp092/dc-mars4/TensorBH/GWTest7/"
+#chk_prefix = ViolTensorTest_
+chk_prefix = ViolTensorTestChk_
+plot_prefix = ViolTensorTestPlot_
 # restart_file
 
 # subpaths - specific directories for hdf5, pout, extraction data
@@ -31,8 +30,16 @@ plot_prefix = GWTestPlot_
 checkpoint_interval = 1
 plot_interval = 1
 
-num_plot_vars = 27
-plot_vars = Kout trace_field traceB traceRT fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 d1Kout1 d1Kout2 d1Kout3
+num_plot_vars = 32
+plot_vars = Kout trace_field traceB traceRT fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 lorenzCont lorenzProj1 lorenzProj2 lorenzProj3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
+
+
+
+
+
+
+
+
 
 
 #d1_K_tensor111 d1_K_tensor121 d1_K_tensor131 d1_K_tensor221 d1_K_tensor231 d1_K_tensor331 d1_K_tensor112 d1_K_tensor122 d1_K_tensor132 d1_K_tensor222 d1_K_tensor232 d1_K_tensor332 d1_K_tensor113 d1_K_tensor123 d1_K_tensor133 d1_K_tensor223 d1_K_tensor233 d1_K_tensor333
@@ -41,7 +48,7 @@ plot_vars = Kout trace_field traceB traceRT fhat fbar1 fbar2 fbar3 fspatial11 fs
 #d2_shift111 d2_shift112 d2_shift113 d2_shift121 d2_shift122 d2_shift123 d2_shift131 d2_shift132 d2_shift133 d1_K_tensor111 d1_K_tensor112 d1_K_tensor113 d1_K_tensor122 d1_K_tensor123 d1_K_tensor133 d1_K_tensor211 d1_K_tensor212 d1_K_tensor213 d1_K_tensor222 d1_K_tensor223 d1_K_tensor233 d1_K_tensor311 d1_K_tensor312 d1_K_tensor313 d1_K_tensor322 d1_K_tensor323 d1_K_tensor333
                                                                                                
 
-dt_multiplier = 0.1
+dt_multiplier = 0.03
 stop_time = 1300.0
 
 
@@ -74,7 +81,7 @@ max_level = 1 # There are (max_level+1) grids, so min is zero
 regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
 
 # Max box size
-max_grid_size = 32
+max_grid_size = 128
 # Min box size
 block_factor = 32
 tag_buffer_size = 0
@@ -123,7 +130,7 @@ tensor_mass = 0.00
 #f_axion = 0.0
 
 # Boosted BH initial data, boost in x direction, spin in z direction
-bh_mass = 0.0
+bh_mass = 0.00
 bh_spin = 0.0 # This is a, so needs to be <= M
 #inner_r = 5.0
 #outer_r = 500.0

@@ -57,8 +57,7 @@ void FixedBGTensorField<potential_t>::emtensor_excl_potential(
     // S_ij = T_ij
     FOR2(i, j)
     {
-        out.Sij[i][j] =
-            0;//-0.5 * metric_vars.gamma[i][j] * Vt + d1.phi[i] * d1.phi[j];
+        out.Sij[i][j] = 0;//-0.5 * metric_vars.gamma[i][j] * Vt + d1.phi[i] * d1.phi[j];
     }
 
     // S = Tr_S_ij
@@ -169,10 +168,11 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
         scalarRiemannTerm = 0;
         FOR1(l)
         {
-            scalarRiemannTerm += metric_vars.K * gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.K_tensor[k][l] * vars.fspatial[i][j];
+            scalarRiemannTerm += metric_vars.K * gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.K_tensor[k][l] * vars.fspatial[i][j]
+                                + gamma_UU[i][k] * gamma_UU[j][l] * vars.fspatial[i][j] * metric_vars.ricci_phys[k][l];
             FOR1(m)
             {
-                scalarRiemannTerm += gamma_UU[i][k] * gamma_UU[j][l] * vars.fspatial[i][j] * metric_vars.riemann_phys_ULLL[m][k][m][l];
+                //scalarRiemannTerm += 0.0;//gamma_UU[i][k] * gamma_UU[j][l] * vars.fspatial[i][j] * metric_vars.riemann_phys_ULLL[m][k][m][l];
                 FOR1(n)
                 {
                     scalarRiemannTerm += - gamma_UU[i][l] * gamma_UU[j][m] * gamma_UU[k][n] * metric_vars.K_tensor[i][n] * metric_vars.K_tensor[l][m] * vars.fspatial[j][k];
@@ -188,11 +188,12 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
         vectorRiemannTerm[i] = 0;
         FOR2(j,k)
         {
-            vectorRiemannTerm[i] += -gamma_UU[j][k] * metric_vars.K_tensor[i][j] * metric_vars.K * vars.fbar[k];
+            vectorRiemannTerm[i] += -gamma_UU[j][k] * metric_vars.K_tensor[i][j] * metric_vars.K * vars.fbar[k]
+                                    - gamma_UU[j][k] * metric_vars.ricci_phys[i][k] * vars.fbar[j];
             
             FOR1(l)
             {
-                vectorRiemannTerm[i] += -gamma_UU[j][k] * metric_vars.riemann_phys_ULLL[l][i][l][k] * vars.fbar[j];
+                //vectorRiemannTerm[i] += 0.0;//-gamma_UU[j][k] * metric_vars.riemann_phys_ULLL[l][i][l][k] * vars.fbar[j];
                 
                 FOR1(m)
                 {
@@ -207,10 +208,11 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
     FOR2(i,j)
     {
-        tensorRiemannTerm[i][j] = vars.fhat * metric_vars.K_tensor[i][j] * metric_vars.K;
+        tensorRiemannTerm[i][j] = vars.fhat * metric_vars.K_tensor[i][j] * metric_vars.K
+                                    + vars.fhat * metric_vars.ricci_phys[i][j];
         FOR1(k)
         {
-            tensorRiemannTerm[i][j] += vars.fhat * metric_vars.riemann_phys_ULLL[k][i][k][j];
+            //tensorRiemannTerm[i][j] += 0.0;//vars.fhat * metric_vars.riemann_phys_ULLL[k][i][k][j];
             FOR1(l)
             {
                 tensorRiemannTerm[i][j] += gamma_UU[k][l] * vars.fbar[l] * (2.0 * cd1_K_tensor[i][j][k] - cd1_K_tensor[i][k][j] - cd1_K_tensor[j][k][i])
@@ -317,14 +319,14 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     //EVOLUTION                             
     rhs.fhat = advec.fhat - metric_vars.lapse * vars.w;
 
-    rhs.w = advec.w + metric_vars.lapse * metric_vars.K * vars.w + metric_vars.lapse * temp_mass * temp_mass * vars.fhat - 2.0 * metric_vars.lapse * scalarRiemannTerm;
+    rhs.w = advec.w + metric_vars.lapse * metric_vars.K * vars.w + metric_vars.lapse * temp_mass * temp_mass * vars.fhat;// - 2.0 * metric_vars.lapse * scalarRiemannTerm;
 
     //1 summation index
     FOR1(i)
     {   
         rhs.fbar[i] = advec.fbar[i] - vars.fhat * metric_vars.d1_lapse[i] - metric_vars.lapse * vars.q[i];
 
-        rhs.q[i] = advec.q[i] + metric_vars.lapse * vars.q[i] * metric_vars.K - vars.w * metric_vars.d1_lapse[i] + metric_vars.lapse * temp_mass * temp_mass * vars.fbar[i] - 2.0 * metric_vars.lapse * vectorRiemannTerm[i];
+        rhs.q[i] = advec.q[i] + metric_vars.lapse * vars.q[i] * metric_vars.K - vars.w * metric_vars.d1_lapse[i] + metric_vars.lapse * temp_mass * temp_mass * vars.fbar[i];// - 2.0 * metric_vars.lapse * vectorRiemannTerm[i];
 
         
        //2 summation indices 
@@ -366,7 +368,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
                     rhs.w += 2.0 * metric_vars.lapse * gamma_UU[i][k] * gamma_UU[j][l] * i_u[i][j] * metric_vars.K_tensor[k][l];
 
-                    rhs.q[i] += metric_vars.lapse * gamma_UU[j][k] * (chris_phys.ULL[l][k][j] * i_u[k][i] + chris_phys.ULL[l][k][i] * i_u[j][l]);
+                    rhs.q[i] += metric_vars.lapse * gamma_UU[j][k] * (chris_phys.ULL[l][k][j] * i_u[l][i] + chris_phys.ULL[l][k][i] * i_u[j][l]);
 
                     rhs.v[i][j] += - gamma_UU[k][l] * i_F[k][i][j] * metric_vars.d1_lapse[l] - metric_vars.lapse * gamma_UU[k][l] * d1_i_F[k][i][j][l]
                     - gamma_UU[k][l] * metric_vars.lapse * (vars.v[k][i] - i_u[k][i]) * metric_vars.K_tensor[l][j] - gamma_UU[k][l] * metric_vars.lapse * (vars.v[k][j] - i_u[k][j]) * metric_vars.K_tensor[l][i];

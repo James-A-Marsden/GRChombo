@@ -25,7 +25,7 @@ class ADMKerrSchildFixedBG
     {
         double mass = 1.0;                      //!<< The mass of the BH
         std::array<double, CH_SPACEDIM> center; //!< The center of the BH
-        double spin = 0.0;                      //!< The spin param a = J / M
+        double spin = 0.5;                      //!< The spin param a = J / M
     };
 
     template <class data_t> using Vars = ADMFixedBGVars::Vars<data_t>;

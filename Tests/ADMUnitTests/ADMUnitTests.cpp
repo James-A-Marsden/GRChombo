@@ -34,7 +34,7 @@ bool is_wrong(double value, double correct_value, std::string deriv_type)
     }
     else
     {
-        std::cout << deriv_type << " " << abs(value - correct_value) << endl; 
+        //std::cout << deriv_type << " " << abs(value - correct_value) << endl; 
         return false;
     }
 }
@@ -66,7 +66,7 @@ template <class data_t> struct LocalVars
 int main()
 {
     //const int num_cells = 512;
-    const int num_cells = 100;
+    const int num_cells = 512;
     // box is flat in y direction to make test cheaper
     IntVect domain_hi_vect(num_cells - 1, 0, num_cells - 1);
     Box box(IntVect(0, 0, 0), domain_hi_vect);
@@ -82,7 +82,7 @@ int main()
     bg_params.center[1] = -5.0;
     bg_params.center[2] = 3.0;
     bg_params.mass = 1.0;
-    bg_params.spin = 0.0;
+    bg_params.spin = 0.5;
 
     const double dx = 10.0 / num_cells;
     LocalVars<double> local_vars;

@@ -27,7 +27,7 @@
 #include "InitialConditions.hpp"
 #include "Sethbar.hpp"
 #include "SetRest.hpp"
-#include "KerrSchildFixedBG.hpp"
+#include "TaubFixedBG.hpp"
 
 // Things to do at each advance step, after the RK4 is calculated
 void TensorFieldLevel::specificAdvance()
@@ -48,7 +48,7 @@ void TensorFieldLevel::initialData()
     // First set everything to zero ... we don't want undefined values in
     // constraints etc, then initial conditions for fields
     SetValue set_zero(0.0);
-    KerrSchildFixedBG boosted_bh(m_p.bg_params, m_dx); // just calculates chi
+    TaubFixedBG taub_bg(m_p.bg_params, m_dx); // just calculates chi
     //m_p.field_amplitude_re, m_p.field_amplitude_im,
 
     InitialConditions set_vars(m_p.potential_params.tensor_mass, m_p.center,
@@ -60,7 +60,7 @@ void TensorFieldLevel::initialData()
     SetRest set_rest(m_p.potential_params.tensor_mass, m_p.center,
     m_p.bg_params, m_dx, m_p.initial_constant);
 
-    auto compute_pack = make_compute_pack(set_zero, boosted_bh);
+    auto compute_pack = make_compute_pack(set_zero, taub_bg);
 
     BoxLoops::loop(compute_pack, m_state_diagnostics, m_state_diagnostics,
                    SKIP_GHOST_CELLS);
@@ -75,8 +75,8 @@ void TensorFieldLevel::initialData()
 
     // excise within horizon, no simd
     BoxLoops::loop(
-        ExcisionEvolution<TensorFieldWithPotential, KerrSchildFixedBG>(
-            m_dx, m_p.center, boosted_bh),
+        ExcisionEvolution<TensorFieldWithPotential, TaubFixedBG>(
+            m_dx, m_p.center, taub_bg),
         m_state_new, m_state_new, SKIP_GHOST_CELLS, disable_simd());
 
 
@@ -89,18 +89,18 @@ void TensorFieldLevel::prePlotLevel() {
     fillAllGhosts();
     TensorPotential potential(m_p.potential_params);
     TensorFieldWithPotential tensor_field(potential);
-    KerrSchildFixedBG boosted_bh(m_p.bg_params, m_dx);
-    FixedBGDensities<TensorFieldWithPotential, KerrSchildFixedBG>
-        densities(tensor_field, boosted_bh, m_dx, m_p.center);
+    TaubFixedBG taub_bg(m_p.bg_params, m_dx);
+    FixedBGDensities<TensorFieldWithPotential, TaubFixedBG>
+        densities(tensor_field, taub_bg, m_dx, m_p.center);
     FixedBGFluxes<TensorFieldWithPotential,
-                                    KerrSchildFixedBG>
-        energy_fluxes(tensor_field, boosted_bh, m_dx, m_p.center);
+                                    TaubFixedBG>
+        energy_fluxes(tensor_field, taub_bg, m_dx, m_p.center);
     BoxLoops::loop(make_compute_pack(densities, energy_fluxes),
                     m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS);
     // excise within horizon
     BoxLoops::loop(
-        ExcisionDiagnostics<TensorFieldWithPotential, KerrSchildFixedBG>(
-            m_dx, m_p.center, boosted_bh, m_p.inner_r, m_p.outer_r),
+        ExcisionDiagnostics<TensorFieldWithPotential, TaubFixedBG>(
+            m_dx, m_p.center, taub_bg, m_p.inner_r, m_p.outer_r),
         m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
         disable_simd());     
 }
@@ -115,15 +115,15 @@ void TensorFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     TensorPotential potential(m_p.potential_params);
     TensorFieldWithPotential tensor_field(potential);
     //TensorFieldWithPotential;
-    KerrSchildFixedBG boosted_bh(m_p.bg_params, m_dx);
-    FixedBGEvolution<TensorFieldWithPotential, KerrSchildFixedBG> my_matter(
-        tensor_field, boosted_bh, m_p.sigma, m_dx, m_p.center);
+    TaubFixedBG taub_bg(m_p.bg_params, m_dx);
+    FixedBGEvolution<TensorFieldWithPotential, TaubFixedBG> my_matter(
+        tensor_field, taub_bg, m_p.sigma, m_dx, m_p.center);
     BoxLoops::loop(my_matter, a_soln, a_rhs, SKIP_GHOST_CELLS);
 
     // excise within horizon, no simd
     BoxLoops::loop(
-        ExcisionEvolution<TensorFieldWithPotential, KerrSchildFixedBG>(
-            m_dx, m_p.center, boosted_bh),
+        ExcisionEvolution<TensorFieldWithPotential, TaubFixedBG>(
+            m_dx, m_p.center, taub_bg),
         a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd());
 }
 
@@ -138,18 +138,18 @@ void TensorFieldLevel::specificPostTimeStep()
         fillAllGhosts();
         TensorPotential potential(m_p.potential_params);
         TensorFieldWithPotential tensor_field(potential);
-        KerrSchildFixedBG boosted_bh(m_p.bg_params, m_dx);
-        FixedBGDensities<TensorFieldWithPotential, KerrSchildFixedBG>
-            densities(tensor_field, boosted_bh, m_dx, m_p.center);
+        TaubFixedBG taub_bg(m_p.bg_params, m_dx);
+        FixedBGDensities<TensorFieldWithPotential, TaubFixedBG>
+            densities(tensor_field, taub_bg, m_dx, m_p.center);
         FixedBGFluxes<TensorFieldWithPotential,
-                                       KerrSchildFixedBG>
-            energy_fluxes(tensor_field, boosted_bh, m_dx, m_p.center);
+                                       TaubFixedBG>
+            energy_fluxes(tensor_field, taub_bg, m_dx, m_p.center);
         BoxLoops::loop(make_compute_pack(densities, energy_fluxes),
                        m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS);
         // excise within horizon
         BoxLoops::loop(
-            ExcisionDiagnostics<TensorFieldWithPotential, KerrSchildFixedBG>(
-                m_dx, m_p.center, boosted_bh, m_p.inner_r, m_p.outer_r),
+            ExcisionDiagnostics<TensorFieldWithPotential, TaubFixedBG>(
+                m_dx, m_p.center, taub_bg, m_p.inner_r, m_p.outer_r),
             m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
             disable_simd());
     }

@@ -5,19 +5,18 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/TensorBH/GWTest5/"
-
-#chk_prefix = GWTest_
-chk_prefix = GWTestChk_
-plot_prefix = GWTestPlot_
+output_path = "/cosma7/data/dp092/dc-mars4/TensorData/"
+#chk_prefix = TensorTest_
+chk_prefix = TensorTestChk_
+plot_prefix = TensorTestPlot_
 # restart_file
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
 
-#hdf5_subpath = "hdf5"
-#pout_subpath = "pout"
-#data_subpath = "data"
+hdf5_subpath = "hdf5"
+pout_subpath = "pout"
+data_subpath = "data"
 
 # change the name of output files
 # pout_prefix = "pout"
@@ -28,38 +27,32 @@ plot_prefix = GWTestPlot_
 # dt will be dx*dt_multiplier on each grid level
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
 
-checkpoint_interval = 1
+checkpoint_interval = 5
 plot_interval = 1
 
-num_plot_vars = 27
-plot_vars = Kout trace_field traceB traceRT fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 d1Kout1 d1Kout2 d1Kout3
+num_plot_vars = 1
+plot_vars = fhat
 
-
-#d1_K_tensor111 d1_K_tensor121 d1_K_tensor131 d1_K_tensor221 d1_K_tensor231 d1_K_tensor331 d1_K_tensor112 d1_K_tensor122 d1_K_tensor132 d1_K_tensor222 d1_K_tensor232 d1_K_tensor332 d1_K_tensor113 d1_K_tensor123 d1_K_tensor133 d1_K_tensor223 d1_K_tensor233 d1_K_tensor333
-#ricci_phys11 ricci_phys12 ricci_phys13 ricci_phys22 ricci_phys23 ricci_phys33
-# d1_gamma_UU111 d1_gamma_UU121 d1_gamma_UU131 d1_gamma_UU221 d1_gamma_UU231 d1_gamma_UU331 d1_gamma_UU112 d1_gamma_UU122 d1_gamma_UU132 d1_gamma_UU222 d1_gamma_UU232 d1_gamma_UU332 d1_gamma_UU113 d1_gamma_UU123 d1_gamma_UU133 d1_gamma_UU223 d1_gamma_UU233 d1_gamma_UU333     
-#d2_shift111 d2_shift112 d2_shift113 d2_shift121 d2_shift122 d2_shift123 d2_shift131 d2_shift132 d2_shift133 d1_K_tensor111 d1_K_tensor112 d1_K_tensor113 d1_K_tensor122 d1_K_tensor123 d1_K_tensor133 d1_K_tensor211 d1_K_tensor212 d1_K_tensor213 d1_K_tensor222 d1_K_tensor223 d1_K_tensor233 d1_K_tensor311 d1_K_tensor312 d1_K_tensor313 d1_K_tensor322 d1_K_tensor323 d1_K_tensor333
-                                                                                               
 
 dt_multiplier = 0.1
-stop_time = 1300.0
+stop_time = 100.0
 
 
  
 # Set up grid spacings and regrid params
 # NB - the N values need to be multiples of block_factor
 
+N1 = 64
+N2 = 64
+N3 = 64
 
-N1 = 128
-N2 = 128
-N3 = 128
-L = 128
+L = 2048
 
 #N_full = 32
 #L_full = 16
 # Length of longest box side, dx_coarsest = L/N(max)
 # NB if non cubic, this determines dx for all sides
-#L = 256
+#L = 2048
 
 # Regridding
 #tag_buffer_size = 0
@@ -74,21 +67,21 @@ max_level = 1 # There are (max_level+1) grids, so min is zero
 regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
 
 # Max box size
-max_grid_size = 32
+max_grid_size = 16
 # Min box size
-block_factor = 32
+block_factor = 16
 tag_buffer_size = 0
 
 #boundaries and periodicity of grid
 #Periodic directions - 0 = false, 1 = true
-isPeriodic = 1 1 1
+isPeriodic = 0 0 0
 
 # if not periodic, then specify the boundary type
 # 0 = static, 1 = sommerfeld, 2 = reflective, 3 = extrapolating
 # (see BoundaryConditions.hpp for details)
-#hi_boundary = 0 0 0
-#lo_boundary = 0 0 0
-center = 64.0 64.0 64.0
+hi_boundary = 0 0 0
+lo_boundary = 0 0 0
+#center = 512.0 512.0 0.0
 
 # if reflective boundaries selected, must select 
 # parity values (in order given by UserVariables.hpp)
@@ -99,8 +92,8 @@ center = 64.0 64.0 64.0
 #vars_parity_diagnostic = 0 0 0 0 0 0 0 0    #chi and rho rhoJ
 
 # specify non zero asympotitic vars
-#num_nonzero_asymptotic_vars = 2
-#nonzero_asymptotic_vars = chi, Kout
+#num_nonzero_asymptotic_vars = 0
+#nonzero_asymptotic_vars = chi
 #nonzero_asymptotic_values = 1.0
 
 # if mixed boundaries selected, must specify which are extrapolating
@@ -115,15 +108,13 @@ center = 64.0 64.0 64.0
 sigma = 0.3
 
 # Tensor Field Initial data
-
-initial_constant = 10.00
+initial_constant = 2.00
 tensor_mass = 0.00
-
 # not used
 #f_axion = 0.0
 
 # Boosted BH initial data, boost in x direction, spin in z direction
-bh_mass = 0.0
+bh_mass = 1.0
 bh_spin = 0.0 # This is a, so needs to be <= M
 #inner_r = 5.0
 #outer_r = 500.0
@@ -134,7 +125,3 @@ write_extraction = 0
 #num_points_phi = 36
 #num_points_t = 24
 #zaxis_over_xaxis = 1.0
-
-num_extraction_radii = 2
-extraction_levels = 0 0
-extraction_radii = 0.0 0.0
