@@ -5,7 +5,7 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/TensorTaub/static/"
+output_path = "/cosma7/data/dp092/dc-mars4/TensorTaub/static2/"
 #chk_prefix = StaticTensorTest_
 chk_prefix = StaticTensorTestChk_
 plot_prefix = StaticTensorTestPlot_
@@ -30,8 +30,8 @@ plot_prefix = StaticTensorTestPlot_
 checkpoint_interval = 1
 plot_interval = 1
 
-num_plot_vars = 29
-plot_vars = Kout trace_field traceB traceRT fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 lorenzCont lorenzProj1 lorenzProj2 lorenzProj3 primaryConstraintScalar
+num_plot_vars = 32
+plot_vars = Kout trace_field traceB traceRT fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 lorenzCont lorenzProj1 lorenzProj2 lorenzProj3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
 
 
 
@@ -88,13 +88,13 @@ tag_buffer_size = 0
 
 #boundaries and periodicity of grid
 #Periodic directions - 0 = false, 1 = true
-isPeriodic = 1 1 1
+isPeriodic = 0 0 0
 
 # if not periodic, then specify the boundary type
 # 0 = static, 1 = sommerfeld, 2 = reflective, 3 = extrapolating
 # (see BoundaryConditions.hpp for details)
-#hi_boundary = 0 0 0
-#lo_boundary = 0 0 0
+hi_boundary = 0 0 0
+lo_boundary = 0 0 0
 center = 64.0 64.0 64.0
 
 # if reflective boundaries selected, must select 
