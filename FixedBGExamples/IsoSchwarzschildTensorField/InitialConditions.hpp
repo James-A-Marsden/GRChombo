@@ -10,7 +10,7 @@
 #include "Cell.hpp"
 #include "Coordinates.hpp"
 #include "FixedBGTensorField.hpp"
-#include "TaubFixedBG.hpp"
+#include "IsoSchwarzschildFixedBG.hpp"
 #include "Tensor.hpp"
 #include "TensorPotential.hpp"
 #include "UserVariables.hpp" //This files needs NUM_VARS - total no. components
@@ -26,7 +26,7 @@ class InitialConditions
     //const double m_amplitude_re, m_amplitude_im;
     //const double m_omega;
     const std::array<double, CH_SPACEDIM> m_center;
-    const TaubFixedBG::params_t m_bg_params;
+    const IsoSchwarzschildFixedBG::params_t m_bg_params;
     const double m_tensor_mass;
     const double m_initial_constant;
     const FourthOrderDerivatives m_deriv;
@@ -45,7 +45,7 @@ class InitialConditions
     //! The constructor for the class
     //const double a_amplitude_re, const double a_amplitude_im, const double a_omega,
     InitialConditions(const double tensor_mass, const std::array<double, CH_SPACEDIM> a_center,
-                      const TaubFixedBG::params_t a_bg_params,
+                      const IsoSchwarzschildFixedBG::params_t a_bg_params,
                       const double a_dx, const double a_initial_constant)//, const double a_fhat, const Tensor<1,data_t> a_fbar, const Tensor<2,data_t> a_fspatial)
         : m_dx(a_dx), m_center(a_center), m_bg_params(a_bg_params), m_tensor_mass(tensor_mass),
         m_initial_constant(a_initial_constant), m_deriv(a_dx)
@@ -63,7 +63,7 @@ class InitialConditions
         Coordinates<data_t> coords(current_cell, m_dx, m_center);
 
         // get the metric vars
-        TaubFixedBG kerr_bh(m_bg_params, m_dx);
+        IsoSchwarzschildFixedBG kerr_bh(m_bg_params, m_dx);
         MetricVars<data_t> metric_vars;
         kerr_bh.compute_metric_background(metric_vars, current_cell);
         const data_t det_gamma =
@@ -94,7 +94,7 @@ class InitialConditions
         data_t w; //Scalar component
 
 
-        namespace bmath = boost::math;
+        
 
         const double frequency = 2 * M_PI /128.0 ;
 
@@ -106,10 +106,7 @@ class InitialConditions
         const auto d1 = m_deriv.template diff1<Vars>(current_cell);
 
         vars.fhat = 0.0;
-        double num = 4.0/3.0;
-        double zs = 0.75 * pow(coords.z+200.0,num);
-        double bessel = zs * bmath::cyl_bessel_j(0,-zs * frequency);// + zs * boost::math::cyl_neumann(0,zs * frequency); 
-
+      
         FOR(i)
         {
           vars.fbar[i] = 0.0;
@@ -121,40 +118,58 @@ class InitialConditions
             vars.v[i][j] = 0.0;
           } 
         }
-        vars.fspatial[0][0] = bessel;
-        vars.fspatial[1][1] = -bessel;
-        vars.fspatial[0][1] = bessel;
-        vars.fspatial[1][0] = bessel;
-        /*
-        vars.fspatial[0][0] = pow(coords.z,4/3);
-        vars.fspatial[1][1] = -pow(coords.z,4/3);
-        vars.fspatial[0][1] = pow(coords.z,4/3);
-        vars.fspatial[1][0] = pow(coords.z,4/3);
-        */
-        //vars.fspatial[0][0] = 100 * exp(-coords.x * coords.x);
-        //vars.fspatial[0][0] = 100 * exp(-radius * radius);//100.0;
-        //vars.fspatial[0][0] = 1.0 * cos( - frequency * coords.x);
-        //vars.fspatial[1][1] = -1.0 * cos( - frequency * coords.z);
-        //vars.fspatial[2][2] = 100 * exp(-radius * radius);
-        //vars.fspatial[0][0] = 1.0 * gamma_UU[1][1];
-        //vars.fspatial[1][1] = -1.0 * gamma_UU[0][0];
-        //vars.fspatial[1][0] = 1.0;
-        //vars.fspatial[1][1] = -1.0;
-        /*
-        vars.fspatial[0][0] = 1.0;
-        vars.fspatial[1][1] = 2.0;
-        */
-        //vars.fspatial[1][1] = -1.0;
-        
-        /*
-        vars.fspatial[0][0] = amplitude;
-        vars.fspatial[1][1] = -amplitude;
-        vars.fspatial[0][1] = amplitude;
-        vars.fspatial[1][0] = amplitude;
-        */
-        
-          
+        const data_t x = coords.x;
+        const double y = coords.y;
+        const double z = coords.z;
+        const data_t x2 = x * x;
+        const double y2 = y * y;
+        const double z2 = z * z;
+        const data_t r = coords.get_radius();
+        const data_t r2 = r * r;
+ 
+        const data_t costheta = z/r;
+        const data_t sintheta = sin(acos(z/r));
+        //const data_t sinphi = y/(r * sintheta);
+        //const data_t cosphi = x/(r * sintheta);
+        data_t phi; 
+        if(x > 0.0){
+          phi = atan(y/x);
+        }
+        else if (x < 0.0 && y >= 0.0){
+          phi = atan(y/x) + M_PI;
+        }
+        else if (x < 0.0 && y < 0.0){
+          phi = atan(y/x) - M_PI;
+        }
+        else if (x == 0.0 && y > 0.0){
+          phi = M_PI/2.0;
+        }
+        else if (x == 0.0 && y < 0.0){
+          phi = -M_PI/2.0;
+        }
+        else{
+          phi = 0.0;
+        }
+        const data_t sinphi = sin(phi);
+        const data_t cosphi = cos(phi);
+        const data_t sin2phi = 2.0 * sinphi * cosphi; 
+        const data_t cos2phi = cosphi*cosphi - sinphi*sinphi;
 
+        
+        vars.fspatial[0][0] = - sin2phi * sintheta/ r ;
+        vars.fspatial[1][1] =  sin2phi * sintheta/ r;
+        vars.fspatial[2][2] =  0.0;
+        vars.fspatial[0][1] =  cos2phi * sintheta / r;
+        vars.fspatial[0][2] = - sinphi * costheta / r;
+        vars.fspatial[1][2] =  cosphi * costheta / r;
+
+        vars.fspatial[1][0] = vars.fspatial[0][1];
+        vars.fspatial[2][0] = vars.fspatial[0][2];
+        vars.fspatial[2][1] = vars.fspatial[1][2];
+        
+
+
+       
         vars.fhat = TensorAlgebra::compute_trace(gamma_UU, vars.fspatial);
         
         //vars.fhat = amplitude;

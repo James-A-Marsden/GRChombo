@@ -5,10 +5,10 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/TensorTaub/bessel3/"
-#chk_prefix = BesselTensorTest_
-chk_prefix = BesselTensorTestChk_
-plot_prefix = BesselTensorTestPlot_
+output_path = "/cosma7/data/dp092/dc-mars4/TensorIsoSchwarz/TransformTest/"
+#chk_prefix = IsoTensorTest_
+chk_prefix = IsoTensorTestChk_
+plot_prefix = IsoTensorTestPlot_
 # restart_file
 
 # subpaths - specific directories for hdf5, pout, extraction data
@@ -30,8 +30,8 @@ plot_prefix = BesselTensorTestPlot_
 checkpoint_interval = 1
 plot_interval = 1
 
-num_plot_vars = 41
-plot_vars = Kout trace_field traceB traceRT fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 lorenzCont lorenzProj1 lorenzProj2 lorenzProj3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3 d1lapse1 d1lapse2 d1lapse3 K11 K12 K13 K22 K23 K33
+num_plot_vars = 47
+plot_vars = Kout trace_field traceB traceRT fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 lorenzCont lorenzProj1 lorenzProj2 lorenzProj3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3 d1lapse1 d1lapse2 d1lapse3 K11 K12 K13 K22 K23 K33 R11 R12 R13 R22 R23 R33
 
 
 
@@ -57,9 +57,9 @@ stop_time = 1300.0
 # NB - the N values need to be multiples of block_factor
 
 
-N1 = 128
-N2 = 128
-N3 = 128
+N1 = 32
+N2 = 32
+N3 = 32
 L = 128
 
 #N_full = 32
@@ -74,16 +74,16 @@ L = 128
 
 # Level data
 # Maximum number of times you can regrid above coarsest level
-max_level = 0 # There are (max_level+1) grids, so min is zero
+max_level = 8 # There are (max_level+1) grids, so min is zero
 # Frequency of regridding at each level
 # Need one for each level, ie max_level+1 items
 # Generally you do not need to regrid frequently on every level
 regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
 
 # Max box size
-max_grid_size = 128
+max_grid_size = 32
 # Min box size
-block_factor = 128
+block_factor = 32
 tag_buffer_size = 0
 
 #boundaries and periodicity of grid
@@ -130,7 +130,7 @@ tensor_mass = 0.00
 #f_axion = 0.0
 
 # Boosted BH initial data, boost in x direction, spin in z direction
-bh_mass = 0.00
+bh_mass = 0.45
 bh_spin = 0.0 # This is a, so needs to be <= M
 #inner_r = 5.0
 #outer_r = 500.0

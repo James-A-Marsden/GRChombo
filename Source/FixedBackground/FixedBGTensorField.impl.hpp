@@ -165,7 +165,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     data_t scalarRiemannTerm; 
     FOR3(i,j,k)
     {
-        scalarRiemannTerm = 0;
+        scalarRiemannTerm = 0.0;
         FOR1(l)
         {
             scalarRiemannTerm += metric_vars.K * gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.K_tensor[k][l] * vars.fspatial[i][j]
@@ -185,7 +185,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
     FOR1(i)
     {
-        vectorRiemannTerm[i] = 0;
+        vectorRiemannTerm[i] = 0.0;
         FOR2(j,k)
         {
             vectorRiemannTerm[i] += -gamma_UU[j][k] * metric_vars.K_tensor[i][j] * metric_vars.K * vars.fbar[k]
@@ -319,14 +319,14 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     //EVOLUTION                             
     rhs.fhat = advec.fhat - metric_vars.lapse * vars.w;
 
-    rhs.w = advec.w + metric_vars.lapse * metric_vars.K * vars.w + metric_vars.lapse * temp_mass * temp_mass * vars.fhat;// - 2.0 * metric_vars.lapse * scalarRiemannTerm;
+    rhs.w = advec.w + metric_vars.lapse * metric_vars.K * vars.w + metric_vars.lapse * temp_mass * temp_mass * vars.fhat - 2.0 * metric_vars.lapse * scalarRiemannTerm;
 
     //1 summation index
     FOR1(i)
     {   
         rhs.fbar[i] = advec.fbar[i] - vars.fhat * metric_vars.d1_lapse[i] - metric_vars.lapse * vars.q[i];
 
-        rhs.q[i] = advec.q[i] + metric_vars.lapse * vars.q[i] * metric_vars.K - vars.w * metric_vars.d1_lapse[i] + metric_vars.lapse * temp_mass * temp_mass * vars.fbar[i];// - 2.0 * metric_vars.lapse * vectorRiemannTerm[i];
+        rhs.q[i] = advec.q[i] + metric_vars.lapse * vars.q[i] * metric_vars.K - vars.w * metric_vars.d1_lapse[i] + metric_vars.lapse * temp_mass * temp_mass * vars.fbar[i] - 2.0 * metric_vars.lapse * vectorRiemannTerm[i];
 
         
        //2 summation indices 

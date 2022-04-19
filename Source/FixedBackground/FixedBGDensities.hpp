@@ -87,6 +87,18 @@ template <class matter_t, class background_t> class FixedBGDensities
         current_cell.store_vars(rho, c_rho);
         current_cell.store_vars(rhoJ, c_rhoJ);
 
+        Tensor<3, data_t> chris_local; 
+        FOR3(i,j,k)
+        {
+          chris_local[i][j][k] = 0.0;
+          FOR1(l)
+          {
+            chris_local[i][j][k] += metric_vars.gamma_UU[i][l] * (metric_vars.d1_gamma[l][k][j] + metric_vars.d1_gamma[j][l][k] - metric_vars.d1_gamma[j][k][l]);
+          }
+          chris_local[i][j][k] /= 2.0;
+        }
+
+
         //  u <-> v
         Tensor<2, data_t> i_u;
         
@@ -171,7 +183,7 @@ template <class matter_t, class background_t> class FixedBGDensities
             trace_of_field += gamma_UU[i][j] * vars.fspatial[i][j]; 
         }
         trace_of_field += -vars.fhat;
-        pout()<<"trace here = " << trace_of_field << endl; 
+        //pout()<<"trace here = " << trace_of_field << endl; 
 
         Tensor<1, data_t> trace_of_F;
 
@@ -207,7 +219,7 @@ template <class matter_t, class background_t> class FixedBGDensities
             KinvK += K_inverse_UU[i][j] * metric_vars.K_tensor[i][j];
         }
 
-        /*
+        
         data_t denom = 0.0;
 
         FOR1(i)
@@ -218,7 +230,7 @@ template <class matter_t, class background_t> class FixedBGDensities
             denom += gamma_UU[0][i] * gamma_UU[j][k] * cd1_K_tensor[i][j][k];
           }
         }
-
+        /*
         vars.fbar[0] = metric_vars.K * metric_vars.K * vars.fhat;
 
         FOR2(i,j)
@@ -232,6 +244,7 @@ template <class matter_t, class background_t> class FixedBGDensities
         vars.fbar[0] /= (2.0 * denom);
         */        
         data_t lorenzCont = 0.0;
+        
         lorenzCont = -metric_vars.K * vars.fhat - vars.w;
         FOR2(i,j)
         {
@@ -245,8 +258,9 @@ template <class matter_t, class background_t> class FixedBGDensities
             }
           }
         }
-
+        
         Tensor<1, data_t> lorenzProj;
+        
         FOR1(i)
         {
           lorenzProj[i] = -metric_vars.K * vars.fbar[i] - vars.q[i];
@@ -260,7 +274,7 @@ template <class matter_t, class background_t> class FixedBGDensities
             }
           }
         }
-
+        
         //Add in mass terms, don't forget dt lapse term too
         data_t primaryScalar = 0.0;
         
@@ -273,8 +287,11 @@ template <class matter_t, class background_t> class FixedBGDensities
             FOR2(k,l)
             {
             //primaryScalar += d2.fspatial[i][i][j][j] - d2.fspatial[i][j][i][j];
+            
               primaryScalar += -2.0 * metric_vars.lapse * gamma_UU[i][k] * gamma_UU[j][l] * (metric_vars.K * metric_vars.K_tensor[i][j] + metric_vars.ricci_phys[i][j]) * vars.fspatial[k][l]
                                 + metric_vars.lapse * gamma_UU[i][k] * gamma_UU[j][l] * i_u[i][j] * metric_vars.K_tensor[k][l];
+                                
+             
               
               FOR2(m,n)
               {
@@ -316,11 +333,99 @@ template <class matter_t, class background_t> class FixedBGDensities
             }
           }
         }
+        Tensor<1, data_t> d1lapse;
+        FOR1(i)
+        {
+          d1lapse[i] = (-1.0/3.0) * delta(i,2) * pow(coords.z+400.0,-4.0/3.0);
+        }
+        Tensor<2,data_t> Kij;
+        FOR2(i, j)
+        {
+            Kij[i][j] = 0.0;
+            FOR1(k)
+            {
+                Kij[i][j] +=
+                    metric_vars.gamma[k][j] * metric_vars.d1_shift[k][i] +
+                    metric_vars.gamma[k][i] * metric_vars.d1_shift[k][j] +
+                    (metric_vars.d1_gamma[k][i][j] + metric_vars.d1_gamma[k][j][i]) *
+                        metric_vars.shift[k];
+                FOR1(m)
+                {
+                    Kij[i][j] += -2.0 * chris_phys.ULL[k][i][j] *
+                                           metric_vars.gamma[k][m] * metric_vars.shift[m];
+                }
+            }
+            Kij[i][j] *= 0.5 / metric_vars.lapse;
+        }
+
+
+     
+        FOR2(i, j)
+        {
+            FOR2(k, m)
+            {
+                metric_vars.d1_chris_phys[i][j][k][m] = 0.0;
+            
+                FOR1(n)
+                {
+                    metric_vars.d1_chris_phys[i][j][k][m] += 0.5 * metric_vars.d1_gamma_UU[i][n][m] * (metric_vars.d1_gamma[k][n][j] + metric_vars.d1_gamma[n][j][k] - metric_vars.d1_gamma[j][k][n])
+
+                                                    + 0.5 * gamma_UU[i][n] * (metric_vars.d2_gamma[k][n][j][m] + metric_vars.d2_gamma[n][j][k][m] - metric_vars.d2_gamma[j][k][n][m]);
+                
+                }
+            }
+        }        
+        FOR1(i)
+        {
+            FOR3(j,k,l)
+            {
+                metric_vars.riemann_phys_ULLL[i][j][k][l] = metric_vars.d1_chris_phys[i][l][j][k] - metric_vars.d1_chris_phys[i][k][j][l];
+
+                FOR1(m)
+                {
+                    metric_vars.riemann_phys_ULLL[i][j][k][l] += chris_phys.ULL[m][l][j] * chris_phys.ULL[i][m][k] - chris_phys.ULL[m][k][j] * chris_phys.ULL[i][m][l]; 
+                    
+                }
+            }
+        }
+        //spatial ricci tensor
+        FOR2(i,j)
+        {
+            metric_vars.ricci_phys[i][j] = 0;
+            FOR1(k)
+            {
+                metric_vars.ricci_phys[i][j] += metric_vars.riemann_phys_ULLL[k][i][k][j];
+            }
+        }
+    
+
+
+
         current_cell.store_vars(trace_of_field, c_trace_field);  
         current_cell.store_vars(trace_of_B, c_traceB); 
         current_cell.store_vars(fhatderivs[0], c_d1fhat1); 
         current_cell.store_vars(fhatderivs[1], c_d1fhat2); 
         current_cell.store_vars(fhatderivs[2], c_d1fhat3); 
+
+        current_cell.store_vars(d1lapse[0], c_d1lapse1); 
+        current_cell.store_vars(d1lapse[1], c_d1lapse2); 
+        current_cell.store_vars(d1lapse[2], c_d1lapse3); 
+
+        current_cell.store_vars(Kij[0][0], c_K11); 
+        current_cell.store_vars(Kij[0][1], c_K12); 
+        current_cell.store_vars(Kij[0][2], c_K13); 
+        current_cell.store_vars(Kij[1][1], c_K22); 
+        current_cell.store_vars(Kij[1][2], c_K23); 
+        current_cell.store_vars(Kij[2][2], c_K33); 
+
+        
+        current_cell.store_vars(metric_vars.ricci_phys[0][0], c_R11); 
+        current_cell.store_vars(metric_vars.ricci_phys[0][1], c_R12); 
+        current_cell.store_vars(metric_vars.ricci_phys[0][2], c_R13); 
+        current_cell.store_vars(metric_vars.ricci_phys[1][1], c_R22); 
+        current_cell.store_vars(metric_vars.ricci_phys[1][2], c_R23); 
+        current_cell.store_vars(metric_vars.ricci_phys[2][2], c_R33); 
+        
 
         current_cell.store_vars(lorenzCont, c_lorenzCont); 
         current_cell.store_vars(lorenzProj[0], c_lorenzProj1);

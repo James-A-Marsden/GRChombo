@@ -171,8 +171,8 @@ class KerrSchildFixedBG
         FOR3(i,j,k)
         {
             
-            vars.d1_gamma_UU[i][j][k] = -2.0 * dHdx[k] * (TensorAlgebra::delta(i, j) + 2.0 * H * lambda_UU[i][j]) / ((1 + 2.0 * H) * (1 + 2.0 * H))
-            + ((2.0 * dHdx[k] * lambda_UU[i][j]) + (2.0 * H * d1_lambda_UU[i][j][k]))/(1 + 2.0 * H);
+            vars.d1_gamma_UU[i][j][k] = -2.0 * dHdx[k] * (TensorAlgebra::delta(i, j) + 2.0 * H * lambda_UU[i][j]) / ((1.0 + 2.0 * H) * (1.0 + 2.0 * H))
+            + ((2.0 * dHdx[k] * lambda_UU[i][j]) + (2.0 * H * d1_lambda_UU[i][j][k]))/(1.0 + 2.0 * H);
             
             //vars.d1_gamma_UU[i][j][k] = 0;
             /*
@@ -334,7 +334,7 @@ class KerrSchildFixedBG
                 //Derivative of the trace, \partial_i K = \partial_i(gamma^jk K_jk)
         FOR1(i)
         {
-            vars.d1_K[i] = 0;
+            vars.d1_K[i] = 0.0;
             FOR2(j,k)
             {
                 vars.d1_K[i] += vars.d1_gamma_UU[j][k][i] * vars.K_tensor[j][k] + gamma_UU[j][k] * vars.d1_K_tensor[j][k][i];

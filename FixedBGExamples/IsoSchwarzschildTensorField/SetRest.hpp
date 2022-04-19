@@ -10,7 +10,7 @@
 #include "Cell.hpp"
 #include "Coordinates.hpp"
 #include "FixedBGTensorField.hpp"
-#include "TaubFixedBG.hpp"
+#include "IsoSchwarzschildFixedBG.hpp"
 #include "Tensor.hpp"
 #include "TensorPotential.hpp"
 #include "UserVariables.hpp" //This files needs NUM_VARS - total no. components
@@ -26,7 +26,7 @@ class SetRest
     //const double m_amplitude_re, m_amplitude_im;
     //const double m_omega;
     const std::array<double, CH_SPACEDIM> m_center;
-    const TaubFixedBG::params_t m_bg_params;
+    const IsoSchwarzschildFixedBG::params_t m_bg_params;
     const double m_tensor_mass;
     const double m_initial_constant;
     const FourthOrderDerivatives m_deriv;
@@ -45,7 +45,7 @@ class SetRest
     //! The constructor for the class
     //const double a_amplitude_re, const double a_amplitude_im, const double a_omega,
     SetRest(const double tensor_mass, const std::array<double, CH_SPACEDIM> a_center,
-                      const TaubFixedBG::params_t a_bg_params,
+                      const IsoSchwarzschildFixedBG::params_t a_bg_params,
                       const double a_dx, const double a_initial_constant)//, const double a_fhat, const Tensor<1,data_t> a_fbar, const Tensor<2,data_t> a_fspatial)
         : m_dx(a_dx), m_center(a_center), m_bg_params(a_bg_params), m_tensor_mass(tensor_mass),
         m_initial_constant(a_initial_constant), m_deriv(a_dx)
@@ -63,7 +63,7 @@ class SetRest
         Coordinates<data_t> coords(current_cell, m_dx, m_center);
 
         // get the metric vars
-        TaubFixedBG kerr_bh(m_bg_params, m_dx);
+        IsoSchwarzschildFixedBG kerr_bh(m_bg_params, m_dx);
         MetricVars<data_t> metric_vars;
         kerr_bh.compute_metric_background(metric_vars, current_cell);
         const data_t det_gamma =
@@ -71,6 +71,15 @@ class SetRest
         const auto gamma_UU = TensorAlgebra::compute_inverse_sym(metric_vars.gamma);
         const auto chris_phys = TensorAlgebra::compute_christoffel(metric_vars.d1_gamma, gamma_UU);
 
+        const data_t x = coords.x;
+        const double y = coords.y;
+        const double z = coords.z;
+        const data_t x2 = x * x;
+        const double y2 = y * y;
+        const double z2 = z * z;
+        const data_t r = coords.get_radius();
+        const data_t r2 = r * r;
+        const double M = m_bg_params.mass;
 
         Vars<data_t> vars;
 
@@ -113,10 +122,41 @@ class SetRest
             vars.q[i] += gamma_UU[j][k] * d1.fspatial[j][i][k];
             FOR1(l)
             {
-              vars.q[i] += -gamma_UU[j][k] * (chris_local[l][k][i] * vars.fspatial[l][j] + chris_local[l][k][j] * vars.fspatial[i][l]);
+              vars.q[i] += -gamma_UU[j][k] * (chris_phys.ULL[l][k][i] * vars.fspatial[l][j] + chris_phys.ULL[l][k][j] * vars.fspatial[i][l]);
             }
           }
         }
+        vars.q[2] = 0.0;
+        const data_t costheta = z/r;
+        const data_t sintheta = sin(acos(z/r));
+        //const data_t sinphi = y/(r * sintheta);
+        //const data_t cosphi = x/(r * sintheta);
+        data_t phi; 
+        if(x > 0.0){
+          phi = atan(y/x);
+        }
+        else if (x < 0.0 && y >= 0.0){
+          phi = atan(y/x) + M_PI;
+        }
+        else if (x < 0.0 && y < 0.0){
+          phi = atan(y/x) - M_PI;
+        }
+        else if (x == 0.0 && y > 0.0){
+          phi = M_PI/2.0;
+        }
+        else if (x == 0.0 && y < 0.0){
+          phi = -M_PI/2.0;
+        }
+        else{
+          phi = 0.0;
+        }
+        const data_t sinphi = sin(phi);
+        const data_t cosphi = cos(phi);
+        vars.q[0] = -64.0 * pow(r, 3.0) * sinphi * pow(M + 2.0 * r, -5.0);
+        vars.q[1] = 64.0 * pow(r, 3.0) * cosphi * pow(M + 2.0 * r, -5.0);
+        vars.q[2] = 0.0;
+        
+        
         //Normal projection of Lorentz condition
         vars.w = -metric_vars.K * vars.fhat;
         FOR2(i,j)
@@ -124,7 +164,7 @@ class SetRest
           vars.w += gamma_UU[i][j] * d1.fbar[i][j];
           FOR1(k)
           {
-            vars.w += -gamma_UU[i][j] * chris_local[k][j][i] * vars.fbar[k];
+            vars.w += -gamma_UU[i][j] * chris_phys.ULL[k][j][i] * vars.fbar[k];
             FOR1(l)
             {
               vars.w += -metric_vars.K_tensor[i][j] * vars.fspatial[k][l] * gamma_UU[i][k] * gamma_UU[j][l]; 
@@ -133,22 +173,20 @@ class SetRest
         }
         //Momentum traceless condition spatial projection of
         //vars.v[0][0] += vars.w / gamma_UU[0][0];
-       
-       
+        //vars.w = 0.0;
+        /*
+        FOR1(i)
+        {
+          vars.q[i] = 0.0;
+        }
+        */
         namespace bmath = boost::math; 
         const double frequency = 2.0 * M_PI /128.0 ;
 
         data_t amplitude = cos( - frequency * coords.x);
         
         data_t momentum = -frequency * sin(-frequency * coords.x); 
-        double num = 4.0/3.0;
-        double zs = 0.75 * pow(coords.z+200.0,num);
-        double bessel = -100.0 * zs * bmath::cyl_bessel_j(1,-zs * frequency);// - zs * boost::math::cyl_neumann(1,zs * frequency);
-        vars.v[0][0] = bessel;
-        vars.v[1][1] = -bessel;
-        vars.v[0][1] = bessel;
-        vars.v[1][0] = bessel;
-        //vars.v[2][2] = bessel;
+
 
         //vars.w = TensorAlgebra::compute_trace(gamma_UU, vars.v);
 

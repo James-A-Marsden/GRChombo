@@ -3,8 +3,8 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#ifndef TAUBFIXEDBG_HPP_
-#define TAUBFIXEDBG_HPP_
+#ifndef ISOSCHWARZSCHILDFIXEDBG_HPP_
+#define ISOSCHWARZSCHILDFIXEDBG_HPP_
 
 #include "ADMFixedBGVars.hpp"
 #include "Cell.hpp"
@@ -17,7 +17,7 @@
 
 //! Class which computes the initial conditions for a Kerr Schild BH
 //! https://arxiv.org/pdf/gr-qc/9805023.pdf
-class TaubFixedBG
+class IsoSchwarzschildFixedBG
 {
   public:
     //! Struct for the params of the  BH
@@ -33,7 +33,7 @@ class TaubFixedBG
     const params_t m_params;
     const double m_dx;
 
-    TaubFixedBG(params_t a_params, double a_dx)
+    IsoSchwarzschildFixedBG(params_t a_params, double a_dx)
         : m_params(a_params), m_dx(a_dx)
     {
         // check this spin param is sensible
@@ -77,60 +77,60 @@ class TaubFixedBG
         // on x direction (length contraction)
         const data_t x = coords.x;
         const double y = coords.y;
-        const double z = coords.z + 200.0;
-  
+        const double z = coords.z;
+        const data_t r = coords.get_radius();
+        const data_t r2 = r * r;
+        
  
-        vars.lapse = pow(z, -1.0/3.0);
-        FOR2(i, j)
-        {
-            vars.gamma[i][j] = 0.0;
-                
-        }
-        vars.gamma[0][0] = pow(z,4.0/3.0);
-        vars.gamma[1][1] = pow(z,4.0/3.0);
-        vars.gamma[2][2] = 1.0;
+        Tensor<1,data_t> d1_r;
+        Tensor<2,data_t> d2_r;
+        //For neatness
+        Tensor<1,data_t> X;
+        //First, get the derivatives of the radius
+        X[0] = coords.x;
+        X[1] = coords.y;
+        X[2] = coords.z;
+
         using namespace TensorAlgebra;
-        const auto gamma_UU = compute_inverse_sym(vars.gamma);
+
         FOR1(i)
         {
-            vars.shift[i] = 0;
+            d1_r[i] = X[i] / r;
         }
-      
+
+        FOR2(i,j)
+        {
+            d2_r[i][j] = (delta(i,j) - X[i] * X[j] / r2) / r;
+        }
+
+        FOR2(i, j)
+        {
+            vars.gamma[i][j] = delta(i,j) * pow(1.0 + 0.5 * M / r,4.0);
+                
+        }
         // Calculate partial derivative of spatial metric
         FOR3(i, j, k)
         {
-            vars.d1_gamma[i][j][k] = 0.0;
-        }
-        FOR1(k)
-        {
-            vars.d1_gamma[0][0][k] = (4.0/3.0) * delta(k,2) * pow(z,1.0/3.0);
-            vars.d1_gamma[1][1][k] = (4.0/3.0) * delta(k,2) * pow(z,1.0/3.0);
+            vars.d1_gamma[i][j][k] = -0.25 * M * pow(M + 2.0 * r,3.0) * pow(r, -5.0) * d1_r[k] * delta(i,j);
         }
 
-        vars.gamma_UU = compute_inverse_sym(vars.gamma);
-
-        FOR3(i,j,k)
+        FOR2(i,j)
         {
-            vars.d1_gamma_UU[i][j][k] = 0.0;
-        }
-        FOR1(k)
-        {
-            vars.d1_gamma_UU[0][0][k] = (-4.0/3.0) * delta(k,2) * pow(z,-7.0/3.0); 
-            vars.d1_gamma_UU[1][1][k] = (-4.0/3.0) * delta(k,2) * pow(z,-7.0/3.0); 
-        }
-        //Second derivative of the spatial metric (can simplify further)
-        FOR1(i)
-        {
-            FOR3(j,k,m)
+            FOR2(k,l)
             {
-                vars.d2_gamma[i][j][k][m] = 0.0;
+                vars.d2_gamma[i][j][k][l] = -delta(i,j) * (M * (M + 2.0 * r) * (M + 2.0 * r) * (-(5.0 * M + 4.0 * r) * d1_r[k] * d1_r[l] + r * (M + 2.0 * r) * d2_r[k][l] ) ) * 0.25 * pow(r,-6.0);
             }
         }
-        FOR2(k,m)
+        //Now the inverse metric
+
+        const auto gamma_UU = compute_inverse_sym(vars.gamma);
+        const auto chris_phys = compute_christoffel(vars.d1_gamma, gamma_UU);
+        FOR3(i,j,k)
         {
-            vars.d2_gamma[0][0][k][m] = (4.0/9.0) * delta(k,2) * delta(m,2) * pow(z,-2.0/3.0);
-            vars.d2_gamma[1][1][k][m] = (4.0/9.0) * delta(k,2) * delta(m,2) * pow(z,-2.0/3.0);
+            vars.d1_gamma_UU[i][j][k] = delta(i,j) * 64.0 * M * d1_r[k] * pow(r,3.0) * pow(M + 2.0 * r,-5.0);
         }
+        
+
                                                 
         //Calculate derivative of the Christoffel symbol (phys)
         FOR2(i, j)
@@ -148,20 +148,25 @@ class TaubFixedBG
                 }
             }
         }
+        vars.lapse = (1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r);
 
         data_t alpha2 = vars.lapse * vars.lapse;
         // calculate derivs of lapse and shift
         FOR1(i)
         {
-            vars.d1_lapse[i] = (-1.0/3.0) * delta(i,2) * pow(z,-4.0/3.0);
+            vars.d1_lapse[i] = 4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
         }
 
         FOR2(i,j)
         {
-            vars.d2_lapse[i][j] = (4.0/9.0) * delta(i,2) * delta(j,2) * pow(z,-7.0/3.0);
+            vars.d2_lapse[i][j] = 4.0 * M * (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) * pow(M + 2.0 * r,-3.0);
         }
-       
 
+
+        FOR1(i)
+        {
+            vars.shift[i] = 0.0;
+        }
         // use the fact that shift^i = lapse^2 * shift_i
         FOR2(i, j) {vars.d1_shift[i][j] = 0.0;}
     
@@ -194,7 +199,7 @@ class TaubFixedBG
                         vars.shift[k];
                 FOR1(m)
                 {
-                    vars.K_tensor[i][j] += -2.0 * chris_local[k][i][j] *
+                    vars.K_tensor[i][j] += -2.0 * chris_phys.ULL[k][i][j] *
                                            vars.gamma[k][m] * vars.shift[m];
                 }
             }
@@ -214,8 +219,8 @@ class TaubFixedBG
                 FOR1(n)
                 {
                     vars.d1_K_tensor[i][j][k] += -2.0 * (vars.d1_chris_phys[m][i][j][k] * vars.gamma[m][n] * vars.shift[n]
-                    + chris_local[m][i][j] * vars.d1_gamma[m][n][k] * vars.shift[n]
-                    + chris_local[m][i][j] * vars.gamma[m][n] * vars.d1_shift[n][k]);
+                    + chris_phys.ULL[m][i][j] * vars.d1_gamma[m][n][k] * vars.shift[n]
+                    + chris_phys.ULL[m][i][j] * vars.gamma[m][n] * vars.d1_shift[n][k]);
                 }
 
             }
@@ -244,7 +249,7 @@ class TaubFixedBG
 
                 FOR1(m)
                 {
-                    vars.riemann_phys_ULLL[i][j][k][l] += chris_local[m][l][j] * chris_local[i][m][k] - chris_local[m][k][j] * chris_local[i][m][l]; 
+                    vars.riemann_phys_ULLL[i][j][k][l] += chris_phys.ULL[m][l][j] * chris_phys.ULL[i][m][k] - chris_phys.ULL[m][k][j] * chris_phys.ULL[i][m][l]; 
                     
                 }
             }
@@ -286,8 +291,9 @@ class TaubFixedBG
             (x * x + y * y) / (2.0 * M * r_minus) + z * z / r_minus / r_minus;
 
         // value less than 1 indicates we are within the horizon
+        //return 0.0;
         return sqrt(outer_horizon);
     }
 };
 
-#endif /* TAUBFIXEDBG_HPP_ */
+#endif /* ISOSCHWARZSCHILDFIXEDBG_HPP_ */
