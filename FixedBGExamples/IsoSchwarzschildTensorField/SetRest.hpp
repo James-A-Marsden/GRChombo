@@ -17,6 +17,7 @@
 #include "VarsTools.hpp"
 #include "simd.hpp"
 #include "FourthOrderDerivatives.hpp"
+#include "FourthOrderDerivatives.hpp"
 #include <boost/math/special_functions/bessel.hpp> 
 //! Class which creates the initial constraints
 class SetRest
@@ -80,6 +81,17 @@ class SetRest
         const data_t r = coords.get_radius();
         const data_t r2 = r * r;
         const double M = m_bg_params.mass;
+        const data_t rho = simd_max(sqrt(x2 + y2), 1e-6);
+        const data_t rho2 = rho * rho;
+ 
+        const data_t costheta = z/r;
+        const data_t sintheta = rho/r;
+
+        const data_t sinphi = coords.y/rho;
+        const data_t cosphi = coords.x/rho;
+
+        const data_t sin2phi = 2.0 * sinphi * cosphi; 
+        const data_t cos2phi = cosphi*cosphi - sinphi*sinphi;
 
         Vars<data_t> vars;
 
@@ -108,7 +120,7 @@ class SetRest
           chris_local[i][j][k] = 0.0;
           FOR1(l)
           {
-            chris_local[i][j][k] += metric_vars.gamma_UU[i][l] * (metric_vars.d1_gamma[l][k][j] + metric_vars.d1_gamma[j][l][k] - metric_vars.d1_gamma[j][k][l]);
+            chris_local[i][j][k] += gamma_UU[i][l] * (metric_vars.d1_gamma[l][k][j] + metric_vars.d1_gamma[j][l][k] - metric_vars.d1_gamma[j][k][l]);
           }
           chris_local[i][j][k] /= 2.0;
         }
@@ -126,36 +138,10 @@ class SetRest
             }
           }
         }
-        vars.q[2] = 0.0;
-        const data_t costheta = z/r;
-        const data_t sintheta = sin(acos(z/r));
-        //const data_t sinphi = y/(r * sintheta);
-        //const data_t cosphi = x/(r * sintheta);
-        data_t phi; 
-        if(x > 0.0){
-          phi = atan(y/x);
-        }
-        else if (x < 0.0 && y >= 0.0){
-          phi = atan(y/x) + M_PI;
-        }
-        else if (x < 0.0 && y < 0.0){
-          phi = atan(y/x) - M_PI;
-        }
-        else if (x == 0.0 && y > 0.0){
-          phi = M_PI/2.0;
-        }
-        else if (x == 0.0 && y < 0.0){
-          phi = -M_PI/2.0;
-        }
-        else{
-          phi = 0.0;
-        }
-        const data_t sinphi = sin(phi);
-        const data_t cosphi = cos(phi);
-        vars.q[0] = -64.0 * pow(r, 3.0) * sinphi * pow(M + 2.0 * r, -5.0);
-        vars.q[1] = 64.0 * pow(r, 3.0) * cosphi * pow(M + 2.0 * r, -5.0);
-        vars.q[2] = 0.0;
-        
+  
+        //vars.q[0] = -64.0 * pow(r, 3.0) * sinphi * pow(M + 2.0 * r, -5.0)  * sintheta;
+        //vars.q[1] = 64.0 * pow(r, 3.0) * cosphi * pow(M + 2.0 * r, -5.0)  * sintheta;
+        //vars.q[2] = 0.0;
         
         //Normal projection of Lorentz condition
         vars.w = -metric_vars.K * vars.fhat;

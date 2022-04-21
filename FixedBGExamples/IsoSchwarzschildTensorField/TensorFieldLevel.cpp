@@ -67,11 +67,11 @@ void TensorFieldLevel::initialData()
    
     //NO EXCISION 
     
-    BoxLoops::loop(set_vars, m_state_new, m_state_new, INCLUDE_GHOST_CELLS, disable_simd());
-    fillAllGhosts();
-    BoxLoops::loop(set_hbar, m_state_new, m_state_new, INCLUDE_GHOST_CELLS, disable_simd());
-    fillAllGhosts();
-    BoxLoops::loop(set_rest, m_state_new, m_state_new, INCLUDE_GHOST_CELLS, disable_simd());
+    BoxLoops::loop(set_vars, m_state_new, m_state_new, SKIP_GHOST_CELLS, disable_simd());
+    //fillAllGhosts();
+    //BoxLoops::loop(set_hbar, m_state_new, m_state_new, INCLUDE_GHOST_CELLS, disable_simd());
+    //fillAllGhosts();
+    //BoxLoops::loop(set_rest, m_state_new, m_state_new, INCLUDE_GHOST_CELLS, disable_simd());
 
     // excise within horizon, no simd
     BoxLoops::loop(

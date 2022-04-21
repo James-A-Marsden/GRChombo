@@ -1,11 +1,11 @@
 #Params for runtime inputs
 
-verbosity = 2
+verbosity = 1
 integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/TensorIsoSchwarz/TransformTest/"
+output_path = "/cosma7/data/dp092/dc-mars4/TensorIsoSchwarz/64x64x64/"
 #chk_prefix = IsoTensorTest_
 chk_prefix = IsoTensorTestChk_
 plot_prefix = IsoTensorTestPlot_
@@ -30,8 +30,8 @@ plot_prefix = IsoTensorTestPlot_
 checkpoint_interval = 1
 plot_interval = 1
 
-num_plot_vars = 47
-plot_vars = Kout trace_field traceB traceRT fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 lorenzCont lorenzProj1 lorenzProj2 lorenzProj3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3 d1lapse1 d1lapse2 d1lapse3 K11 K12 K13 K22 K23 K33 R11 R12 R13 R22 R23 R33
+num_plot_vars = 50
+plot_vars = Kout trace_field traceB traceRT fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 lorenzCont lorenzProj1 lorenzProj2 lorenzProj3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3 d1lapse1 d1lapse2 d1lapse3 K11 K12 K13 K22 K23 K33 R11 R12 R13 R22 R23 R33 d1fspatial11_1 d1fspatial11_2 d1fspatial11_3
 
 
 
@@ -57,9 +57,9 @@ stop_time = 1300.0
 # NB - the N values need to be multiples of block_factor
 
 
-N1 = 32
-N2 = 32
-N3 = 32
+N1 = 64
+N2 = 64
+N3 = 64
 L = 128
 
 #N_full = 32
@@ -81,9 +81,9 @@ max_level = 8 # There are (max_level+1) grids, so min is zero
 regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
 
 # Max box size
-max_grid_size = 32
+max_grid_size = 64
 # Min box size
-block_factor = 32
+block_factor = 64
 tag_buffer_size = 0
 
 #boundaries and periodicity of grid

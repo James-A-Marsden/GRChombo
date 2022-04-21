@@ -48,6 +48,9 @@ enum
     c_R22,
     c_R23,
     c_R33,
+    c_d1fspatial11_1,
+    c_d1fspatial11_2,
+    c_d1fspatial11_3,
     NUM_DIAGNOSTIC_VARS
 };
 
@@ -65,7 +68,8 @@ static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
     "primaryConstraintVector1", "primaryConstraintVector2", "primaryConstraintVector3",
     "d1lapse1", "d1lapse2", "d1lapse3",
     "K11","K12","K13","K22","K23","K33",
-    "R11","R12","R13","R22","R23","R33"
+    "R11","R12","R13","R22","R23","R33",
+    "d1fspatial11_1", "d1fspatial11_2","d1fspatial11_3"
     };
 /*
     

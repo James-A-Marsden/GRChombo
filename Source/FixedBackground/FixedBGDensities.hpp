@@ -58,7 +58,7 @@ template <class matter_t, class background_t> class FixedBGDensities
         m_background.compute_metric_background(metric_vars, current_cell);
 
         using namespace TensorAlgebra;
-        const auto gamma_UU = compute_inverse_sym(metric_vars.gamma);
+        const auto gamma_UU = TensorAlgebra::compute_inverse_sym(metric_vars.gamma);
         const auto chris_phys =
             compute_christoffel(metric_vars.d1_gamma, gamma_UU);
         const emtensor_t<data_t> emtensor = m_matter.compute_emtensor(
@@ -69,6 +69,7 @@ template <class matter_t, class background_t> class FixedBGDensities
         // first rho - note that this is the conserved rho
         // defined using the timelike Killing vector
         // not that of the Eulerian observers
+        /*
         data_t rho = emtensor.rho * metric_vars.lapse;
         FOR1(i) { rho += -emtensor.Si[i] * metric_vars.shift[i]; }
         rho *= sqrt(det_gamma);
@@ -86,6 +87,28 @@ template <class matter_t, class background_t> class FixedBGDensities
         // assign values of conserved density in output box,
         current_cell.store_vars(rho, c_rho);
         current_cell.store_vars(rhoJ, c_rhoJ);
+        */
+        const data_t x = coords.x;
+        const double y = coords.y;
+        const double z = coords.z;
+        const data_t x2 = x * x;
+        const double y2 = y * y;
+        const double z2 = z * z;
+        const data_t r = coords.get_radius();
+        const data_t r2 = r * r;
+        const data_t rho = simd_max(sqrt(x2 + y2), 1e-6);
+        const data_t rho2 = rho * rho;
+ 
+        const data_t costheta = z/r;
+        const data_t sintheta = rho/r;
+
+        const data_t sinphi = y/rho;
+        const data_t cosphi = x/rho;
+
+        const data_t sin2phi = 2.0 * sinphi * cosphi; 
+        const data_t cos2phi = cosphi*cosphi - sinphi*sinphi;
+
+
 
         Tensor<3, data_t> chris_local; 
         FOR3(i,j,k)
@@ -398,6 +421,7 @@ template <class matter_t, class background_t> class FixedBGDensities
             }
         }
     
+        
 
 
 
@@ -418,6 +442,9 @@ template <class matter_t, class background_t> class FixedBGDensities
         current_cell.store_vars(Kij[1][2], c_K23); 
         current_cell.store_vars(Kij[2][2], c_K33); 
 
+        current_cell.store_vars(-2.0 * y * (-2.0 * x2*x2 -x2*y2 + y2*y2 + y2*z2)/(pow(rho,3.0) * r2), c_d1fspatial11_1);
+        current_cell.store_vars(-2.0 * x * (x2*x2 - 2.0 * y2*y2 -x2*y2  - x2*z2)/(pow(rho,3.0) * r2), c_d1fspatial11_2);
+        current_cell.store_vars(4.0 * x * y * z/ (rho * r2), c_d1fspatial11_3);
         
         current_cell.store_vars(metric_vars.ricci_phys[0][0], c_R11); 
         current_cell.store_vars(metric_vars.ricci_phys[0][1], c_R12); 

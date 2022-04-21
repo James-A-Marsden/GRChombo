@@ -106,6 +106,7 @@ class InitialConditions
         const auto d1 = m_deriv.template diff1<Vars>(current_cell);
 
         vars.fhat = 0.0;
+        vars.w = 0.0;
       
         FOR(i)
         {
@@ -126,53 +127,36 @@ class InitialConditions
         const double z2 = z * z;
         const data_t r = coords.get_radius();
         const data_t r2 = r * r;
+        const data_t rho = simd_max(sqrt(x2 + y2), 1e-6);
+        const data_t rho2 = rho * rho;
  
         const data_t costheta = z/r;
-        const data_t sintheta = sin(acos(z/r));
-        //const data_t sinphi = y/(r * sintheta);
-        //const data_t cosphi = x/(r * sintheta);
-        data_t phi; 
-        if(x > 0.0){
-          phi = atan(y/x);
-        }
-        else if (x < 0.0 && y >= 0.0){
-          phi = atan(y/x) + M_PI;
-        }
-        else if (x < 0.0 && y < 0.0){
-          phi = atan(y/x) - M_PI;
-        }
-        else if (x == 0.0 && y > 0.0){
-          phi = M_PI/2.0;
-        }
-        else if (x == 0.0 && y < 0.0){
-          phi = -M_PI/2.0;
-        }
-        else{
-          phi = 0.0;
-        }
-        const data_t sinphi = sin(phi);
-        const data_t cosphi = cos(phi);
+        const data_t sintheta = rho/r;
+
+        const data_t sinphi = y/rho;
+        const data_t cosphi = x/rho;
+
         const data_t sin2phi = 2.0 * sinphi * cosphi; 
         const data_t cos2phi = cosphi*cosphi - sinphi*sinphi;
 
+        const double M = m_bg_params.mass;
         
-        vars.fspatial[0][0] = - sin2phi * sintheta/ r ;
-        vars.fspatial[1][1] =  sin2phi * sintheta/ r;
+        vars.fspatial[0][0] = - sin2phi * sintheta * sintheta/ r ;
+        vars.fspatial[1][1] =  sin2phi * sintheta * sintheta/ r;
         vars.fspatial[2][2] =  0.0;
-        vars.fspatial[0][1] =  cos2phi * sintheta / r;
-        vars.fspatial[0][2] = - sinphi * costheta / r;
-        vars.fspatial[1][2] =  cosphi * costheta / r;
+        vars.fspatial[0][1] =  cos2phi * sintheta  * sintheta/ r;
+        vars.fspatial[0][2] = - sinphi * costheta  * sintheta/ r;
+        vars.fspatial[1][2] =  cosphi * costheta  * sintheta/ r;
 
         vars.fspatial[1][0] = vars.fspatial[0][1];
         vars.fspatial[2][0] = vars.fspatial[0][2];
         vars.fspatial[2][1] = vars.fspatial[1][2];
         
-
-
-       
         vars.fhat = TensorAlgebra::compute_trace(gamma_UU, vars.fspatial);
-        
-        //vars.fhat = amplitude;
+
+        vars.q[0] = -64.0 * pow(r, 3.0) * sinphi * pow(M + 2.0 * r, -5.0)  * sintheta;
+        vars.q[1] = 64.0 * pow(r, 3.0) * cosphi * pow(M + 2.0 * r, -5.0)  * sintheta;
+        vars.q[2] = 0.0;
 
         current_cell.store_vars(vars);
     }
