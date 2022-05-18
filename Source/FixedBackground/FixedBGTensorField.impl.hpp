@@ -347,6 +347,9 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
             rhs.v[i][j] = advec.v[i][j] - vars.q[i] * metric_vars.d1_lapse[j] - vars.q[j] * metric_vars.d1_lapse[i] + metric_vars.lapse * temp_mass * temp_mass * vars.fspatial[i][j]
             + metric_vars.lapse * metric_vars.K * vars.v[i][j] - 2.0 * metric_vars.lapse * tensorRiemannTerm[i][j]; 
 
+
+           
+
             //3 summation indices 
             FOR1(k)
             {   
@@ -372,6 +375,14 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
                     rhs.v[i][j] += - gamma_UU[k][l] * i_F[k][i][j] * metric_vars.d1_lapse[l] - metric_vars.lapse * gamma_UU[k][l] * d1_i_F[k][i][j][l]
                     - gamma_UU[k][l] * metric_vars.lapse * (vars.v[k][i] - i_u[k][i]) * metric_vars.K_tensor[l][j] - gamma_UU[k][l] * metric_vars.lapse * (vars.v[k][j] - i_u[k][j]) * metric_vars.K_tensor[l][i];
+                    
+                     //TRACE SUBTRACTION? 
+                    //rhs.fspatial[i][j] -= (1.0 / 3.0) * metric_vars.gamma[i][j] * gamma_UU[k][l] * vars.fspatial[k][l];
+
+                    //rhs.v[i][j] -= (1.0 / 3.0) * metric_vars.gamma[i][j] * gamma_UU[k][l] * vars.v[k][l];
+
+                    
+                    
                     //5 summation indices 
                     FOR1(m)
                     {
@@ -394,6 +405,16 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
         }
     
     }
+
+
+
+    //  TURNING OFF EVOLUTION OF FHAT, W FOR PURPOSES OF TRACE ENFORCEMENT 
+    rhs.fhat = 0.0;
+    rhs.w = 0.0;
+    //rhs.fspatial[2][2] = 0.0;
+    //rhs.v[2][2] = 0.0;
+    //rhs.q[2] = 0.0;
+    //rhs.fbar[2] = 0.0;
 
 }
 

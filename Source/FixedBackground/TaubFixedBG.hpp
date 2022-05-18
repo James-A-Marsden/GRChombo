@@ -184,6 +184,7 @@ class TaubFixedBG
 
         FOR2(i, j)
         {
+            /*
             vars.K_tensor[i][j] = 0.0;
             FOR1(k)
             {
@@ -199,12 +200,14 @@ class TaubFixedBG
                 }
             }
             vars.K_tensor[i][j] *= 0.5 / vars.lapse;
+            */
+            vars.K_tensor[i][j] = 0.0;
         }
         vars.K = compute_trace(gamma_UU, vars.K_tensor);
         FOR3(i, j, k)
         {
             vars.d1_K_tensor[i][j][k] = 0.0;
-
+            /*
             FOR1(m)
             {
                 vars.d1_K_tensor[i][j][k] += vars.d1_gamma[m][j][k] * vars.d1_shift[m][i] + vars.gamma[m][j] * vars.d2_shift[m][i][k]
@@ -221,17 +224,19 @@ class TaubFixedBG
             }
             vars.d1_K_tensor[i][j][k] *= 0.5 / vars.lapse;
             vars.d1_K_tensor[i][j][k] += - vars.d1_lapse[k] / vars.lapse * vars.K_tensor[i][j];
-
+            */
             //vars.d1_K_tensor[i][j][k] = 0.0;
         }
                 //Derivative of the trace, \partial_i K = \partial_i(gamma^jk K_jk)
         FOR1(i)
         {
             vars.d1_K[i] = 0;
+            /*
             FOR2(j,k)
             {
                 vars.d1_K[i] += vars.d1_gamma_UU[j][k][i] * vars.K_tensor[j][k] + gamma_UU[j][k] * vars.d1_K_tensor[j][k][i];
             }
+            */
         }
 
         //spatial riemann curvature tensor 

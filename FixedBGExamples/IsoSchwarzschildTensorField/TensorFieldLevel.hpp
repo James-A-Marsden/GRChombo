@@ -45,6 +45,11 @@ class TensorFieldLevel : public GRAMRLevel
     virtual void specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
                                  const double a_time);
 
+    /// Things to do after dt*rhs has been added to the solution
+    virtual void specificUpdateODE(GRLevelData &a_soln,
+                                   const GRLevelData &a_rhs,
+                                   Real a_dt) override;
+
     //! To do after each timestep
     virtual void specificPostTimeStep();
 

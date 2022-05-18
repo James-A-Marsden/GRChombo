@@ -20,7 +20,7 @@
 #include "ExcisionDiagnostics.hpp"
 #include "ExcisionEvolution.hpp"
 #include "FixedBGTensorField.hpp"
-#include "FixedBGDensities.hpp"
+#include "FixedBGDiagnostics.hpp"
 #include "FixedBGFluxes.hpp"
 #include "FixedBGEvolution.hpp"
 #include "FluxExtraction.hpp"
@@ -28,10 +28,17 @@
 #include "Sethbar.hpp"
 #include "SetRest.hpp"
 #include "IsoSchwarzschildFixedBG.hpp"
+#include "TraceFieldRemoval.hpp"
 
 // Things to do at each advance step, after the RK4 is calculated
 void TensorFieldLevel::specificAdvance()
 {
+
+    //Enforce the spatial rank 2 field component to be traceless
+    IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx); 
+    BoxLoops::loop(TraceFieldRemoval<TensorFieldWithPotential, IsoSchwarzschildFixedBG>(
+        isoschwarzschild_bg),m_state_new, m_state_new, SKIP_GHOST_CELLS, disable_simd());
+                   
     // Check for nan's
     if (m_p.nan_check)
         BoxLoops::loop(NanCheck(), m_state_new, m_state_new, SKIP_GHOST_CELLS,
@@ -90,13 +97,14 @@ void TensorFieldLevel::prePlotLevel() {
     TensorPotential potential(m_p.potential_params);
     TensorFieldWithPotential tensor_field(potential);
     IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
-    FixedBGDensities<TensorFieldWithPotential, IsoSchwarzschildFixedBG>
-        densities(tensor_field, isoschwarzschild_bg, m_dx, m_p.center);
+
+    FixedBGDiagnostics<TensorFieldWithPotential, IsoSchwarzschildFixedBG>
+        diagnostics(tensor_field, isoschwarzschild_bg, m_dx, m_p.center);
     FixedBGFluxes<TensorFieldWithPotential,
                                     IsoSchwarzschildFixedBG>
         energy_fluxes(tensor_field, isoschwarzschild_bg, m_dx, m_p.center);
-    BoxLoops::loop(make_compute_pack(densities, energy_fluxes),
-                    m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS);
+    BoxLoops::loop(make_compute_pack(diagnostics, energy_fluxes),
+                    m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS, disable_simd());
     // excise within horizon
     BoxLoops::loop(
         ExcisionDiagnostics<TensorFieldWithPotential, IsoSchwarzschildFixedBG>(
@@ -109,22 +117,42 @@ void TensorFieldLevel::prePlotLevel() {
 void TensorFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
                                        const double a_time)
 {
+
+    IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
+    BoxLoops::loop(TraceFieldRemoval<TensorFieldWithPotential, IsoSchwarzschildFixedBG>(
+        isoschwarzschild_bg),a_soln, a_soln, SKIP_GHOST_CELLS, disable_simd());
+
     // Calculate MatterCCZ4 right hand side with matter_t = TensorField
     // We don't want undefined values floating around in the constraints so
     // zero these
+
+    // enforce continuous prescription for sigma as per arXiv:2104.06978
+    const int ratio = pow(2, 5 * (m_level - m_p.max_level));
+    const double sigma = m_p.sigma * double(ratio);
+
     TensorPotential potential(m_p.potential_params);
     TensorFieldWithPotential tensor_field(potential);
     //TensorFieldWithPotential;
-    IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
+    //IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
     FixedBGEvolution<TensorFieldWithPotential, IsoSchwarzschildFixedBG> my_matter(
-        tensor_field, isoschwarzschild_bg, m_p.sigma, m_dx, m_p.center);
+        //tensor_field, isoschwarzschild_bg, m_p.sigma, m_dx, m_p.center);
+        tensor_field, isoschwarzschild_bg, sigma, m_dx, m_p.center);
+
+    //TraceFieldRemoval<TensorFieldWithPotential, IsoSchwarzschildFixedBG> make_traceless(isoschwarzschild_bg); 
+
     BoxLoops::loop(my_matter, a_soln, a_rhs, SKIP_GHOST_CELLS);
+
+    //Enforce traceless fspatial
+    //BoxLoops::loop(make_compute_pack(make_traceless), a_soln, a_soln, INCLUDE_GHOST_CELLS);    
+
 
     // excise within horizon, no simd
     BoxLoops::loop(
         ExcisionEvolution<TensorFieldWithPotential, IsoSchwarzschildFixedBG>(
             m_dx, m_p.center, isoschwarzschild_bg),
         a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd());
+
+    
 }
 
 void TensorFieldLevel::specificPostTimeStep()
@@ -139,13 +167,17 @@ void TensorFieldLevel::specificPostTimeStep()
         TensorPotential potential(m_p.potential_params);
         TensorFieldWithPotential tensor_field(potential);
         IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
-        FixedBGDensities<TensorFieldWithPotential, IsoSchwarzschildFixedBG>
-            densities(tensor_field, isoschwarzschild_bg, m_dx, m_p.center);
+
+        FixedBGDiagnostics<TensorFieldWithPotential, IsoSchwarzschildFixedBG>
+            diagnostics(tensor_field, isoschwarzschild_bg, m_dx, m_p.center);
+
         FixedBGFluxes<TensorFieldWithPotential,
                                        IsoSchwarzschildFixedBG>
             energy_fluxes(tensor_field, isoschwarzschild_bg, m_dx, m_p.center);
-        BoxLoops::loop(make_compute_pack(densities, energy_fluxes),
-                       m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS);
+
+        BoxLoops::loop(make_compute_pack(diagnostics, energy_fluxes),
+                       m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS, disable_simd());
+
         // excise within horizon
         BoxLoops::loop(
             ExcisionDiagnostics<TensorFieldWithPotential, IsoSchwarzschildFixedBG>(
@@ -186,6 +218,18 @@ void TensorFieldLevel::specificPostTimeStep()
     }
     */
 }
+
+// enforce trace removal during RK4 substeps
+void TensorFieldLevel::specificUpdateODE(GRLevelData &a_soln,
+                                      const GRLevelData &a_rhs, Real a_dt)
+{
+    IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
+    BoxLoops::loop(TraceFieldRemoval<TensorFieldWithPotential, IsoSchwarzschildFixedBG>(
+        isoschwarzschild_bg),a_soln, a_soln, SKIP_GHOST_CELLS, disable_simd());
+
+}
+
+
 
 void TensorFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                                const FArrayBox &current_state)

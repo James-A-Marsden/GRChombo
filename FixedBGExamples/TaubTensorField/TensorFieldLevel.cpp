@@ -20,7 +20,7 @@
 #include "ExcisionDiagnostics.hpp"
 #include "ExcisionEvolution.hpp"
 #include "FixedBGTensorField.hpp"
-#include "FixedBGDensities.hpp"
+#include "FixedBGDiagnostics.hpp"
 #include "FixedBGFluxes.hpp"
 #include "FixedBGEvolution.hpp"
 #include "FluxExtraction.hpp"
@@ -28,10 +28,17 @@
 #include "Sethbar.hpp"
 #include "SetRest.hpp"
 #include "TaubFixedBG.hpp"
+#include "TraceFieldRemoval.hpp"
 
 // Things to do at each advance step, after the RK4 is calculated
 void TensorFieldLevel::specificAdvance()
 {
+
+
+
+    TaubFixedBG taub_bg(m_p.bg_params, m_dx); 
+    BoxLoops::loop(TraceFieldRemoval<TensorFieldWithPotential, TaubFixedBG>(
+        taub_bg),m_state_new, m_state_new, SKIP_GHOST_CELLS, disable_simd());
     // Check for nan's
     if (m_p.nan_check)
         BoxLoops::loop(NanCheck(), m_state_new, m_state_new, SKIP_GHOST_CELLS,
@@ -90,32 +97,42 @@ void TensorFieldLevel::prePlotLevel() {
     TensorPotential potential(m_p.potential_params);
     TensorFieldWithPotential tensor_field(potential);
     TaubFixedBG taub_bg(m_p.bg_params, m_dx);
-    FixedBGDensities<TensorFieldWithPotential, TaubFixedBG>
-        densities(tensor_field, taub_bg, m_dx, m_p.center);
+
+    FixedBGDiagnostics<TensorFieldWithPotential, TaubFixedBG>
+        diagnostics(tensor_field, taub_bg, m_dx, m_p.center);
+
+    //FixedBGDensities<TensorFieldWithPotential, TaubFixedBG>
+    //    densities(tensor_field, taub_bg, m_dx, m_p.center);
     FixedBGFluxes<TensorFieldWithPotential,
                                     TaubFixedBG>
         energy_fluxes(tensor_field, taub_bg, m_dx, m_p.center);
-    BoxLoops::loop(make_compute_pack(densities, energy_fluxes),
-                    m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS);
+    BoxLoops::loop(make_compute_pack(diagnostics, energy_fluxes),
+                    m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS, disable_simd());
     // excise within horizon
     BoxLoops::loop(
         ExcisionDiagnostics<TensorFieldWithPotential, TaubFixedBG>(
             m_dx, m_p.center, taub_bg, m_p.inner_r, m_p.outer_r),
         m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
         disable_simd());     
+
+
 }
 
 // Things to do in RHS update, at each RK4 step
 void TensorFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
                                        const double a_time)
 {
+
+    TaubFixedBG taub_bg(m_p.bg_params, m_dx);
+    BoxLoops::loop(TraceFieldRemoval<TensorFieldWithPotential, TaubFixedBG>(
+        taub_bg),m_state_new, m_state_new, SKIP_GHOST_CELLS, disable_simd());
     // Calculate MatterCCZ4 right hand side with matter_t = TensorField
     // We don't want undefined values floating around in the constraints so
     // zero these
     TensorPotential potential(m_p.potential_params);
     TensorFieldWithPotential tensor_field(potential);
     //TensorFieldWithPotential;
-    TaubFixedBG taub_bg(m_p.bg_params, m_dx);
+    
     FixedBGEvolution<TensorFieldWithPotential, TaubFixedBG> my_matter(
         tensor_field, taub_bg, m_p.sigma, m_dx, m_p.center);
     BoxLoops::loop(my_matter, a_soln, a_rhs, SKIP_GHOST_CELLS);
@@ -139,13 +156,13 @@ void TensorFieldLevel::specificPostTimeStep()
         TensorPotential potential(m_p.potential_params);
         TensorFieldWithPotential tensor_field(potential);
         TaubFixedBG taub_bg(m_p.bg_params, m_dx);
-        FixedBGDensities<TensorFieldWithPotential, TaubFixedBG>
-            densities(tensor_field, taub_bg, m_dx, m_p.center);
+        FixedBGDiagnostics<TensorFieldWithPotential, TaubFixedBG>
+            diagnostics(tensor_field, taub_bg, m_dx, m_p.center);
         FixedBGFluxes<TensorFieldWithPotential,
                                        TaubFixedBG>
             energy_fluxes(tensor_field, taub_bg, m_dx, m_p.center);
-        BoxLoops::loop(make_compute_pack(densities, energy_fluxes),
-                       m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS);
+        BoxLoops::loop(make_compute_pack(diagnostics, energy_fluxes),
+                       m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS, disable_simd());
         // excise within horizon
         BoxLoops::loop(
             ExcisionDiagnostics<TensorFieldWithPotential, TaubFixedBG>(

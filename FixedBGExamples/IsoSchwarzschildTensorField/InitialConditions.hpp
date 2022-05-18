@@ -140,7 +140,7 @@ class InitialConditions
         const data_t cos2phi = cosphi*cosphi - sinphi*sinphi;
 
         const double M = m_bg_params.mass;
-        
+        /*
         vars.fspatial[0][0] = - sin2phi * sintheta * sintheta/ r ;
         vars.fspatial[1][1] =  sin2phi * sintheta * sintheta/ r;
         vars.fspatial[2][2] =  0.0;
@@ -153,11 +153,56 @@ class InitialConditions
         vars.fspatial[2][1] = vars.fspatial[1][2];
         
         vars.fhat = TensorAlgebra::compute_trace(gamma_UU, vars.fspatial);
+        vars.fhat = 0.0;
 
         vars.q[0] = -64.0 * pow(r, 3.0) * sinphi * pow(M + 2.0 * r, -5.0)  * sintheta;
         vars.q[1] = 64.0 * pow(r, 3.0) * cosphi * pow(M + 2.0 * r, -5.0)  * sintheta;
         vars.q[2] = 0.0;
+        */
+        vars.fspatial[0][0] = - sin2phi * sintheta * sintheta * r / exp(r);
+        vars.fspatial[1][1] =  sin2phi * sintheta * sintheta * r / exp(r);
+        vars.fspatial[2][2] =  0.0;
+        vars.fspatial[0][1] =  cos2phi * sintheta  * sintheta * r / exp(r);
+        vars.fspatial[0][2] = - sinphi * costheta  * sintheta * r / exp(r);
+        vars.fspatial[1][2] =  cosphi * costheta  * sintheta * r / exp(r);
 
+        vars.fspatial[1][0] = vars.fspatial[0][1];
+        vars.fspatial[2][0] = vars.fspatial[0][2];
+        vars.fspatial[2][1] = vars.fspatial[1][2];
+        
+        vars.fhat = TensorAlgebra::compute_trace(gamma_UU, vars.fspatial);
+        vars.fhat = 0.0;  
+
+        //vars.q[0] =  32.0 * exp(-r2) * pow(r, 4.0) * (M * (-1.0 * r2) + 2.0 * r * (-2.0 + r2)) * sintheta * sinphi * pow(M + 2.0 * r, -5.0);
+        //vars.q[1] = -32.0 * exp(-r2) * pow(r, 4.0) * (M * (-1.0 * r2) + 2.0 * r * (-2.0 + r2)) * sintheta * cosphi * pow(M + 2.0 * r, -5.0);
+        //vars.q[2] = 0.0;
+
+        
+        vars.q[0] =  16.0 * exp(-r2) * pow(r, 4.0) * (M * (-2.0 * r) + 2.0 * (-4.0 + r)*r) * sintheta * sinphi * pow(M + 2.0 * r, -5.0);
+        vars.q[1] = -16.0 * exp(-r2) * pow(r, 4.0) * (M * (-2.0 * r) + 2.0 * (-4.0 + r)*r) * sintheta * cosphi * pow(M + 2.0 * r, -5.0);
+        vars.q[2] = 0.0;           
+        
+        /*
+        vars.fspatial[0][0] = - sin2phi * costheta  * pow(r,-2.0);
+        vars.fspatial[1][1] =   sin2phi * costheta * pow(r,-2.0);
+        vars.fspatial[2][2] =  0.0;
+        vars.fspatial[0][1] =  cos2phi * costheta   * pow(r,-2.0);
+        vars.fspatial[0][2] =  sinphi * sintheta * pow(r,-2.0);
+        vars.fspatial[1][2] =  - cosphi * sintheta *pow(r,-2.0);
+
+        vars.fspatial[1][0] = vars.fspatial[0][1];
+        vars.fspatial[2][0] = vars.fspatial[0][2];
+        vars.fspatial[2][1] = vars.fspatial[1][2];
+        
+        vars.fhat = TensorAlgebra::compute_trace(gamma_UU, vars.fspatial);
+        vars.fhat = 0.0;
+        //vars.q[0] = 128.0 * pow(r,4.0) * sintheta * sinphi * pow(M + 2.0 * r, -5.0) / (M - 2.0 * r);
+        //vars.q[1] = -128.0 * pow(r,4.0) * sintheta * cosphi * pow(M + 2.0 * r, -5.0) / (M - 2.0 * r);
+        vars.q[0] = 0.0;//-64.0 * pow(r, 3.0) * sinphi * pow(M + 2.0 * r, -5.0)  * sintheta;
+        vars.q[1] = 0.0;//64.0 * pow(r, 3.0) * cosphi * pow(M + 2.0 * r, -5.0)  * sintheta;
+        vars.q[2] = 0.0;
+        //vars.q[2] = -128.0 * pow(r,5.0) * sintheta * sintheta * pow(M + 2.0 * r, -5.0) / (M - 2.0 * r) ;
+        */
         current_cell.store_vars(vars);
     }
 };

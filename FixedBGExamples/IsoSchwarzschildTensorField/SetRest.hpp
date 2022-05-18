@@ -157,6 +157,7 @@ class SetRest
             }
           }
         }
+        
         //Momentum traceless condition spatial projection of
         //vars.v[0][0] += vars.w / gamma_UU[0][0];
         //vars.w = 0.0;

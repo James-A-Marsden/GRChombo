@@ -1,15 +1,15 @@
 #Params for runtime inputs
 
-verbosity = 1
+verbosity = 0
 integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/TensorIsoSchwarz/long/"
+output_path = "/cosma7/data/dp092/dc-mars4/TensorIsoSchwarz/l_reflective_long"
 #chk_prefix = IsoTensorTest_
-chk_prefix = IsoTensorTestChk_
-plot_prefix = IsoTensorTestPlot_
-# restart_file
+chk_prefix = IsoTensor_LRL_Chk_
+plot_prefix = IsoTensor_LRL_Plot_
+#restart_file = "/cosma7/data/dp092/dc-mars4/TensorIsoSchwarz/damp_h_long/IsoTensor_HL_Chk_000220.3d.hdf5"
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
@@ -30,21 +30,23 @@ plot_prefix = IsoTensorTestPlot_
 checkpoint_interval = 1
 plot_interval = 1
 
-num_plot_vars = 30
-plot_vars = fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
+#num_plot_vars = 30
+#plot_vars = fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
 
-dt_multiplier = 0.01
-stop_time = 1300.0
+num_plot_vars = 10
+plot_vars = trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3 
 
+dt_multiplier = 0.1
 
+stop_time = 128.0
  
 # Set up grid spacings and regrid params
 # NB - the N values need to be multiples of block_factor
 
 
-N1 = 64
-N2 = 64
-N3 = 64
+N1 = 32
+N2 = 32
+N3 = 32
 L = 128
 
 #N_full = 32
@@ -59,7 +61,7 @@ L = 128
 
 # Level data
 # Maximum number of times you can regrid above coarsest level
-max_level = 8 # There are (max_level+1) grids, so min is zero
+max_level = 7 There are (max_level+1) grids, so min is zero
 # Frequency of regridding at each level
 # Need one for each level, ie max_level+1 items
 # Generally you do not need to regrid frequently on every level
@@ -79,16 +81,18 @@ isPeriodic = 0 0 0
 # 0 = static, 1 = sommerfeld, 2 = reflective, 3 = extrapolating
 # (see BoundaryConditions.hpp for details)
 hi_boundary = 3 3 3  
-lo_boundary = 3 3 3  
-center = 64.0 64.0 64.0
+lo_boundary = 2 2 2   
+center = 0.0 0.0 0.0
 
 # if reflective boundaries selected, must select 
 # parity values (in order given by UserVariables.hpp)
 # 0 = even
 # 1,2,3 = odd x, y, z
 # 4,5,6 = odd xy, yz, xz
-#vars_parity            = 0 0 0 0   #phi and Pi
-#vars_parity_diagnostic = 0 0 0 0 0 0 0 0    #chi and rho rhoJ
+# 7 = odd xyz
+vars_parity            = 4 0 5 4 6 4 2 1 7 7 4 0 5 4 6 4 2 1 7 7
+vars_parity_diagnostic = 0 0 0 0 0 4 4 4 2 1 7 4 2 1 7 
+   #chi and rho rhoJ
 
 # specify non zero asympotitic vars
 #num_nonzero_asymptotic_vars = 2
@@ -115,7 +119,7 @@ tensor_mass = 0.00
 #f_axion = 0.0
 
 # Boosted BH initial data, boost in x direction, spin in z direction
-bh_mass = 0.45
+bh_mass = 0.8
 bh_spin = 0.0 # This is a, so needs to be <= M
 #inner_r = 5.0
 #outer_r = 500.0

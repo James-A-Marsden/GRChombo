@@ -190,53 +190,18 @@ class IsoSchwarzschildFixedBG
         FOR2(i, j)
         {
             vars.K_tensor[i][j] = 0.0;
-            FOR1(k)
-            {
-                vars.K_tensor[i][j] +=
-                    vars.gamma[k][j] * vars.d1_shift[k][i] +
-                    vars.gamma[k][i] * vars.d1_shift[k][j] +
-                    (vars.d1_gamma[k][i][j] + vars.d1_gamma[k][j][i]) *
-                        vars.shift[k];
-                FOR1(m)
-                {
-                    vars.K_tensor[i][j] += -2.0 * chris_phys.ULL[k][i][j] *
-                                           vars.gamma[k][m] * vars.shift[m];
-                }
-            }
-            vars.K_tensor[i][j] *= 0.5 / vars.lapse;
+   
+   
         }
         vars.K = compute_trace(gamma_UU, vars.K_tensor);
         FOR3(i, j, k)
         {
             vars.d1_K_tensor[i][j][k] = 0.0;
-
-            FOR1(m)
-            {
-                vars.d1_K_tensor[i][j][k] += vars.d1_gamma[m][j][k] * vars.d1_shift[m][i] + vars.gamma[m][j] * vars.d2_shift[m][i][k]
-                                            + vars.d1_gamma[m][i][k] * vars.d1_shift[m][j] + vars.gamma[m][i] * vars.d2_shift[m][j][k]
-                + (vars.d2_gamma[m][i][j][k] + vars.d2_gamma[m][j][i][k]) * vars.shift[m]
-                + (vars.d1_gamma[m][i][j] + vars.d1_gamma[m][j][i]) * vars.d1_shift[m][k];
-                FOR1(n)
-                {
-                    vars.d1_K_tensor[i][j][k] += -2.0 * (vars.d1_chris_phys[m][i][j][k] * vars.gamma[m][n] * vars.shift[n]
-                    + chris_phys.ULL[m][i][j] * vars.d1_gamma[m][n][k] * vars.shift[n]
-                    + chris_phys.ULL[m][i][j] * vars.gamma[m][n] * vars.d1_shift[n][k]);
-                }
-
-            }
-            vars.d1_K_tensor[i][j][k] *= 0.5 / vars.lapse;
-            vars.d1_K_tensor[i][j][k] += - vars.d1_lapse[k] / vars.lapse * vars.K_tensor[i][j];
-
-            //vars.d1_K_tensor[i][j][k] = 0.0;
         }
                 //Derivative of the trace, \partial_i K = \partial_i(gamma^jk K_jk)
         FOR1(i)
         {
-            vars.d1_K[i] = 0;
-            FOR2(j,k)
-            {
-                vars.d1_K[i] += vars.d1_gamma_UU[j][k][i] * vars.K_tensor[j][k] + gamma_UU[j][k] * vars.d1_K_tensor[j][k][i];
-            }
+            vars.d1_K[i] = 0.0;
         }
 
         //spatial riemann curvature tensor 
@@ -258,7 +223,7 @@ class IsoSchwarzschildFixedBG
         //spatial ricci tensor
         FOR2(i,j)
         {
-            vars.ricci_phys[i][j] = 0;
+            vars.ricci_phys[i][j] = 0.0;
             FOR1(k)
             {
                 vars.ricci_phys[i][j] += vars.riemann_phys_ULLL[k][i][k][j];
@@ -281,19 +246,13 @@ class IsoSchwarzschildFixedBG
         const double x = coords.x;
         const double y = coords.y;
         const double z = coords.z;
-        const double r_plus = M + sqrt(M * M - a2);
-        const double r_minus = M - sqrt(M * M - a2);
+        const double r = sqrt(x * x + y * y + z * z);
 
-        const double outer_horizon =
-            (x * x + y * y) / (2.0 * M * r_plus) + z * z / r_plus / r_plus;
+        const double horizon_distance = r / (2.0 * M);
 
-        const double inner_horizon =
-            (x * x + y * y) / (2.0 * M * r_minus) + z * z / r_minus / r_minus;
-
-        // value less than 1 indicates we are within the horizon
-        //return 0.0;
-        return sqrt(outer_horizon);
+        return sqrt(horizon_distance);
     }
+
 };
 
 #endif /* ISOSCHWARZSCHILDFIXEDBG_HPP_ */
