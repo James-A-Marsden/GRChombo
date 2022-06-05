@@ -205,15 +205,15 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
             }
           }
         }
-        
+       
         Tensor<1, data_t> transverseVector;
         
         FOR1(i)
         {
-          transverseVector[i] = -metric_vars.K * vars.fbar[i] - vars.q[i];
+          transverseVector[i] = -vars.q[i];//-metric_vars.K * vars.fbar[i] - vars.q[i];
           FOR2(j,k)
           {
-            transverseVector[i] += -gamma_UU[j][k] * metric_vars.K_tensor[i][k] * vars.fbar[j];
+            //transverseVector[i] += -gamma_UU[j][k] * metric_vars.K_tensor[i][k] * vars.fbar[j];
             transverseVector[i] += gamma_UU[j][k] * d1.fspatial[j][i][k];
             FOR1(l)
             {
@@ -221,10 +221,25 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
             }
           }
         }
+        //transverseVector[2] = 0.0;//vars.q[2] -gamma_UU[1][1] * d1.fspatial[0][1][1];//- (gamma_UU[0][0] * d1.fspatial[0][0][0] + gamma_UU[1][1] * d1.fspatial[0][1][1] + gamma_UU[2][2] * d1.fspatial[0][2][2]);
+        //transverseVector[2] = vars.q[2] - d1.fspatial[2][2][0];
         
         //NEEDS MASS TERM ADDING
         data_t primaryScalar = 0.0;
-        
+
+        FOR1(i)
+        {
+          primaryScalar += 0.0;
+          FOR1(j)
+          {
+            primaryScalar += gamma_UU[i][j] *(i_p[j] + vars.q[j])* metric_vars.d1_lapse[i];
+            FOR2(k,l)
+            {        
+              primaryScalar += -2.0 * metric_vars.lapse * gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.ricci_phys[i][j] * vars.fspatial[k][l];
+            }
+          }
+        }        
+        /*
         FOR1(i)
         {
           primaryScalar += vars.w * metric_vars.shift[i] * metric_vars.d1_lapse[i] / metric_vars.lapse;
@@ -247,33 +262,56 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
             }
           }
         }
-        
+        */
+        //CHECK THE REST OF THESE SIGNS!
         Tensor<1, data_t> primaryVector;
         FOR1(i)
         {
-          primaryVector[i] = vars.w * metric_vars.d1_lapse[i] / metric_vars.lapse;
+          primaryVector[i] = 0.0;
 
           FOR1(j)
           {
             
             FOR1(k)
             {
-              primaryVector[i] += - gamma_UU[j][k] * metric_vars.K_tensor[k][i] * i_p[j]
-                                -2.0*gamma_UU[j][k] * metric_vars.K_tensor[j][i] * metric_vars.K * vars.fbar[k]
-                                -2.0*gamma_UU[j][k] * metric_vars.ricci_phys[i][j] * vars.fbar[k];
+              primaryVector[i] += 2.0 * metric_vars.lapse * gamma_UU[j][k] * metric_vars.ricci_phys[i][j] * vars.fbar[k]
+                                  +gamma_UU[j][k] * i_u[j][i] * metric_vars.d1_lapse[k]
+                                  -gamma_UU[j][k] * vars.v[i][j] * metric_vars.d1_lapse[k];
+            }
+          }
+        }        
+
+
+        /*
+        FOR1(i)
+        {
+          primaryVector[i] = vars.w * metric_vars.d1_lapse[i];
+
+          FOR1(j)
+          {
+            
+            FOR1(k)
+            {
+              primaryVector[i] += 2.0 * metric_vars.lapse * gamma_UU[j][k] * metric_vars.ricci_phys[i][j] * vars.fbar[k];
+                                //- gamma_UU[j][k] * metric_vars.K_tensor[k][i] * i_p[j]
+
+                               // -2.0*gamma_UU[j][k] * metric_vars.K_tensor[j][i] * metric_vars.K * vars.fbar[k]
+
+                                //+2.0 * gamma_UU[j][k] * metric_vars.ricci_phys[i][j] * vars.fbar[k];
               
               FOR2(l,m)
               {
-                primaryVector[i] += -2.0*gamma_UU[j][l] * gamma_UU[k][m] * (cd1_K_tensor[j][k][i] - cd1_K_tensor[i][j][k]) * vars.fspatial[l][m]
-                                    +2.0*gamma_UU[j][l] * gamma_UU[k][m] * metric_vars.K_tensor[k][j] * metric_vars.K_tensor[i][m] * vars.fbar[l];
+                primaryVector[i] += 0.0;//-2.0*gamma_UU[j][l] * gamma_UU[k][m] * (cd1_K_tensor[j][k][i] - cd1_K_tensor[i][j][k]) * vars.fspatial[l][m]
+                                    //+2.0*gamma_UU[j][l] * gamma_UU[k][m] * metric_vars.K_tensor[k][j] * metric_vars.K_tensor[i][m] * vars.fbar[l];
 
               }
             }
           }
         }
+        */
         //Store diagnostic variables if outside the event horizon
         //const double horizon = 0.0;
-        const double horizon = 1.6;
+        const double horizon = 0.8/2.0;
         const double xx = coords.x * coords.x;
         const double yy = coords.y * coords.y;
         const double zz = coords.z * coords.z;

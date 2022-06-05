@@ -75,6 +75,16 @@ template <class data_t> class Coordinates
         return simd_max(r, minimum_r);
     }
 
+    data_t get_rho() const
+    {
+        // Note that this is not currently dimension independent
+        data_t rho = sqrt(x * x + y * y);
+
+        const double minimum_rho = 1e-6;
+        return simd_max(rho, minimum_rho);
+    }
+
+
     /// This static function returns the radius subject to a floor
     /// for when no coordinates object exists.
     static data_t get_radius(IntVect integer_coords, double dx,

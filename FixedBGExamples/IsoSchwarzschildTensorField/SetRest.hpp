@@ -98,12 +98,15 @@ class SetRest
         const auto local_vars = current_cell.template load_vars<Vars>();
 
         vars.fhat = local_vars.fhat;
+        vars.w = local_vars.w;
         FOR1(i)
         {
           vars.fbar[i] = local_vars.fbar[i];
+          vars.q[i] = local_vars.q[i];
           FOR1(j)
           {
             vars.fspatial[i][j] = local_vars.fspatial[i][j];
+            vars.v[i][j] = local_vars.v[i][j];
           }
         }
         
@@ -125,8 +128,102 @@ class SetRest
           chris_local[i][j][k] /= 2.0;
         }
      
+   
+        Tensor<2, data_t> i_u;
+              
+        FOR2(i,j)
+        {
+            i_u[i][j] = d1.fbar[j][i] - vars.fhat * metric_vars.K_tensor[i][j];
+
+            FOR1(k)
+            {
+                i_u[i][j] += -chris_phys.ULL[k][j][i] * vars.fbar[k]; 
+
+                FOR1(l)
+                {
+                    i_u[i][j] += -gamma_UU[l][k] * vars.fspatial[j][k] * metric_vars.K_tensor[i][l];
+                }
+            }
+        }
+
+        Tensor<1, data_t> i_p;
+        //  p <-> q
         FOR1(i)
         {
+            i_p[i] = d1.fhat[i]; 
+
+            FOR2(j,k)
+            {
+                i_p[i] += -2.0 * gamma_UU[j][k] * vars.fbar[j] * metric_vars.K_tensor[i][k];
+            }
+            
+        }
+
+        Tensor<3, data_t> cd1_K_tensor;
+        FOR3(i,j,k)
+        {
+            cd1_K_tensor[i][j][k] = metric_vars.d1_K_tensor[i][j][k];
+            FOR1(l)
+            {
+                cd1_K_tensor[i][j][k] += -chris_phys.ULL[l][k][i] * metric_vars.K_tensor[l][j] -chris_phys.ULL[l][k][j] * metric_vars.K_tensor[i][l];
+            }
+        }
+
+        //NEEDS MASS TERM ADDING
+        data_t primaryScalar = 0.0;
+        
+        FOR1(i)
+        {
+          primaryScalar += vars.w * metric_vars.shift[i] * metric_vars.d1_lapse[i] / metric_vars.lapse;
+          FOR1(j)
+          {
+            primaryScalar += gamma_UU[i][j] *(i_p[j] - vars.q[j])* metric_vars.d1_lapse[i];
+            FOR2(k,l)
+            {
+              primaryScalar += -2.0 * metric_vars.lapse * gamma_UU[i][k] * gamma_UU[j][l] * (metric_vars.K * metric_vars.K_tensor[i][j] + metric_vars.ricci_phys[i][j]) * vars.fspatial[k][l]
+                              + metric_vars.lapse * gamma_UU[i][k] * gamma_UU[j][l] * i_u[i][j] * metric_vars.K_tensor[k][l];
+                              
+              FOR2(m,n)
+              {
+                primaryScalar += metric_vars.lapse * gamma_UU[i][l] * gamma_UU[j][m] * gamma_UU[k][n] * (metric_vars.K_tensor[i][m] * metric_vars.K_tensor[j][k] * vars.fspatial[l][n]);
+              }
+            }
+          }
+        }
+        Tensor<1, data_t> primaryVector;
+        FOR1(i)
+        {
+            primaryVector[i] = vars.w * metric_vars.d1_lapse[i] / metric_vars.lapse;
+
+            FOR1(j)
+            {
+            
+            FOR1(k)
+            {
+                primaryVector[i] += - gamma_UU[j][k] * metric_vars.K_tensor[k][i] * i_p[j]
+                                -2.0*gamma_UU[j][k] * metric_vars.K_tensor[j][i] * metric_vars.K * vars.fbar[k]
+                                -2.0*gamma_UU[j][k] * metric_vars.ricci_phys[i][j] * vars.fbar[k];
+                
+                FOR2(l,m)
+                {
+                primaryVector[i] += -2.0*gamma_UU[j][l] * gamma_UU[k][m] * (cd1_K_tensor[j][k][i] - cd1_K_tensor[i][j][k]) * vars.fspatial[l][m]
+                                    +2.0*gamma_UU[j][l] * gamma_UU[k][m] * metric_vars.K_tensor[k][j] * metric_vars.K_tensor[i][m] * vars.fbar[l];
+
+                }
+            }
+            }
+        }
+      vars.theta = primaryScalar;
+      FOR1(i)
+      {
+        vars.X[i] = primaryVector[i];
+      }
+
+      Tensor<1, data_t> transverseVector;
+      
+      /*
+      FOR1(i)
+      {
           vars.q[i] = -metric_vars.K * vars.fbar[i];
           FOR2(j,k)
           {
@@ -134,52 +231,21 @@ class SetRest
             vars.q[i] += gamma_UU[j][k] * d1.fspatial[j][i][k];
             FOR1(l)
             {
-              vars.q[i] += -gamma_UU[j][k] * (chris_phys.ULL[l][k][i] * vars.fspatial[l][j] + chris_phys.ULL[l][k][j] * vars.fspatial[i][l]);
+              vars.q[i] += -gamma_UU[j][k] * (chris_local[l][k][i] * vars.fspatial[j][l] + chris_local[l][k][j] * vars.fspatial[l][i]);
             }
           }
+      }
+      */
+      FOR2(i,j)
+      {
+        vars.w += gamma_UU[i][j] * d1.fbar[i][j];
+        FOR1(k)
+        {
+          vars.w += -gamma_UU[i][j] * chris_phys.ULL[k][i][j] * vars.fbar[k];
         }
+      }    
   
-        //vars.q[0] = -64.0 * pow(r, 3.0) * sinphi * pow(M + 2.0 * r, -5.0)  * sintheta;
-        //vars.q[1] = 64.0 * pow(r, 3.0) * cosphi * pow(M + 2.0 * r, -5.0)  * sintheta;
-        //vars.q[2] = 0.0;
-        
-        //Normal projection of Lorentz condition
-        vars.w = -metric_vars.K * vars.fhat;
-        FOR2(i,j)
-        {
-          vars.w += gamma_UU[i][j] * d1.fbar[i][j];
-          FOR1(k)
-          {
-            vars.w += -gamma_UU[i][j] * chris_phys.ULL[k][j][i] * vars.fbar[k];
-            FOR1(l)
-            {
-              vars.w += -metric_vars.K_tensor[i][j] * vars.fspatial[k][l] * gamma_UU[i][k] * gamma_UU[j][l]; 
-            }
-          }
-        }
-        
-        //Momentum traceless condition spatial projection of
-        //vars.v[0][0] += vars.w / gamma_UU[0][0];
-        //vars.w = 0.0;
-        /*
-        FOR1(i)
-        {
-          vars.q[i] = 0.0;
-        }
-        */
-        namespace bmath = boost::math; 
-        const double frequency = 2.0 * M_PI /128.0 ;
-
-        data_t amplitude = cos( - frequency * coords.x);
-        
-        data_t momentum = -frequency * sin(-frequency * coords.x); 
-
-
-        //vars.w = TensorAlgebra::compute_trace(gamma_UU, vars.v);
-
-        //vars.fbar[0] = -cos(-frequency * coords.x);
- 
-        current_cell.store_vars(vars);
+      current_cell.store_vars(vars);
     }
 };
 

@@ -93,8 +93,44 @@ class Sethbar
                 cd1_K_tensor[i][j][k] += -chris_local[l][k][i] * metric_vars.K_tensor[l][j] -chris_local[l][k][j] * metric_vars.K_tensor[i][l];
             }
         }
-        
+
+        const data_t x = coords.x;
+        const double y = coords.y;
+        const double z = coords.z;
+        const data_t x2 = x * x;
+        const double y2 = y * y;
+        const double z2 = z * z;
+        const data_t r = coords.get_radius();
+        const data_t r2 = r * r;
+        const data_t rho = coords.get_rho();//simd_max(sqrt(x2 + y2), 1e-6);
+        const data_t rho2 = rho * rho;
+ 
+        const data_t costheta = z/r;
+        const data_t sintheta = rho/r;
+
+        const data_t cos2theta = costheta*costheta - sintheta*sintheta;
+        const data_t sin2theta = 2.0 * sintheta * costheta;
+
+        const data_t sinphi = y/rho;
+        const data_t cosphi = x/rho;
+
+        const data_t sin2phi = 2.0 * sinphi * cosphi; 
+        const data_t cos2phi = cosphi*cosphi - sinphi*sinphi;
+
+      
+
+        const double M = m_bg_params.mass;
+        const double M2 = M * M;
+
+
+
+
         const auto local_vars = current_cell.template load_vars<Vars>();
+
+
+
+        //Calculate the derivatives
+
 
         vars.fhat = local_vars.fhat;
         FOR1(i)
@@ -106,9 +142,14 @@ class Sethbar
           }
         }
         
-        //Calculate the derivatives
         const auto d1 = m_deriv.template diff1<Vars>(current_cell);
+
+        data_t A = pow(r,4.0) * pow(0.5 * M + r,-10.0);
+        vars.fbar[0] = cosphi * sintheta * A;
+        vars.fbar[1] = sinphi * sintheta * A;
+        vars.fbar[2] = costheta * A;
     
+        
 
 
         current_cell.store_vars(vars);

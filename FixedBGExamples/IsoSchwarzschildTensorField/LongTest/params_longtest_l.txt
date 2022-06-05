@@ -5,7 +5,7 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/TensorIsoSchwarz/l_small5"
+output_path = "/cosma7/data/dp092/dc-mars4/TensorIsoSchwarz/l_debug"
 #chk_prefix = IsoTensorTest_
 chk_prefix = IsoTensor_LL_Chk_
 plot_prefix = IsoTensor_LL_Plot_
@@ -27,27 +27,27 @@ plot_prefix = IsoTensor_LL_Plot_
 # dt will be dx*dt_multiplier on each grid level
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
 
-checkpoint_interval = 1000
-plot_interval = 20
+checkpoint_interval = 10
+plot_interval = 2
 
 #num_plot_vars = 30
 #plot_vars = fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
 
-num_plot_vars = 10
-plot_vars = trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3 
+num_plot_vars = 14
+plot_vars = trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3 theta X1 X2 X3 
 
 dt_multiplier = 0.1
 
-stop_time = 8.0
+stop_time = 32.0
  
 # Set up grid spacings and regrid params
 # NB - the N values need to be multiples of block_factor
 
 
-N1 = 128
-N2 = 128
-N3 = 128
-L = 8
+N1 = 32
+N2 = 32
+N3 = 32
+L = 128
 
 #N_full = 32
 #L_full = 16
@@ -61,7 +61,7 @@ L = 8
 
 # Level data
 # Maximum number of times you can regrid above coarsest level
-max_level = 0 There are (max_level+1) grids, so min is zero
+max_level = 7 There are (max_level+1) grids, so min is zero
 # Frequency of regridding at each level
 # Need one for each level, ie max_level+1 items
 # Generally you do not need to regrid frequently on every level
@@ -82,7 +82,7 @@ isPeriodic = 0 0 0
 # (see BoundaryConditions.hpp for details)
 hi_boundary = 3 3 3  
 lo_boundary = 3 3 3  
-center = 4.0 4.0 4.0
+center = 64.0 64.0 64.0
 
 # if reflective boundaries selected, must select 
 # parity values (in order given by UserVariables.hpp)

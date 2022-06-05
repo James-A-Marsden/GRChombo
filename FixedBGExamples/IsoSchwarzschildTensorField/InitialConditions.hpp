@@ -127,11 +127,14 @@ class InitialConditions
         const double z2 = z * z;
         const data_t r = coords.get_radius();
         const data_t r2 = r * r;
-        const data_t rho = simd_max(sqrt(x2 + y2), 1e-6);
+        const data_t rho = coords.get_rho();//simd_max(sqrt(x2 + y2), 1e-6);
         const data_t rho2 = rho * rho;
  
         const data_t costheta = z/r;
         const data_t sintheta = rho/r;
+
+        const data_t cos2theta = costheta*costheta - sintheta*sintheta;
+        const data_t sin2theta = 2.0 * sintheta * costheta;
 
         const data_t sinphi = y/rho;
         const data_t cosphi = x/rho;
@@ -139,7 +142,10 @@ class InitialConditions
         const data_t sin2phi = 2.0 * sinphi * cosphi; 
         const data_t cos2phi = cosphi*cosphi - sinphi*sinphi;
 
+      
+
         const double M = m_bg_params.mass;
+        const double M2 = M * M;
         /*
         vars.fspatial[0][0] = - sin2phi * sintheta * sintheta/ r ;
         vars.fspatial[1][1] =  sin2phi * sintheta * sintheta/ r;
@@ -159,28 +165,121 @@ class InitialConditions
         vars.q[1] = 64.0 * pow(r, 3.0) * cosphi * pow(M + 2.0 * r, -5.0)  * sintheta;
         vars.q[2] = 0.0;
         */
-        vars.fspatial[0][0] = - sin2phi * sintheta * sintheta * r / exp(r);
-        vars.fspatial[1][1] =  sin2phi * sintheta * sintheta * r / exp(r);
+        /*
+        vars.fspatial[0][0] =   sin2theta * cosphi * sintheta * sintheta * r2 * exp(-r);
+        vars.fspatial[1][1] =  -sin2theta * cosphi * sintheta * sintheta * exp(-r);
         vars.fspatial[2][2] =  0.0;
-        vars.fspatial[0][1] =  cos2phi * sintheta  * sintheta * r / exp(r);
-        vars.fspatial[0][2] = - sinphi * costheta  * sintheta * r / exp(r);
-        vars.fspatial[1][2] =  cosphi * costheta  * sintheta * r / exp(r);
+        vars.fspatial[0][1] =  cos2theta * cosphi * sintheta * sintheta r * exp(-r);
+        vars.fspatial[0][2] = -0.5 * sin2theta * sinphi * r * exp(-r);
+        vars.fspatial[1][2] =  sintheta * sintheta * sinphi * exp(-r);
+        */
+        /*
+        vars.fspatial[0][0] = - sin2phi * sintheta * exp(-r) * sintheta * r;
+        vars.fspatial[1][1] =  sin2phi * sintheta * exp(-r) * sintheta * r;
+        vars.fspatial[2][2] =  0.0;
+        vars.fspatial[0][1] =  cos2phi * sintheta * exp(-r) * sintheta * r;
+        vars.fspatial[0][2] = - sinphi * costheta * exp(-r) * sintheta * r;
+        vars.fspatial[1][2] =  cosphi * costheta * exp(-r) * sintheta * r;
+        */
+
+        
+        data_t A = sintheta * sintheta * pow(M + 2.0 * r, -2.0);
+        vars.fspatial[0][0] = -A * sin2phi / r;
+        vars.fspatial[1][1] =  A * sin2phi / r;
+        vars.fspatial[2][2] =  0.0;
+        vars.fspatial[0][1] =  A * cos2phi / r;
+        vars.fspatial[0][2] = -A * sinphi * costheta / (sintheta * r);
+        vars.fspatial[1][2] =  A * cosphi * costheta / (sintheta * r);
+        /*
+        vars.fspatial[0][0] = - sin2phi * sintheta * exp(-r) * sintheta /r;
+        vars.fspatial[1][1] =  sin2phi * sintheta * exp(-r) * sintheta /r;
+        vars.fspatial[2][2] =  0.0;//r2 * exp(-r);
+        vars.fspatial[0][1] =  cos2phi * sintheta * exp(-r) * sintheta / r;
+        vars.fspatial[0][2] = - sinphi * costheta * exp(-r) * sintheta / r;
+        vars.fspatial[1][2] =  cosphi * costheta * exp(-r) * sintheta / r;
+        */
+        /*
+        vars.fspatial[0][0] = - sin2phi * sintheta *  sintheta / r;
+        vars.fspatial[1][1] =  sin2phi * sintheta *  sintheta / r;
+        vars.fspatial[2][2] =  0.0;
+        vars.fspatial[0][1] =  cos2phi * sintheta *  sintheta / r;
+        vars.fspatial[0][2] = - sinphi * costheta *  sintheta / r;
+        vars.fspatial[1][2] =  cosphi * costheta * sintheta / r;
+        */
+
 
         vars.fspatial[1][0] = vars.fspatial[0][1];
         vars.fspatial[2][0] = vars.fspatial[0][2];
         vars.fspatial[2][1] = vars.fspatial[1][2];
+
+        
         
         vars.fhat = TensorAlgebra::compute_trace(gamma_UU, vars.fspatial);
         vars.fhat = 0.0;  
 
+        //vars.q[0] =  -64.0 * pow(r,3.0) * sintheta * sinphi * pow(M + 2.0 * r, -5.0);
+        //vars.q[1] = 64.0 * pow(r,3.0) * sintheta * cosphi * pow(M + 2.0 * r, -5.0);
+        //vars.q[2] = 0.0;     
+
+        //vars.q[0] = 16.0 * exp(-r) * y * pow(r,3.0) * (2.0 * (r2 - 4.0 * r) + M * (-2.0 + r)) * pow(M + 2.0 * r,-5.0);
+        //vars.q[1] = -16.0 * exp(-r) * x * pow(r,3.0) * (2.0 * (r2 - 4.0 * r) + M * (-2.0 + r)) * pow(M + 2.0 * r,-5.0);
+
+       // vars.q[0] = 16.0 * exp(-r) * y * pow(r,3.0) * (2.0 * (r2 - 4.0 * r) + M * (-2.0 + r)) * pow(M + 2.0 * r,-5.0);
+        
+        
+        //vars.q[0] = 16.0 * exp(-r) * r2 * r2 *(M * (-2.0 + r) + 2.0 * (-4.0 + r)*r) * sinphi * pow(M + 2.0 * r, -5.0) * sintheta;
+        //vars.q[0] = 16.0 * exp(-r) * y * pow(r,3.0) * (2.0 * (r2 - 4.0 * r) + M * (-2.0 + r)) * pow(M + 2.0 * r,-5.0);
+        
+    
+             
+        //vars.q[0] = 16.0 * exp(-r) * r2 * r2 *(M * (-2.0 + r) + 2.0 * (-4.0 + r)*r) * sinphi * pow(M + 2.0 * r, -5.0) * sintheta;
+        //vars.q[1] = -16.0 * exp(-r) * r2 * r2 *(M * (-2.0 + r) + 2.0 * (-4.0 + r)*r) * cosphi * pow(M + 2.0 * r, -5.0) * sintheta;
+        //vars.q[2] = 0.0;
+        
+        //vars.q[0] =  16.0 * exp(-r) * r2 * r *(-4.0 + M + 2.0*r) * sinphi * pow(M + 2.0 * r, -5.0) * sintheta;
+        //vars.q[1] = -16.0 * exp(-r) * r2 * r *(-4.0 + M + 2.0*r) * cosphi * pow(M + 2.0 * r, -5.0) * sintheta;
+        //vars.q[2] = 0.0;
+
+        //vars.q[0] = 16.0 * exp(-r) * y * pow(r,3.0) * (2.0 * (r2 - 4.0 * r) + M * (-2.0 + r)) * pow(M + 2.0 * r,-5.0);
+        //vars.q[1] = -16.0 * exp(-r) * x * pow(r,3.0) * (2.0 * (r2 - 4.0 * r) + M * (-2.0 + r)) * pow(M + 2.0 * r,-5.0);
+        //vars.q[2] = 0.0;
+        
+        //vars.q[0] = 16.0 * exp(-r) * y * pow(r,3.0) * (-4.0 + r) * pow(M + 2.0 * r, -4.0);
+        //vars.q[1] = -16.0 * exp(-r) * x * pow(r,3.0) * (-4.0 + r) * pow(M + 2.0 * r, -4.0);
+        //vars.q[2] = 0.0;
+        
+        //vars.q[0] = 32.0 * exp(-r) * M * y * pow(r,3.0) * pow(M + 2.0 * r, -5.0);
+        //vars.q[1] = -32.0 * exp(-r) * M * x * pow(r,3.0) * pow(M + 2.0 * r, -5.0);
+        //vars.q[2] = 0.0;
+        //vars.q[0] =  16.0 * exp(-r) * r2 * r *(-4.0 + M + 2.0*r) * sinphi * pow(M + 2.0 * r, -5.0) * sintheta;
+        //vars.q[1] = -16.0 * exp(-r) * r2 * r *(-4.0 + M + 2.0*r) * cosphi * pow(M + 2.0 * r, -5.0) * sintheta;
+        //vars.q[2] = 0.0;//(2.0 * x) * exp(-r) - x * r * exp(-r);
+        
+        /*
+        vars.q[0] = pow(x2 + y2, 0.5);
+        vars.q[1] = rho;
+        vars.q[2] = r;
+        */
+        //vars.q[2] = //- gamma_UU[0][0] * 2.0 * exp(-r) * y *(y2 + z2 -x2 *r) * pow(r,-3.0);
+        //vars.q[2] = -gamma_UU[1][1] * pow(rho,-4.0) * exp(r) * y * (-pow(x,6.0) + pow(x,4.0) * (-y2 -z2 + r) + y2 * y2 *(y2 + z2 + 3.0 * r) + x2 * (y2 * y2 + 4.0 * y2 * r + 4.0 * z2 * r));
+                    //- gamma_UU[2][2] * exp(r) * y * (x2 + y2 + z2 * r) * pow(r,-3.0);  
+        
+        //vars.q[0] = r;
+        //vars.q[1] = z;
+        //vars.q[2] = -(x/r) * exp(-r);
+        //vars.q[0] = exp(-r) * (-2.0 * r) * sintheta * sintheta * sin2phi;
+        //vars.q[1] = exp(-r) * r * sin2theta * sin2phi;
+        //vars.q[0] =  -64.0 * exp(-r) * pow(r,5.0) * sintheta * sinphi * pow(M + 2.0 * r,-5.0);
+        //vars.q[1] = 64.0 * exp(-r) * pow(r,5.0) * sintheta * cosphi * pow(M + 2.0 * r,-5.0);
+        //vars.q[0] =  16.0 * exp(-r) * (-2.0 + r) * pow(r,4.0) * sintheta * sinphi * pow(M + 2.0 * r,-4.0);
+        //vars.q[1] = -16.0 * exp(-r) * (-2.0 + r) * pow(r,4.0) * sintheta * cosphi * pow(M + 2.0 * r,-4.0);
         //vars.q[0] =  32.0 * exp(-r2) * pow(r, 4.0) * (M * (-1.0 * r2) + 2.0 * r * (-2.0 + r2)) * sintheta * sinphi * pow(M + 2.0 * r, -5.0);
         //vars.q[1] = -32.0 * exp(-r2) * pow(r, 4.0) * (M * (-1.0 * r2) + 2.0 * r * (-2.0 + r2)) * sintheta * cosphi * pow(M + 2.0 * r, -5.0);
         //vars.q[2] = 0.0;
 
         
-        vars.q[0] =  16.0 * exp(-r2) * pow(r, 4.0) * (M * (-2.0 * r) + 2.0 * (-4.0 + r)*r) * sintheta * sinphi * pow(M + 2.0 * r, -5.0);
-        vars.q[1] = -16.0 * exp(-r2) * pow(r, 4.0) * (M * (-2.0 * r) + 2.0 * (-4.0 + r)*r) * sintheta * cosphi * pow(M + 2.0 * r, -5.0);
-        vars.q[2] = 0.0;           
+        
+                
         
         /*
         vars.fspatial[0][0] = - sin2phi * costheta  * pow(r,-2.0);
@@ -203,6 +302,9 @@ class InitialConditions
         vars.q[2] = 0.0;
         //vars.q[2] = -128.0 * pow(r,5.0) * sintheta * sintheta * pow(M + 2.0 * r, -5.0) / (M - 2.0 * r) ;
         */
+        
+
+
         current_cell.store_vars(vars);
     }
 };

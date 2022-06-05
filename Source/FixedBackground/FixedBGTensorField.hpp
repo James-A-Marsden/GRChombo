@@ -80,6 +80,9 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         data_t w; //Scalar component 
 
 
+        Tensor<1, data_t> X;
+        data_t theta;
+
 
         /// Defines the mapping between members of Vars and Chombo grid
         /// variables (enum in User_Variables)
@@ -102,6 +105,10 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
 
             VarsTools::define_enum_mapping(mapping_function, c_w, w);
 
+            //Damping
+            VarsTools::define_enum_mapping(mapping_function, GRInterval<c_X1,c_X3>(), X);
+
+            VarsTools::define_enum_mapping(mapping_function, c_theta, theta);
         }
     };
 
@@ -187,6 +194,20 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
             &metric_vars, //!< the value of the metric variables
         const vars_t<Tensor<1, data_t>> &d1,       //!< value of the 1st derivs
         const diff2_vars_t<Tensor<2, data_t>> &d2, //!< value of the 2nd derivs
+        const vars_t<data_t> &advec);
+
+
+        
+    template <class data_t, template <typename> class vars_t,
+                template <typename> class diff2_vars_t,
+                template <typename> class rhs_vars_t>
+    static void matter_rhs_damping(
+        rhs_vars_t<data_t> &rhs, 
+        const vars_t<data_t> &vars,
+        const MetricVars<data_t> 
+            &metric_vars, 
+        const vars_t<Tensor<1, data_t>> &d1,
+        const diff2_vars_t<Tensor<2, data_t>> &d2, 
         const vars_t<data_t> &advec);
 };
 
