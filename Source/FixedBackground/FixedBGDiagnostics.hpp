@@ -225,17 +225,21 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
         //transverseVector[2] = vars.q[2] - d1.fspatial[2][2][0];
         
         //NEEDS MASS TERM ADDING
-        data_t primaryScalar = 0.0;
-
-        FOR1(i)
+        const double temp_mass = 0.0;
+        
+        data_t primaryScalar = -temp_mass * temp_mass * vars.fhat;
+        
+        FOR2(i,j)
         {
-          primaryScalar += 0.0;
-          FOR1(j)
+          primaryScalar += -gamma_UU[i][j] * (d1.q[i][j] - d1_i_p[i][j]);
+
+          FOR1(k)
           {
-            primaryScalar += gamma_UU[i][j] *(i_p[j] + vars.q[j])* metric_vars.d1_lapse[i];
-            FOR2(k,l)
-            {        
-              primaryScalar += -2.0 * metric_vars.lapse * gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.ricci_phys[i][j] * vars.fspatial[k][l];
+            primaryScalar += gamma_UU[i][j] * (chris_phys.ULL[k][i][j] * vars.q[k] - chris_phys.ULL[k][i][j] * i_p[k]);
+
+            FOR1(l)
+            {
+              primaryScalar += gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.ricci_phys[i][j] * vars.fspatial[k][l];
             }
           }
         }        
@@ -263,21 +267,21 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
           }
         }
         */
-        //CHECK THE REST OF THESE SIGNS!
         Tensor<1, data_t> primaryVector;
         FOR1(i)
         {
-          primaryVector[i] = 0.0;
+          primaryVector[i] = -temp_mass * temp_mass * vars.fbar[i];
 
-          FOR1(j)
+          FOR2(j,k)
           {
-            
-            FOR1(k)
+            primaryVector[i] += -gamma_UU[j][k] * (d1.v[j][i][k] - d1_i_u[j][i][k]) 
+                                + gamma_UU[j][k] * metric_vars.ricci_phys[i][j] * vars.fbar[k];
+
+            FOR1(l)
             {
-              primaryVector[i] += 2.0 * metric_vars.lapse * gamma_UU[j][k] * metric_vars.ricci_phys[i][j] * vars.fbar[k]
-                                  +gamma_UU[j][k] * i_u[j][i] * metric_vars.d1_lapse[k]
-                                  -gamma_UU[j][k] * vars.v[i][j] * metric_vars.d1_lapse[k];
-            }
+              primaryVector[i] += gamma_UU[j][k] * (chris_phys.ULL[l][k][i] * vars.v[j][l] + chris_phys.ULL[l][k][j] * vars.v[l][i]
+                                                   -chris_phys.ULL[l][k][i] * i_u[j][l]    - chris_phys.ULL[l][k][j] * i_u[l][i]);
+            } 
           }
         }        
 
@@ -312,6 +316,7 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
         //Store diagnostic variables if outside the event horizon
         //const double horizon = 0.0;
         const double horizon = 0.8/2.0;
+        //const double horizon = 0.1;
         const double xx = coords.x * coords.x;
         const double yy = coords.y * coords.y;
         const double zz = coords.z * coords.z;
@@ -332,10 +337,17 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
           current_cell.store_vars(trace_momentum, c_trace_momentum); 
 
 
-          current_cell.store_vars(transverseScalar, c_transverseScalar); 
+
+
+          current_cell.store_vars(transverseScalar, c_transverseScalar);
+          //current_cell.store_vars(metric_vars.lapse, c_transverseScalar);  
+
           current_cell.store_vars(transverseVector[0], c_transverseVector1);
           current_cell.store_vars(transverseVector[1], c_transverseVector2); 
           current_cell.store_vars(transverseVector[2], c_transverseVector3);  
+          //current_cell.store_vars(metric_vars.d1_lapse[0], c_transverseVector1);
+          //current_cell.store_vars(metric_vars.d1_lapse[1], c_transverseVector2); 
+          //current_cell.store_vars(metric_vars.d1_lapse[2], c_transverseVector3);     
 
           current_cell.store_vars(primaryScalar, c_primaryConstraintScalar);
           current_cell.store_vars(primaryVector[0], c_primaryConstraintVector1);

@@ -17,7 +17,7 @@
 
 //! Class which computes the initial conditions for a Kerr Schild BH
 //! https://arxiv.org/pdf/gr-qc/9805023.pdf
-class IsoSchwarzschildFixedBG
+class IsoStarFixedBG
 {
   public:
     //! Struct for the params of the  BH
@@ -33,7 +33,7 @@ class IsoSchwarzschildFixedBG
     const params_t m_params;
     const double m_dx;
 
-    IsoSchwarzschildFixedBG(params_t a_params, double a_dx)
+    IsoStarFixedBG(params_t a_params, double a_dx)
         : m_params(a_params), m_dx(a_dx)
     {
         // check this spin param is sensible
@@ -68,10 +68,13 @@ class IsoSchwarzschildFixedBG
     {
         const Coordinates<data_t> coords(current_cell, m_dx, m_params.center);
 
-        // black hole params - mass M and spin a
+        // Stellar params - mass M and spin a
         const double M = m_params.mass;
+        const double M2 = M * M; 
         const double a = m_params.spin;
         const double a2 = a * a;
+        const double C = 0.2;
+        const double C2 = C * C;
 
         // work out where we are on the grid including effect of spin
         // on x direction (length contraction)
@@ -103,32 +106,89 @@ class IsoSchwarzschildFixedBG
             d2_r[i][j] = (delta(i,j) - X[i] * X[j] / r2) / r;
         }
 
-        FOR2(i, j)
+        //CONDITIONAL
+        if (simd_compare_gt(r, M / C))
         {
-            vars.gamma[i][j] = delta(i,j) * pow(1.0 + 0.5 * M / r,4.0);
-                
+            vars.lapse = (1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r);
+
+            
+            // calculate derivs of lapse and shift
+            FOR1(i)
+            {
+                vars.d1_lapse[i] = 4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
+            }
+
+            FOR2(i,j)
+            {
+                vars.d2_lapse[i][j] = 4.0 * M * (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) * pow(M + 2.0 * r,-3.0);
+            }
+
+            FOR2(i, j)
+            {
+                vars.gamma[i][j] = delta(i,j) * pow(1.0 + 0.5 * M / r,4.0);
+                    
+            }
+            // Calculate partial derivative of spatial metric
+            FOR3(i, j, k)
+            {
+                vars.d1_gamma[i][j][k] = -0.25 * M * pow(M + 2.0 * r,3.0) * pow(r, -5.0) * d1_r[k] * delta(i,j);
+            }
+
+            FOR2(i,j)
+            {
+                FOR2(k,l)
+                {
+                    vars.d2_gamma[i][j][k][l] = -delta(i,j) * (M * (M + 2.0 * r) * (M + 2.0 * r) * (-(5.0 * M + 4.0 * r) * d1_r[k] * d1_r[l] + r * (M + 2.0 * r) * d2_r[k][l] ) ) * 0.25 * pow(r,-6.0);
+                }
+            } 
+            FOR3(i,j,k)
+            {
+                vars.d1_gamma_UU[i][j][k] = delta(i,j) * 64.0 * M * d1_r[k] * pow(r,3.0) * pow(M + 2.0 * r,-5.0);
+            }           
         }
-        // Calculate partial derivative of spatial metric
-        FOR3(i, j, k)
+        else
         {
-            vars.d1_gamma[i][j][k] = -0.25 * M * pow(M + 2.0 * r,3.0) * pow(r, -5.0) * d1_r[k] * delta(i,j);
+            vars.lapse = (4.0 * (1.0 - C) * M2 + (4.0 - C) * C2 * C * r2) / ((2.0 + C) * (2.0 * M2 + C2 * C * r2));
+            FOR1(i)
+            {
+                vars.d1_lapse[i] = 4.0 * M2 * C2 * C * r * d1_r[i] * pow((2.0 * M2 + C2 * C * r2),-2.0) ;
+                FOR1(j)
+                {
+                    vars.d2_lapse[i][j] = (4.0 * M2 * C2 * C * ((2.0 * M2 - 3.0 * C2 * C * r2) *d1_r[i] * d1_r[j] + r * (2.0 * M2 + C2 * C * r2) * d2_r[i][j]))
+                                            * pow(2.0 * M2 + C2 * C * r2, -3.0);
+                }
+            }
+
+            FOR2(i,j)
+            {
+                vars.gamma[i][j] = delta(i,j) * M2 * M2 * pow(2.0 + C, 6.0) * pow(2.0 * M2 + C2 * C * r2,-2.0)/16.0;
+
+                FOR1(k)
+                {
+                    vars.d1_gamma[i][j][k] = - delta(i,j) * M2 * M2 * C2 * C * pow((2.0 + C),6.0) * r * d1_r[k] * pow(2.0 * M2 + C2 * C * r2, -3.0) / 4.0; 
+
+                    FOR1(l)
+                    {
+                        vars.d2_gamma[i][j][k][l] = -delta(i,j) * ((M2 * M2 * C2 * C * pow(2.0 + C,6.0) * ((2.0 * M2 - 5.0 * C2 * C * r2 ) * d1_r[k] * d1_r[l] + r * (2.0 * M2 + C2 * C * r2) * d2_r[k][l]))
+                        / (4.0 * pow(2.0 * M2 + C2 * C * r2,4.0)));
+                    }
+                }
+            }
+            
+            FOR3(i,j,k)
+            {
+                vars.d1_gamma_UU[i][j][k] = delta(i,j) * 64.0 * C2 * C * r * (2.0 * M2 + C2 * C * r2) * d1_r[k] * pow(2.0 + C, -6.0) /M2 / M2;
+            }  
         }
 
-        FOR2(i,j)
-        {
-            FOR2(k,l)
-            {
-                vars.d2_gamma[i][j][k][l] = -delta(i,j) * (M * (M + 2.0 * r) * (M + 2.0 * r) * (-(5.0 * M + 4.0 * r) * d1_r[k] * d1_r[l] + r * (M + 2.0 * r) * d2_r[k][l] ) ) * 0.25 * pow(r,-6.0);
-            }
-        }
+
         //Now the inverse metric
 
         const auto gamma_UU = compute_inverse_sym(vars.gamma);
         const auto chris_phys = compute_christoffel(vars.d1_gamma, gamma_UU);
-        FOR3(i,j,k)
-        {
-            vars.d1_gamma_UU[i][j][k] = delta(i,j) * 64.0 * M * d1_r[k] * pow(r,3.0) * pow(M + 2.0 * r,-5.0);
-        }
+
+    
+
         
 
                                                 
@@ -183,35 +243,7 @@ class IsoSchwarzschildFixedBG
     
         //Zeroing implementation
         
-        if (simd_compare_gt(r, M / 2.0))
-        {
-            vars.lapse = (1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r);
 
-            
-            // calculate derivs of lapse and shift
-            FOR1(i)
-            {
-                vars.d1_lapse[i] = 4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
-            }
-
-            FOR2(i,j)
-            {
-                vars.d2_lapse[i][j] = 4.0 * M * (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) * pow(M + 2.0 * r,-3.0);
-            }
-        }
-        else
-        {
-            vars.lapse = 0.0;
-            FOR1(i)
-            {
-                vars.d1_lapse[i] = 0.0;
-                FOR1(j)
-                {
-                    vars.d2_lapse[i][j] = 0.0;
-                }
-            }
-
-        }
         
         /*
         data_t horizon = M / 2.0;
@@ -313,8 +345,8 @@ class IsoSchwarzschildFixedBG
         const double z = coords.z;
         const double r = sqrt(x * x + y * y + z * z);
 
-        const double horizon_distance = r / (M/2.0);
-
+        //const double horizon_distance = r / (M/2.0);
+        const double horizon_distance = r;
         //return sqrt(horizon_distance);
         return horizon_distance;
     }

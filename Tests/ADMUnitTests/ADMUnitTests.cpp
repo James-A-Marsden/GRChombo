@@ -18,6 +18,8 @@
 #include "UserVariables.hpp"
 #include "Coordinates.hpp"
 #include "ADMKerrSchildFixedBG.hpp"
+#include "ADMIsoKerrFixedBG.hpp"
+#include "ADMIsoStarFixedBG.hpp"
 
 // Chombo namespace
 #include "UsingNamespace.H"
@@ -78,16 +80,22 @@ int main()
 
 
     ADMKerrSchildFixedBG::params_t bg_params;
-    bg_params.center[0] = 2.0;
-    bg_params.center[1] = -5.0;
-    bg_params.center[2] = 3.0;
-    bg_params.mass = 1.0;
-    bg_params.spin = 0.5;
+    //ADMIsoKerrFixedBG::params_t iso_bg_params; 
+    ADMIsoStarFixedBG::params_t iso_bg_params; 
+
+    iso_bg_params.center[0] = 2.0;
+    iso_bg_params.center[1] = -5.0;
+    iso_bg_params.center[2] = 3.0;
+    iso_bg_params.mass = 0.1;
+    iso_bg_params.spin = 0.0;
 
     const double dx = 10.0 / num_cells;
     LocalVars<double> local_vars;
 
     ADMKerrSchildFixedBG kerr_bh(bg_params, dx);
+    //ADMIsoKerrFixedBG iso_kerr_bh(iso_bg_params, dx);
+    ADMIsoStarFixedBG iso_star(iso_bg_params, dx);
+
 
     /*
     std::cout << "bh mass = " << bg_params.mass << "\n";
@@ -100,9 +108,9 @@ int main()
         //const double x = (0.5 + bit_ghost()[0]) * dx;
         //const double z = (0.5 + bit_ghost()[2]) * dx;
         
-        const Coordinates<double> ghost_coords(IntVect(bit_ghost()[0], bit_ghost()[1], bit_ghost()[2]), dx, bg_params.center);
+        const Coordinates<double> ghost_coords(IntVect(bit_ghost()[0], bit_ghost()[1], bit_ghost()[2]), dx, iso_bg_params.center);
 
-        kerr_bh.compute_metric_background(local_vars, ghost_coords);
+        iso_star.compute_metric_background(local_vars, ghost_coords);
 
         in_fab(bit_ghost(), c_d1_gamma_UU11) = local_vars.gamma_UU[0][0];
         in_fab(bit_ghost(), c_d1_gamma_UU12) = local_vars.gamma_UU[0][1];
@@ -136,7 +144,7 @@ int main()
         in_fab(bit_ghost(), c_d2_shift3) = local_vars.shift[2];
     }
 
-    // Fourth order derivatives
+    // Sixth order derivatives
     BoxLoops::loop(ADMTestsCompute<SixthOrderDerivatives>(dx), in_fab,
                    out_fab);
 
@@ -146,8 +154,8 @@ int main()
         const double x = (0.5 + bit()[0]) * dx;
         const double z = (0.5 + bit()[2]) * dx;
 
-        const Coordinates<double> coords(IntVect(bit()[0], bit()[1], bit()[2]), dx, bg_params.center);
-        kerr_bh.compute_metric_background(local_vars, coords);
+        const Coordinates<double> coords(IntVect(bit()[0], bit()[1], bit()[2]), dx, iso_bg_params.center);
+        iso_star.compute_metric_background(local_vars, coords);
    
         bool error = false;
         
@@ -159,11 +167,11 @@ int main()
         error |= is_wrong(out_fab(bit(), c_d1_gamma_UU33), local_vars.d1_gamma_UU[2][2][0], "c_d1_gammaUU33");
 
         error |= is_wrong(out_fab(bit(), c_d2_gamma11), local_vars.d2_gamma[0][0][0][1], "c_d2_gamma11");
-        error |= is_wrong(out_fab(bit(), c_d2_gamma12), local_vars.d2_gamma[0][1][0][1], "c_d2_gamma11");
-        error |= is_wrong(out_fab(bit(), c_d2_gamma13), local_vars.d2_gamma[0][2][0][1], "c_d2_gamma11");
-        error |= is_wrong(out_fab(bit(), c_d2_gamma22), local_vars.d2_gamma[1][1][0][1], "c_d2_gamma11");
-        error |= is_wrong(out_fab(bit(), c_d2_gamma23), local_vars.d2_gamma[1][2][0][1], "c_d2_gamma11");
-        error |= is_wrong(out_fab(bit(), c_d2_gamma33), local_vars.d2_gamma[2][2][0][1], "c_d2_gamma11");
+        error |= is_wrong(out_fab(bit(), c_d2_gamma12), local_vars.d2_gamma[0][1][0][1], "c_d2_gamma12");
+        error |= is_wrong(out_fab(bit(), c_d2_gamma13), local_vars.d2_gamma[0][2][0][1], "c_d2_gamma13");
+        error |= is_wrong(out_fab(bit(), c_d2_gamma22), local_vars.d2_gamma[1][1][0][1], "c_d2_gamma22");
+        error |= is_wrong(out_fab(bit(), c_d2_gamma23), local_vars.d2_gamma[1][2][0][1], "c_d2_gamma23");
+        error |= is_wrong(out_fab(bit(), c_d2_gamma33), local_vars.d2_gamma[2][2][0][1], "c_d2_gamma33");
 
         error |= is_wrong(out_fab(bit(), c_d2_lapse), local_vars.d2_lapse[0][0], "c_d2_lapse");
         /*

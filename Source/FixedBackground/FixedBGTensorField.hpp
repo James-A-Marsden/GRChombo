@@ -80,8 +80,8 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         data_t w; //Scalar component 
 
 
-        Tensor<1, data_t> X;
-        data_t theta;
+        Tensor<1, data_t> thetaspatial;
+        data_t thetahat;
 
 
         /// Defines the mapping between members of Vars and Chombo grid
@@ -106,9 +106,9 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
             VarsTools::define_enum_mapping(mapping_function, c_w, w);
 
             //Damping
-            VarsTools::define_enum_mapping(mapping_function, GRInterval<c_X1,c_X3>(), X);
+            VarsTools::define_enum_mapping(mapping_function, GRInterval<c_thetaspatial1,c_thetaspatial3>(), thetaspatial);
 
-            VarsTools::define_enum_mapping(mapping_function, c_theta, theta);
+            VarsTools::define_enum_mapping(mapping_function, c_thetahat, thetahat);
         }
     };
 
@@ -197,7 +197,7 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         const vars_t<data_t> &advec);
 
 
-        
+    /*   
     template <class data_t, template <typename> class vars_t,
                 template <typename> class diff2_vars_t,
                 template <typename> class rhs_vars_t>
@@ -209,6 +209,7 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         const vars_t<Tensor<1, data_t>> &d1,
         const diff2_vars_t<Tensor<2, data_t>> &d2, 
         const vars_t<data_t> &advec);
+    */
 };
 
 #include "FixedBGTensorField.impl.hpp"
