@@ -127,16 +127,16 @@ void TensorFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     // zero these
 
     // enforce continuous prescription for sigma as per arXiv:2104.06978
-    const int ratio = pow(2, 5 * (m_level - m_p.max_level));
-    const double sigma = m_p.sigma * double(ratio);
+    //const int ratio = pow(2, 5 * (m_level - m_p.max_level));
+    //const double sigma = m_p.sigma * double(ratio);
 
     TensorPotential potential(m_p.potential_params);
     TensorFieldWithPotential tensor_field(potential);
     //TensorFieldWithPotential;
     //IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
     FixedBGEvolution<TensorFieldWithPotential, IsoSchwarzschildFixedBG> my_matter(
-        //tensor_field, isoschwarzschild_bg, m_p.sigma, m_dx, m_p.center);
-        tensor_field, isoschwarzschild_bg, sigma, m_dx, m_p.center);
+        tensor_field, isoschwarzschild_bg, m_p.sigma, m_dx, m_p.center);
+        //tensor_field, isoschwarzschild_bg, sigma, m_dx, m_p.center);
 
     //TraceFieldRemoval<TensorFieldWithPotential, IsoSchwarzschildFixedBG> make_traceless(isoschwarzschild_bg); 
 

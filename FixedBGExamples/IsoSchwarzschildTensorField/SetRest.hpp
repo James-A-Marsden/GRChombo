@@ -213,11 +213,6 @@ class SetRest
             }
             }
         }
-      vars.theta = primaryScalar;
-      FOR1(i)
-      {
-        vars.X[i] = primaryVector[i];
-      }
 
       Tensor<1, data_t> transverseVector;
       

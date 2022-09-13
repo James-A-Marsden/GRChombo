@@ -91,8 +91,12 @@ class InitialConditions
         Tensor<2,data_t> v; //Spatial rank 2 v field
         //Tensor<1,data_t> p; //Spatial rank 1 p field
         Tensor<1,data_t> q; //Spatial rank 1 q field
+
+       
         data_t w; //Scalar component
 
+        Tensor<1, data_t> thetaspatial;
+        data_t thetahat;
 
         
 
@@ -107,11 +111,13 @@ class InitialConditions
 
         vars.fhat = 0.0;
         vars.w = 0.0;
+        vars.thetahat = 0.0;
       
         FOR(i)
         {
           vars.fbar[i] = 0.0;
           vars.q[i] = 0.0;
+          vars.thetaspatial[i] = 0.0;
 
           FOR(j)
           {
@@ -183,7 +189,7 @@ class InitialConditions
         */
 
         
-        data_t A = sintheta * sintheta * pow(M + 2.0 * r, -2.0);
+        data_t A = 0.1 * sintheta * sintheta * pow(M + 2.0 * r, -2.0);
         vars.fspatial[0][0] = -A * sin2phi / r;
         vars.fspatial[1][1] =  A * sin2phi / r;
         vars.fspatial[2][2] =  0.0;

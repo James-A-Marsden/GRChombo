@@ -44,6 +44,12 @@ enum
 
     //Scalar component conjugate field 
     c_w,
+
+        //Damping variables
+    c_X1,
+    c_X2,
+    c_X3,
+    c_theta,
     
     NUM_VARS
 };
@@ -57,7 +63,9 @@ static const std::array<std::string, NUM_VARS> variable_names = {
     "fhat", 
     "v11", "v12", "v13", "v22", "v23", "v33", 
     "q1", "q2", "q3",
-    "w"};
+    "w",
+    "X1","X2","X3",
+    "theta"};
 }
 
 #include "UserVariables.inc.hpp"
