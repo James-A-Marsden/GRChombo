@@ -13,7 +13,7 @@
 #include "SmallDataIO.hpp"
 
 // For tag cells
-#include "FixedGridsTaggingCriterion.hpp"
+#include "TensorFieldTaggingCriterion.hpp"
 
 // Problem specific includes
 #include "TensorPotential.hpp"
@@ -234,7 +234,7 @@ void TensorFieldLevel::specificUpdateODE(GRLevelData &a_soln,
 void TensorFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                                const FArrayBox &current_state)
 {
-    BoxLoops::loop(FixedGridsTaggingCriterion(m_dx, m_level, m_p.regrid_length,
+    BoxLoops::loop(TensorFieldTaggingCriterion(m_dx, m_level, m_p.regrid_length,
                                               m_p.center),
                    current_state, tagging_criterion, disable_simd());
 }
