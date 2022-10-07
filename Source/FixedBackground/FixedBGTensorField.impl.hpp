@@ -385,7 +385,6 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
                             - metric_vars.lapse * gamma_UU[j][k] * d2.fbar[i][j][k];
 
                 
-                            
                 //4 summation indices
                 FOR1(l)
                 {   
