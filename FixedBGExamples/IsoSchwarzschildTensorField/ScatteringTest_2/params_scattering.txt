@@ -5,10 +5,10 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/TensorIsoSchwarz/scattering_damping_scheme1"
+output_path = "/cosma7/data/dp092/dc-mars4/TensorIsoSchwarz/scattering_damping_scheme1_3"
 #chk_prefix = IsoTensorTest_
-chk_prefix = IsoTensor_ZL_Chk_
-plot_prefix = IsoTensor_ZL_Plot_
+chk_prefix = IsoTensor_L_Chk_
+plot_prefix = IsoTensor_L_Plot_
 #restart_file =
 
 # subpaths - specific directories for hdf5, pout, extraction data
@@ -44,8 +44,8 @@ stop_time = 60.0
 # NB - the N values need to be multiples of block_factor
 
 
-N1 = 16
-N2 = 16
+N1 = 64
+N2 = 64
 N3 = 64
 L = 64
 

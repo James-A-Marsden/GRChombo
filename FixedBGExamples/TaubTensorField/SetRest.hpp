@@ -136,14 +136,20 @@ class SetRest
        
        
         namespace bmath = boost::math; 
-        const double frequency = 2.0 * M_PI /128.0 ;
+        //const double frequency = 2.0 * M_PI /128.0 ;
+        const double frequency = 2.0 * M_PI /32.0 ;
 
         data_t amplitude = cos( - frequency * coords.x);
         
         data_t momentum = -frequency * sin(-frequency * coords.x); 
         double num = 4.0/3.0;
-        double zs = 0.75 * pow(coords.z+200.0,num);
-        double bessel = -100.0 * zs * bmath::cyl_bessel_j(1,-zs * frequency);// - zs * boost::math::cyl_neumann(1,zs * frequency);
+        //double zs = 0.75 * pow(coords.z+200.0,num);
+        double zs = 0.75 * pow(coords.z+100.0,num);
+      
+        //double bessel = -100.0 * zs * bmath::cyl_bessel_j(1,-zs * frequency);// - zs * boost::math::cyl_neumann(1,zs * frequency);
+        double bessel =  -zs * frequency * (4.0 / 3.0) * pow(coords.z+100.0,1.0/3.0) * bmath::cyl_bessel_j(1,zs * frequency)
+                          + zs * (4.0 / 3.0) / (coords.z + 100.0) * bmath::cyl_bessel_j(0,zs * frequency);// - zs * boost::math::cyl_neumann(1,zs * frequency);
+       
         vars.v[0][0] = bessel;
         vars.v[1][1] = -bessel;
         vars.v[0][1] = bessel;

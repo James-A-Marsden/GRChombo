@@ -24,6 +24,7 @@ template <class data_t> struct Vars
     Tensor<1, data_t> shift;
     Tensor<2, Tensor<1, data_t>> d1_gamma;
     Tensor<1, data_t> d1_lapse;
+    Tensor<1, data_t> d1_ln_lapse;
     Tensor<2, data_t> d1_shift;
 
     //Extra variables needed for tensor field case
@@ -31,6 +32,7 @@ template <class data_t> struct Vars
     Tensor<1, data_t> d1_K;    
     Tensor<3, data_t> d1_K_tensor; 
     Tensor<2, data_t> d2_lapse;
+    Tensor<2, data_t> d2_ln_lapse;
     Tensor<3, data_t> d2_shift;
     Tensor<4, data_t> d2_gamma;
     Tensor<3, data_t> d1_gamma_UU;

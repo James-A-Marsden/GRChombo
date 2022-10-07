@@ -129,7 +129,8 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
         Tensor<1, data_t> i_p;
         FOR1(i)
         {
-            i_p[i] = d1.fhat[i]; 
+            //i_p[i] = d1.fhat[i]; 
+            i_p[i] = (vars.fhat * metric_vars.d1_lapse[i] - metric_vars.lapse * d1.fhat[i]) / metric_vars.lapse / metric_vars.lapse;
 
             FOR2(j,k)
             {
@@ -140,7 +141,9 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
         Tensor<2, data_t> d1_i_p;
         FOR2(i,j)
         {
-            d1_i_p[i][j] = d2.fhat[i][j]; 
+            //d1_i_p[i][j] = d2.fhat[i][j];
+            d1_i_p[i][j] = (vars.fhat * (-2.0 * metric_vars.d1_lapse[i] * metric_vars.d1_lapse[j] + metric_vars.lapse * metric_vars.d2_lapse[i][j])
+                        +metric_vars.lapse * (d1.fhat[i] * metric_vars.d1_lapse[j] + d1.fhat[j] * metric_vars.d1_lapse[i] - metric_vars.lapse * d2.fhat[i][j])) * pow(metric_vars.lapse, -3.0);             
 
             FOR2(k,l)
             {
@@ -168,8 +171,9 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
         {
             trace_field += gamma_UU[i][j] * vars.fspatial[i][j]; 
         }
-        trace_field += -vars.fhat;
-        
+        //trace_field += -vars.fhat;
+        trace_field += vars.fhat / metric_vars.lapse;
+
         Tensor<1, data_t> trace_of_F;
 
         FOR1(i)
@@ -227,7 +231,8 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
         //NEEDS MASS TERM ADDING
         const double temp_mass = 0.0;
         
-        data_t primaryScalar = -temp_mass * temp_mass * vars.fhat;
+        data_t primaryScalar = //-temp_mass * temp_mass * vars.fhat;
+                                temp_mass * temp_mass * vars.fhat / metric_vars.lapse;
         
         FOR2(i,j)
         {

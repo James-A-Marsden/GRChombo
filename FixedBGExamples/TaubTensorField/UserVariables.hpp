@@ -13,7 +13,7 @@
 // assign an enum to each variable
 enum
 {
-    //Spatial components of tensor field  //Don't need all as this is symmetric? 
+    //Spatial components of tensor field
     c_fspatial11, 
     c_fspatial12,
     c_fspatial13,
@@ -28,6 +28,11 @@ enum
 
     //Scalar component of tensor field
     c_fhat, 
+
+    c_thetaspatial1,
+    c_thetaspatial2,
+    c_thetaspatial3,
+    c_thetahat,
 
     //Rank 2 component conjugate field
     c_v11,
@@ -45,12 +50,9 @@ enum
     //Scalar component conjugate field 
     c_w,
 
-        //Damping variables
-    c_X1,
-    c_X2,
-    c_X3,
-    c_theta,
-    
+    //Damping variables
+
+
     NUM_VARS
 };
 
@@ -60,12 +62,13 @@ namespace UserVariables
 static const std::array<std::string, NUM_VARS> variable_names = {
     "fspatial11", "fspatial12", "fspatial13", "fspatial22", "fspatial23", "fspatial33", 
     "fbar1", "fbar2", "fbar3", 
-    "fhat", 
+    "fhat",
+    "thetaspatial1","thetaspatial2","thetaspatial3",
+    "thetahat",
     "v11", "v12", "v13", "v22", "v23", "v33", 
     "q1", "q2", "q3",
-    "w",
-    "X1","X2","X3",
-    "theta"};
+    "w"
+    };
 }
 
 #include "UserVariables.inc.hpp"

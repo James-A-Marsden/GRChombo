@@ -96,8 +96,8 @@ class InitialConditions
 
         namespace bmath = boost::math;
 
-        const double frequency = 2 * M_PI /128.0 ;
-
+        //const double frequency = 2 * M_PI /128.0 ;
+        const double frequency = 2.0 * M_PI /32.0 ;
         const data_t amplitude = cos( - frequency * coords.z);
         
         const data_t momentum = -frequency * sin(-frequency * coords.z); 
@@ -107,9 +107,10 @@ class InitialConditions
 
         vars.fhat = 0.0;
         double num = 4.0/3.0;
-        double zs = 0.75 * pow(coords.z+200.0,num);
-        double bessel = zs * bmath::cyl_bessel_j(0,-zs * frequency);// + zs * boost::math::cyl_neumann(0,zs * frequency); 
-
+        //double zs = 0.75 * pow(coords.z+200.0,num);
+        double zs = 0.75 * pow(coords.z+100.0,num);
+        //double bessel = zs * bmath::cyl_bessel_j(0,-zs * frequency);// + zs * boost::math::cyl_neumann(0,zs * frequency); 
+        double bessel = zs * bmath::cyl_bessel_j(0,zs * frequency);
         FOR(i)
         {
           vars.fbar[i] = 0.0;

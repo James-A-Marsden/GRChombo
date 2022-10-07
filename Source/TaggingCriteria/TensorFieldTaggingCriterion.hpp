@@ -132,9 +132,9 @@ class TensorFieldTaggingCriterion
                      //+d1_v12[idir] * d1_v12[idir] + d1_v13[idir] * d1_v13[idir] + d1_v23[idir] * d1_v23[idir];
         }
         //temp
-        const double threshold_field = 0.5;
+        const double threshold_field = 0.05;
 
-        field_criterion = m_dx * (sqrt(mod_d1_fhat) + sqrt(mod_d1_w)
+        field_criterion = m_dx * (//sqrt(mod_d1_fhat) + sqrt(mod_d1_w)
                                  // +sqrt(mod_d1_fbar/3.0) + sqrt(mod_d1_q/3.0)
                                   +sqrt(mod_d1_fspatial/2.0) + sqrt(mod_d1_v/2.0)
                                   )/ threshold_field;

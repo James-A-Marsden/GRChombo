@@ -149,22 +149,22 @@ class InitialConditions
 
         //const double frequency = 2.0 * M_PI /128.0 ;
 
-        const double omega = 2.0 * M_PI /2.0 ;
-        const double shift = 24.0;
+        const double omega = 2.0 * M_PI /4.0 ;
+        const double shift = 20.0;
          const data_t gaussian = exp(-(coords.z - shift) * (coords.z - shift) / (2.0));
 
-        const data_t field_init = cos( -omega * coords.z) * gaussian;
+        const data_t field_init = sin(omega * coords.z) * gaussian;
         
-        const data_t momentum_init = omega * sin( -omega * coords.z) * gaussian
-                                    -cos( -omega * coords.z) * (coords.z - shift) * gaussian; 
+        const data_t momentum_init = omega * cos(omega * coords.z) * gaussian
+                                    -sin(omega * coords.z) * (coords.z - shift) * gaussian; 
 
        
-
+        
         vars.fspatial[0][0] = field_init;
         vars.fspatial[1][1] = -field_init;
-
-        vars.v[0][0] = momentum_init;
-        vars.v[1][1] = -momentum_init;
+        
+        vars.v[0][0] = -momentum_init;
+        vars.v[1][1] = momentum_init;
         
 
         /*
@@ -181,12 +181,12 @@ class InitialConditions
         vars.fspatial[1][0] = vars.fspatial[0][1];
         vars.fspatial[2][0] = vars.fspatial[0][2];
         vars.fspatial[2][1] = vars.fspatial[1][2];
-
-        
         */
-        vars.fhat = TensorAlgebra::compute_trace(gamma_UU, vars.fspatial);
+        
+        
+        //vars.fhat = TensorAlgebra::compute_trace(gamma_UU, vars.fspatial);
         vars.fhat = 0.0;  
-
+        
        
 
 
