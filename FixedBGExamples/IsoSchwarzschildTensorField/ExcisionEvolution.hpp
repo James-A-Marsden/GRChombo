@@ -71,10 +71,6 @@ template <class matter_t, class background_t> class ExcisionEvolution
             Vars vars;
             
             //const auto d1 = m_deriv.template diff1<Vars>(current_cell);
-            current_cell.store_vars(0.0, c_thetahat);
-            current_cell.store_vars(0.0, c_thetaspatial1);
-            current_cell.store_vars(0.0, c_thetaspatial2);
-            current_cell.store_vars(0.0, c_thetaspatial3);
 
             ///EXCISE d1
             

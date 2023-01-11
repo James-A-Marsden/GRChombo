@@ -25,8 +25,6 @@
 #include "FixedBGEvolution.hpp"
 #include "FluxExtraction.hpp"
 #include "InitialConditions.hpp"
-#include "Sethbar.hpp"
-#include "SetRest.hpp"
 #include "IsoSchwarzschildFixedBG.hpp"
 #include "TraceFieldRemoval.hpp"
 
@@ -60,12 +58,6 @@ void TensorFieldLevel::initialData()
 
     InitialConditions set_vars(m_p.potential_params.tensor_mass, m_p.center,
                               m_p.bg_params, m_dx, m_p.initial_constant);
-
-    Sethbar set_hbar(m_p.potential_params.tensor_mass, m_p.center,
-                            m_p.bg_params, m_dx, m_p.initial_constant);
-
-    SetRest set_rest(m_p.potential_params.tensor_mass, m_p.center,
-    m_p.bg_params, m_dx, m_p.initial_constant);
 
     auto compute_pack = make_compute_pack(set_zero, isoschwarzschild_bg);
 

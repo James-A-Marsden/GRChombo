@@ -62,37 +62,21 @@ template <class matter_t, class background_t> class TraceFieldRemoval
 
         //Make fspatial trace free
         auto local_vars = current_cell.template load_vars<Vars>();
-        
-        //TensorAlgebra::make_trace_free(local_vars.fspatial, metric_vars.gamma, gamma_UU);
-        //TensorAlgebra::make_trace_free(local_vars.v, metric_vars.gamma, gamma_UU);
-        
-        //auto ftrace = TensorAlgebra::compute_trace(local_vars.fspatial, gamma_UU);
-        //auto vtrace = TensorAlgebra::compute_trace(local_vars.v, gamma_UU);
-        //double one_over_gr_spacedim = 1. / ((double)GR_SPACEDIM);
- 
-        //local_vars.fspatial[0][0] -= (1.0 / 2.0) * metric_vars.gamma[0][0] * ftrace;
-        //local_vars.fspatial[1][1] -= (1.0 / 2.0) * metric_vars.gamma[1][1] * ftrace;
 
-        //local_vars.v[0][0] -= (1.0 / 2.0) * metric_vars.gamma[0][0] * vtrace;
-        //local_vars.v[1][1] -= (1.0 / 2.0) * metric_vars.gamma[1][1] * vtrace;
+        TensorAlgebra::make_trace_free(local_vars.fspatial, metric_vars.gamma, gamma_UU);
+        TensorAlgebra::make_trace_free(local_vars.v, metric_vars.gamma, gamma_UU);
 
-        vars.fhat = local_vars.fhat;
-        vars.w = local_vars.w; 
-        vars.thetahat = local_vars.thetahat; 
-        FOR1(i)
+
+        FOR2(i,j)
         {
-          vars.fbar[i] = local_vars.fbar[i];
-          vars.q[i] = local_vars.q[i];
-          vars.thetaspatial[i] = local_vars.thetaspatial[i]; 
-
-          FOR1(j)
-          {
             vars.fspatial[i][j] = local_vars.fspatial[i][j];
             vars.v[i][j] = local_vars.v[i][j];
-          }
         }
+        
 
         current_cell.store_vars(vars);
+
+
     }
 };
 

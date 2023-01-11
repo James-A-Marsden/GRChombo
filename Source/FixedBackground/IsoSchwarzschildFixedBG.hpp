@@ -324,7 +324,18 @@ class IsoSchwarzschildFixedBG
         const double r = sqrt(x * x + y * y + z * z);
 
         const double horizon_distance = r / (M/2.0);
-
+        
+        //const double horizon_distance = 100000.0;
+        /*
+        if (M>0.0)
+        {
+            horizon_distance = r / (M/2.0);
+        }
+        else
+        {
+            horizon_distance = 0.0;
+        }
+        */
         //return sqrt(horizon_distance);
         return horizon_distance;
     }

@@ -62,7 +62,7 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         : my_potential(a_potential)
     {
     }
-
+    
     //! Structure containing the rhs variables for the matter fields
     template <class data_t> struct Vars
     {
@@ -71,17 +71,9 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         
         //Tensor field components
         Tensor<2,data_t> fspatial; //Spatial component of the tensor field
-        Tensor<1,data_t> fbar; //Half-projected component of the tensor field
-        data_t fhat; //Scalar part of the tensor field 
 
         //Conjugate components
         Tensor<2,data_t> v; //Spatial rank 2 v field
-        Tensor<1,data_t> q; //Spatial rank 1 q field
-        data_t w; //Scalar component 
-
-
-        Tensor<1, data_t> thetaspatial;
-        data_t thetahat;
 
 
         /// Defines the mapping between members of Vars and Chombo grid
@@ -93,22 +85,10 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
             //Field variables 
             VarsTools::define_symmetric_enum_mapping(mapping_function, GRInterval<c_fspatial11,c_fspatial33>(), fspatial);
 
-            VarsTools::define_enum_mapping(mapping_function, GRInterval<c_fbar1,c_fbar3>(), fbar);
-
-            VarsTools::define_enum_mapping(mapping_function, c_fhat, fhat);
-
             //conjugate variables 
-     
+    
             VarsTools::define_symmetric_enum_mapping(mapping_function, GRInterval<c_v11,c_v33>(), v);
 
-            VarsTools::define_enum_mapping(mapping_function, GRInterval<c_q1,c_q3>(), q);
-
-            VarsTools::define_enum_mapping(mapping_function, c_w, w);
-
-            //Damping
-            VarsTools::define_enum_mapping(mapping_function, GRInterval<c_thetaspatial1,c_thetaspatial3>(), thetaspatial);
-
-            VarsTools::define_enum_mapping(mapping_function, c_thetahat, thetahat);
         }
     };
 
@@ -129,9 +109,6 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
             //VarsTools::define_enum_mapping(mapping_function, c_phi, phi);
             VarsTools::define_symmetric_enum_mapping(mapping_function, GRInterval<c_fspatial11,c_fspatial33>(), fspatial);
 
-            VarsTools::define_enum_mapping(mapping_function, GRInterval<c_fbar1,c_fbar3>(), fbar);
-
-            VarsTools::define_enum_mapping(mapping_function, c_fhat, fhat);
         }
     };
 

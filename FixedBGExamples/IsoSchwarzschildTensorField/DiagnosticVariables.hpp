@@ -24,6 +24,7 @@ enum
     c_primaryConstraintVector1,
     c_primaryConstraintVector2,
     c_primaryConstraintVector3,
+    c_rho_eff,
     NUM_DIAGNOSTIC_VARS
 };
 
@@ -36,6 +37,7 @@ static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
     "transverseScalar", "transverseVector1", "transverseVector2", "transverseVector3",
     "primaryConstraintScalar",
     "primaryConstraintVector1", "primaryConstraintVector2", "primaryConstraintVector3",
+    "rho_eff",
     };
 
 }

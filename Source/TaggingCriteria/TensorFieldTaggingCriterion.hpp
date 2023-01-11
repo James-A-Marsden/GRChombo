@@ -46,17 +46,6 @@ class TensorFieldTaggingCriterion
 
         //Regridding based on the tensor field and momentum
         //looks awful but works using GRChombo's current functions
-        Tensor<1, data_t> d1_fhat;
-
-        Tensor<1, data_t> d1_w;
-
-        Tensor<1, data_t> d1_fbar1;
-        Tensor<1, data_t> d1_fbar2;
-        Tensor<1, data_t> d1_fbar3;
-
-        Tensor<1, data_t> d1_q1;
-        Tensor<1, data_t> d1_q2;
-        Tensor<1, data_t> d1_q3;
 
         Tensor<1, data_t> d1_fspatial11;
         Tensor<1, data_t> d1_fspatial22;
@@ -72,18 +61,7 @@ class TensorFieldTaggingCriterion
         Tensor<1, data_t> d1_v13;
         Tensor<1, data_t> d1_v23;
 
-        FOR(idir) m_deriv.diff1(d1_fhat, current_cell, idir, c_fhat);
 
-        FOR(idir) m_deriv.diff1(d1_w, current_cell, idir, c_w);
-        /*
-        FOR(idir) m_deriv.diff1(d1_fbar1, current_cell, idir, c_fbar1);
-        FOR(idir) m_deriv.diff1(d1_fbar2, current_cell, idir, c_fbar2);
-        FOR(idir) m_deriv.diff1(d1_fbar3, current_cell, idir, c_fbar3);
-
-        FOR(idir) m_deriv.diff1(d1_q1, current_cell, idir, c_q1);
-        FOR(idir) m_deriv.diff1(d1_q2, current_cell, idir, c_q2);
-        FOR(idir) m_deriv.diff1(d1_q3, current_cell, idir, c_q3);
-        */
         FOR(idir) m_deriv.diff1(d1_fspatial11, current_cell, idir, c_fspatial11);
         FOR(idir) m_deriv.diff1(d1_fspatial22, current_cell, idir, c_fspatial22);
         /*   
@@ -101,11 +79,7 @@ class TensorFieldTaggingCriterion
         FOR(idir) m_deriv.diff1(d1_v13, current_cell, idir, c_v13);      
         FOR(idir) m_deriv.diff1(d1_v23, current_cell, idir, c_v23);                      
         */
-        data_t mod_d1_fhat = 0.0;
-        data_t mod_d1_w = 0.0;
-        
-        data_t mod_d1_fbar = 0.0;
-        data_t mod_d1_q = 0.0;
+ 
 
         data_t mod_d1_fspatial = 0.0;
         data_t mod_d1_v = 0.0;
@@ -117,13 +91,6 @@ class TensorFieldTaggingCriterion
         FOR(idir)
         {
         
-          mod_d1_fhat += d1_fhat[idir] * d1_fhat[idir];
-
-          mod_d1_w += d1_w[idir] * d1_w[idir];
-
-          //mod_d1_fbar += d1_fbar1[idir] * d1_fbar1[idir] + d1_fbar2[idir] * d1_fbar2[idir] + d1_fbar3[idir] * d1_fbar3[idir];
-
-          //mod_d1_q += d1_q1[idir] * d1_q1[idir] + d1_q2[idir] * d1_q2[idir] + d1_q3[idir] * d1_q3[idir];
 
           mod_d1_fspatial += d1_fspatial11[idir] * d1_fspatial11[idir] + d1_fspatial22[idir] * d1_fspatial22[idir];// + d1_fspatial33[idir] * d1_fspatial33[idir]
                             //+d1_fspatial12[idir] * d1_fspatial12[idir] + d1_fspatial13[idir] * d1_fspatial13[idir] + d1_fspatial23[idir] * d1_fspatial23[idir];
@@ -133,17 +100,22 @@ class TensorFieldTaggingCriterion
         }
         //temp
         const double threshold_field = 0.05;
-
-        field_criterion = m_dx * (//sqrt(mod_d1_fhat) + sqrt(mod_d1_w)
-                                 // +sqrt(mod_d1_fbar/3.0) + sqrt(mod_d1_q/3.0)
-                                  +sqrt(mod_d1_fspatial/2.0) + sqrt(mod_d1_v/2.0)
-                                  )/ threshold_field;
+        
+        const data_t field_regrid = m_dx * (sqrt(mod_d1_fspatial/2.0) + sqrt(mod_d1_v/2.0))/ threshold_field;
 
         //Take the larger of the two regridding criteria
-        criterion = simd_max(grid_criterion, field_criterion);
+        
         // Write back into the flattened Chombo box
         //Just consider the tensor field values? 
-        current_cell.store_vars(field_criterion, 0);
+
+
+        //Only regrid near the middle of the box to save computing time 
+
+        auto regrid_centre = simd_compare_gt(max_abs_xyz, 58.0);
+        field_criterion = simd_conditional(regrid_centre, 0.0, field_regrid);
+        criterion = simd_max(grid_criterion, field_criterion);
+        current_cell.store_vars(field_criterion, 0.0);
+        
     }
 };
 
