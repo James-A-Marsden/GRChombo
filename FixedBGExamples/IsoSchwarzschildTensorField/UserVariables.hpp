@@ -29,6 +29,11 @@ enum
     c_v23,
     c_v33,
 
+    c_Xhat,
+    c_Xspatial1,
+    c_Xspatial2,
+    c_Xspatial3,
+
     NUM_VARS
 };
 
@@ -37,7 +42,8 @@ namespace UserVariables
     //for checkpoints 
 static const std::array<std::string, NUM_VARS> variable_names = {
     "fspatial11", "fspatial12", "fspatial13", "fspatial22", "fspatial23", "fspatial33",
-    "v11", "v12", "v13", "v22", "v23", "v33"
+    "v11", "v12", "v13", "v22", "v23", "v33",
+    "Xhat", "Xspatial1", "Xspatial2", "Xspatial3"
     };
 }
 

@@ -99,6 +99,7 @@ class TensorFieldTaggingCriterion
                      //+d1_v12[idir] * d1_v12[idir] + d1_v13[idir] * d1_v13[idir] + d1_v23[idir] * d1_v23[idir];
         }
         //temp
+        //const double threshold_field = 0.0000001;
         const double threshold_field = 0.05;
         
         const data_t field_regrid = m_dx * (sqrt(mod_d1_fspatial/2.0) + sqrt(mod_d1_v/2.0))/ threshold_field;
@@ -111,10 +112,10 @@ class TensorFieldTaggingCriterion
 
         //Only regrid near the middle of the box to save computing time 
 
-        auto regrid_centre = simd_compare_gt(max_abs_xyz, 58.0);
+        auto regrid_centre = simd_compare_gt(max_abs_xyz, 32.0);
         field_criterion = simd_conditional(regrid_centre, 0.0, field_regrid);
         criterion = simd_max(grid_criterion, field_criterion);
-        current_cell.store_vars(field_criterion, 0.0);
+        current_cell.store_vars(grid_criterion, 0.0);
         
     }
 };

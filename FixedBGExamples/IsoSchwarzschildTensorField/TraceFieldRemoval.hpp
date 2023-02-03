@@ -67,12 +67,20 @@ template <class matter_t, class background_t> class TraceFieldRemoval
         TensorAlgebra::make_trace_free(local_vars.v, metric_vars.gamma, gamma_UU);
 
 
-        FOR2(i,j)
+        vars.Xhat = local_vars.Xhat;
+        FOR1(i)
         {
-            vars.fspatial[i][j] = local_vars.fspatial[i][j];
-            vars.v[i][j] = local_vars.v[i][j];
+            vars.Xspatial[i] = local_vars.Xspatial[i];
+
+            FOR1(j)
+            {
+                vars.fspatial[i][j] = local_vars.fspatial[i][j];
+                vars.v[i][j] = local_vars.v[i][j];
+
+                
+            }
         }
-        
+    
 
         current_cell.store_vars(vars);
 

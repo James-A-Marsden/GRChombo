@@ -25,6 +25,7 @@
 #include "FixedBGEvolution.hpp"
 #include "FluxExtraction.hpp"
 #include "InitialConditions.hpp"
+#include "SetRest.hpp"
 #include "IsoSchwarzschildFixedBG.hpp"
 #include "TraceFieldRemoval.hpp"
 
@@ -58,6 +59,8 @@ void TensorFieldLevel::initialData()
 
     InitialConditions set_vars(m_p.potential_params.tensor_mass, m_p.center,
                               m_p.bg_params, m_dx, m_p.initial_constant);
+    SetRest set_damping(m_p.potential_params.tensor_mass, m_p.center,
+                              m_p.bg_params, m_dx, m_p.initial_constant);
 
     auto compute_pack = make_compute_pack(set_zero, isoschwarzschild_bg);
 
@@ -67,6 +70,8 @@ void TensorFieldLevel::initialData()
     //NO EXCISION 
     
     BoxLoops::loop(set_vars, m_state_new, m_state_new, INCLUDE_GHOST_CELLS, disable_simd());
+    fillAllGhosts();
+    BoxLoops::loop(set_damping, m_state_new, m_state_new, INCLUDE_GHOST_CELLS, disable_simd());
     //fillAllGhosts();
     //BoxLoops::loop(set_hbar, m_state_new, m_state_new, INCLUDE_GHOST_CELLS, disable_simd());
     //fillAllGhosts();

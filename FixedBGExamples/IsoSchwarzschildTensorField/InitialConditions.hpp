@@ -91,6 +91,12 @@ class InitialConditions
         double radius = coords.get_radius();
         const auto d1 = m_deriv.template diff1<Vars>(current_cell);
 
+        vars.Xhat = 0.0;
+        FOR1(i)
+        {
+          vars.Xspatial[i] = 0.0;
+        }
+
         FOR2(i,j)
         {
           vars.fspatial[i][j] = 0.0;
@@ -243,14 +249,15 @@ class InitialConditions
         */
 
 
-
+        
        
         namespace bmath = boost::math;
 
         //const double frequency = 2.0 * M_PI /128.0 ;
 
         const double omega = 2.0 * M_PI /4.0 ;
-        const double shift = 48.0;
+        //24!
+        const double shift = 20.0;
         //Plane wave initial conditions
         
         
@@ -285,30 +292,40 @@ class InitialConditions
         const data_t momentum_init = -wall_deriv;
         */
         //PROFILE INITIAL CONDITIONS
-        /*
-        //data_t A = 0.1 * sintheta * sintheta * pow(M + 2.0 * r, -2.0);
-        data_t A = 0.1 * sintheta * sintheta * pow(M*M - 4.0 * r*r, -1.0);
-
-        vars.fspatial[0][0] = -A * sin2phi / r;
-        vars.fspatial[1][1] =  A * sin2phi / r;
-        vars.fspatial[2][2] =  0.0;
-        vars.fspatial[0][1] =  A * cos2phi / r;
-        vars.fspatial[0][2] = -A * sinphi * costheta / (sintheta * r);
-        vars.fspatial[1][2] =  A * cosphi * costheta / (sintheta * r);
-
-        vars.fspatial[1][0] = vars.fspatial[0][1];
-        vars.fspatial[2][0] = vars.fspatial[0][2];
-        vars.fspatial[2][1] = vars.fspatial[1][2];
-        */        
-
-        //GW INITIAL CONDITIONS
         
+        //data_t A = 0.1 * sintheta * sintheta * pow(M + 2.0 * r, -2.0);
+        
+        if (r > M/2.0)
+        {
+          data_t A =  sintheta * sintheta * pow(M*M - 4.0 * r*r, -1.0);
+
+          vars.fspatial[0][0] = -A * sin2phi / r;
+          vars.fspatial[1][1] =  A * sin2phi / r;
+          vars.fspatial[2][2] =  0.0;
+          vars.fspatial[0][1] =  A * cos2phi / r;
+          vars.fspatial[0][2] = -A * sinphi * costheta / (sintheta * r);
+          vars.fspatial[1][2] =  A * cosphi * costheta / (sintheta * r);
+
+          vars.fspatial[1][0] = vars.fspatial[0][1];
+          vars.fspatial[2][0] = vars.fspatial[0][2];
+          vars.fspatial[2][1] = vars.fspatial[1][2];
+        }
+        else
+        {
+          FOR2(i,j)
+          {
+            vars.fspatial[i][j] = 0.0;
+          }
+        }
+        
+        //GW INITIAL CONDITIONS
+        /*
         vars.fspatial[0][0] = field_init;
         vars.fspatial[1][1] = -field_init;
         
         vars.v[0][0] = -momentum_init;
         vars.v[1][1] = momentum_init;
-        
+        */      
 
         current_cell.store_vars(vars);
     }

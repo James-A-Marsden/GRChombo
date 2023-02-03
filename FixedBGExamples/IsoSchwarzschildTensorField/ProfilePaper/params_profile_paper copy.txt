@@ -5,11 +5,11 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/paper_convergence/damping_close_wave"
+output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/paper_convergence/profile"
 #chk_prefix = IsoTensorTest_
-chk_prefix = IsoTensor_New_Damping_Chk_
-plot_prefix = IsoTensor_New_Damping_Plot_
-#restart_file = IsoTensor_D_Chk_000180.3d.hdf5  
+chk_prefix = IsoTensor_FieldGrid_LD_Chk_
+plot_prefix = IsoTensor_FieldGrid_LD_Plot_
+#restart_file = IsoTensor_L_Chk_000070.3d.hdf5
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
@@ -27,36 +27,33 @@ plot_prefix = IsoTensor_New_Damping_Plot_
 # dt will be dx*dt_multiplier on each grid level
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
 
-checkpoint_interval = 5
+checkpoint_interval = 10
 plot_interval = 5
-#50
-#5
+
 #num_plot_vars = 30
 #plot_vars = fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
 
-num_plot_vars = 15
-plot_vars = trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3 rho_eff Xhat Xspatial1 Xspatial2 Xspatial3
+num_plot_vars = 14
+plot_vars = trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3 Xhat Xspatial1 Xspatial2 Xspatial3
 #plot_vars = rho_eff
-dt_multiplier = 0.1
-#maybe 0.25 is too spicy
+dt_multiplier = 0.25
 
-stop_time = 80.0
- 
+#stop_time = 4.0
+stop_time = 32.0
 # Set up grid spacings and regrid params
 # NB - the N values need to be multiples of block_factor
 
 
-N1 = 16
-N2 = 16
-N3 = 32
+N1 = 128
+N2 = 128
+N3 = 128
 #N1 = 16
 #N2 = 16
 #N3 = 32
-L = 64
-#L = 128
-
-#bh_center = 32.0 32.0 64.0
-bh_center = 16.0 16.0 32.0
+L = 32.0
+#L = 4.0
+bh_center = 16.0 16.0 16.0
+#bh_center = 2.0 2.0 2.0
 
 #N_full = 32
 #L_full = 16
@@ -68,21 +65,16 @@ bh_center = 16.0 16.0 32.0
 #tag_buffer_size = 0
 #regrid_length = 2048
 
-grid_buffer_size = 8
-#8!
+regrid_buffer = 8
 
 # Level data
 # Maximum number of times you can regrid above coarsest level
-
+#max_level = 4 There are (max_level+1) grids, so min is zero
 max_level = 4 There are (max_level+1) grids, so min is zero
-#4...
-#5!!!
-
-
 # Frequency of regridding at each level
 # Need one for each level, ie max_level+1 items
 # Generally you do not need to regrid frequently on every level
-regrid_interval = 1 1 1 1 1 0 0 0 0 0 0
+regrid_interval = 1 1 0 0 0 0 0 0 0 0 0
 
 # Max box size
 max_grid_size = 16
@@ -135,7 +127,7 @@ tensor_mass = 0.00
 #f_axion = 0.0
 
 # Boosted BH initial data, boost in x direction, spin in z direction
-bh_mass = 0.8
+bh_mass = 1.0
 bh_spin = 0.0 # This is a, so needs to be <= M
 #inner_r = 5.0
 #outer_r = 500.0

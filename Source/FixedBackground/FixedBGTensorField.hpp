@@ -75,6 +75,12 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         //Conjugate components
         Tensor<2,data_t> v; //Spatial rank 2 v field
 
+        //Constraint damping variables
+
+        Tensor<1, data_t> Xspatial; //Rank 1 
+
+        data_t Xhat; //Scalar
+
 
         /// Defines the mapping between members of Vars and Chombo grid
         /// variables (enum in User_Variables)
@@ -89,6 +95,10 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
     
             VarsTools::define_symmetric_enum_mapping(mapping_function, GRInterval<c_v11,c_v33>(), v);
 
+            //Constraint Damping variables
+
+            VarsTools::define_enum_mapping(mapping_function, GRInterval<c_Xspatial1,c_Xspatial3>(), Xspatial);
+            VarsTools::define_enum_mapping(mapping_function, c_Xhat, Xhat);
         }
     };
 
