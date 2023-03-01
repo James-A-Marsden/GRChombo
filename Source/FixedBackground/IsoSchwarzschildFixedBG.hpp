@@ -187,9 +187,11 @@ class IsoSchwarzschildFixedBG
         //if (simd_compare_gt(r,0.0))
        
         const double minimum_lapse = 1e-6;
-        if (simd_compare_gt(r, M / 2.0))
+        //if (simd_compare_gt(r, M / 2.0))
+        if (simd_compare_gt(r, 0.0))
         {
-            vars.lapse = simd_max((1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r),minimum_lapse);
+            //vars.lapse = simd_max((1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r),minimum_lapse);
+            vars.lapse = (1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r);
             //Flip to minus sign inside horizon, not zeroing?
             //vars.lapse = simd_max((1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r),-(1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r));
             
@@ -209,6 +211,25 @@ class IsoSchwarzschildFixedBG
             }
         }
         else
+        //Try zeroing
+        {
+            //Flip to minus sign
+            vars.lapse = minimum_lapse;
+            FOR1(i)
+            {
+                vars.d1_lapse[i] = 0.0;
+
+                vars.d1_ln_lapse[i] = 0.0;
+                FOR1(j)
+                {
+                vars.d2_lapse[i][j] = 0.0;
+
+                vars.d2_ln_lapse[i][j] = 0.0;
+                }
+            }
+
+        }
+        /*
         {
             //Flip to minus sign
             vars.lapse = -(1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r);
@@ -226,7 +247,7 @@ class IsoSchwarzschildFixedBG
             }
 
         }
-        
+        */
         /*
         data_t horizon = M / 2.0;
         

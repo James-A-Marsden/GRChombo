@@ -4,98 +4,78 @@
  */
 
 // This class enforces A to be trace-free
+
 #ifndef TRACEFIELDREMOVAL_HPP_
 #define TRACEFIELDREMOVAL_HPP_
 
+#include "ADMFixedBGVars.hpp"
 #include "CCZ4Geometry.hpp"
 #include "Cell.hpp"
+#include "Coordinates.hpp"
+#include "FourthOrderDerivatives.hpp"
+#include "GRInterval.hpp"
 #include "Tensor.hpp"
-#include "TensorAlgebra.hpp"
-#include "UserVariables.hpp"
+#include "UserVariables.hpp" //This files needs NUM_VARS - total number of components
 #include "VarsTools.hpp"
-#include "FixedBGTensorField.hpp"
-#include "ADMFixedBGVars.hpp"
+#include "simd.hpp"
 
+//! Calculates the energy density rho and angular momentum density rhoJ
+//! with matter type matter_t and writes it to the grid
 template <class matter_t, class background_t> class TraceFieldRemoval
 {
-
-    template <class data_t> using Vars = typename matter_t::template Vars<data_t>;
     // Use the variable definition in the matter class
-    //template <class data_t>
-    //using MatterVars = typename matter_t::template Vars<data_t>;
-    //template <class data_t> using Vars = FixedBGTensorField<TensorPotential>::template Vars<data_t>;
+    template <class data_t>
+    using MatterVars = typename matter_t::template Vars<data_t>;
+
     // Now the non grid ADM vars
     template <class data_t> using MetricVars = ADMFixedBGVars::Vars<data_t>;
 
   protected:
-    const background_t m_background; //the background
-    //const vars_t vars; // The field variables
-
+    const FourthOrderDerivatives
+        m_deriv; //!< An object for calculating derivatives of the variables
+                       //!< The matter object
+    const background_t m_background; //!< The matter object
+    
 
   public:
 
-    TraceFieldRemoval(background_t a_background)
-        : m_background(a_background)
+  
+    TraceFieldRemoval(background_t a_background, const double a_dx)
+        :  m_deriv(a_dx), m_background(a_background)
     {
     }
 
-
-    //void compute(const Cell<double> current_cell) const
-    template <class data_t> void compute(const Cell<data_t> current_cell) const
+    template <class data_t> void compute(Cell<data_t> current_cell) const
     {
-       
-     // Struct for the non grid ADM vars
+        // copy data from chombo gridpoint into local variables, and calc 1st
+        // derivs
+        const auto vars = current_cell.template load_vars<MatterVars>();
 
-        //template <class data_t> using MetricVars = typename ADMFixedBGVars::template Vars<data_t>; 
-
-        Vars<data_t> vars;
-        //Tensor<2,data_t> fspatial; //Spatial component of the tensor field
-        //Tensor<2,data_t> v; //Spatial rank 2 v field
-        //const auto local_vars = current_cell.template load_vars<Vars>();
-        //Load metric vars
-
-        MetricVars<double> metric_vars;
-
+        // get the metric vars
+        MetricVars<data_t> metric_vars;
         m_background.compute_metric_background(metric_vars, current_cell);
+
+        using namespace TensorAlgebra;
         const auto gamma_UU = TensorAlgebra::compute_inverse_sym(metric_vars.gamma);
+        const auto chris_phys = compute_christoffel(metric_vars.d1_gamma, gamma_UU);
 
+        data_t fspatial_trace = TensorAlgebra::compute_trace(vars.fspatial, gamma_UU);
 
-        //Make fspatial trace free
-        auto local_vars = current_cell.template load_vars<Vars>();
-
-        TensorAlgebra::make_trace_free(local_vars.fspatial, metric_vars.gamma, gamma_UU);
-        TensorAlgebra::make_trace_free(local_vars.v, metric_vars.gamma, gamma_UU);
-
-
-        vars.Xhat = local_vars.Xhat;
-        FOR1(i)
+        Tensor<2,data_t> new_fspatial;
+     
+        FOR2(i,j)
         {
-            vars.Xspatial[i] = local_vars.Xspatial[i];
-
-            FOR1(j)
-            {
-                vars.fspatial[i][j] = local_vars.fspatial[i][j];
-                vars.v[i][j] = local_vars.v[i][j];
-
-                
-            }
+            new_fspatial[i][j] = vars.fspatial[i][j] - (1.0/3.0) * metric_vars.gamma[i][j] * (fspatial_trace + vars.fhat/metric_vars.lapse);
         }
+        /*
+        current_cell.store_vars(new_fspatial[0][0], c_fspatial11);
+        current_cell.store_vars(new_fspatial[0][1], c_fspatial12);
+        current_cell.store_vars(new_fspatial[0][2], c_fspatial13);
+        current_cell.store_vars(new_fspatial[1][1], c_fspatial22);
+        current_cell.store_vars(new_fspatial[1][2], c_fspatial23);
+        current_cell.store_vars(new_fspatial[2][2], c_fspatial33);
+        */
     
-
-        current_cell.store_vars(vars);
-
-
     }
 };
-
-/*
-template <class data_t>
-template <typename mapping_function_t>
-void TraceFieldRemoval::Vars<data_t>::enum_mapping(
-    mapping_function_t mapping_function)
-{
-    VarsTools::define_symmetric_enum_mapping(mapping_function, GRInterval<c_fspatial11, c_fspatial33>(), h);
-    VarsTools::define_symmetric_enum_mapping(mapping_function, c_fhat , fhat);
-}
-*/
 #endif /* TRACEFIELDREMOVAL_HPP_ */

@@ -12,7 +12,7 @@
 #include "VarsTools.hpp"
 #include "simd.hpp"
 #include "FourthOrderDerivatives.hpp"
-#include "FourthOrderDerivatives.hpp"
+
 
 //! Class which creates the initial constraints
 class SetRest
