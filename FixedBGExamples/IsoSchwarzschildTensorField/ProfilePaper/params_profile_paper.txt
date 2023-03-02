@@ -1,14 +1,14 @@
 #Params for runtime inputs
 
-verbosity = 1
+verbosity = 0
 integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/paper_convergence/profile_high_three"
+output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/paper_convergence/profile_high_three_debug"
 #chk_prefix = IsoTensorTest_
-chk_prefix =  IsoTensor_ThreeLevel_m0p0_dk10p0_newreversed_L16_N128_gauge_Chk_
-plot_prefix = IsoTensor_ThreeLevel_m0p0_dk10p0_newreversed_L16_N128_gauge_Plot_
+chk_prefix =  IsoTensor_ThreeLevel_m0p0_dk1p0_L16_N128_gauge_Chk_
+plot_prefix = IsoTensor_ThreeLevel_m0p0_dk1p0_L16_N128_gauge_Plot_
 #restart_file = 
 
 # subpaths - specific directories for hdf5, pout, extraction data
@@ -30,8 +30,7 @@ pout_subpath = "pout"
 #checkpoint_interval = 40
 #plot_interval = 4
 
-
-checkpoint_interval = 5
+checkpoint_interval = 1
 plot_interval = 1
 
 
@@ -40,23 +39,12 @@ plot_interval = 1
 
 num_plot_vars = 6
 plot_vars = trace_field trace_momentum primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
-#plot_vars = rho_eff
-#dt_multiplier = 0.1
 
-#stop_time = 4.0
 stop_time = 16.0
-#dt_multiplier = 0.005
+
 dt_multiplier = 0.1
 # Set up grid spacings and regrid params
 # NB - the N values need to be multiples of block_factor
-
-
-#N1 = 256
-#N2 = 256
-#N3 = 256
-#N1 = 16
-#N2 = 16
-#N3 = 32
 
 L = 16.0
 bh_center = 8.0 8.0 8.0
@@ -66,13 +54,11 @@ N1 = 128
 N2 = 128
 N3 = 128
 
-
-
 #N_full = 32
 #L_full = 16
 # Length of longest box side, dx_coarsest = L/N(max)
 # NB if non cubic, this determines dx for all sides
-#L = 128
+
 
 # Regridding
 #tag_buffer_size = 0
@@ -82,12 +68,14 @@ regrid_buffer = 8
 
 # Level data
 # Maximum number of times you can regrid above coarsest level
-#max_level = 2There are (max_level+1) grids, so min is zero
+
 max_level = 2 There are (max_level+1) grids, so min is zero
+
 # Frequency of regridding at each level
 # Need one for each level, ie max_level+1 items
 # Generally you do not need to regrid frequently on every level
-regrid_interval = 1 1 0 0 0 0 0 0 0 0 0
+
+regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
 
 # Max box size
 max_grid_size = 16

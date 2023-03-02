@@ -137,70 +137,70 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     }
     //Evolution equations for the field and the conjugate variables:
 
- data_t primaryScalar = metric_vars.lapse * temp_mass * temp_mass * vars.fhat;
+    data_t primaryScalar = metric_vars.lapse * temp_mass * temp_mass * vars.fhat;
 
 
-        FOR2(i,j)
+    FOR2(i,j)
+    {
+        primaryScalar += metric_vars.lapse * gamma_UU[i][j] * (vars.fhat * metric_vars.ricci_phys[i][j] + 2.0 * d1.fhat[i] * metric_vars.d1_ln_lapse[j] - 2.0 * vars.fhat * metric_vars.d1_ln_lapse[i] * metric_vars.d1_ln_lapse[j]
+                                            -d2.fhat[i][j])
+                                            + gamma_UU[i][j] * vars.fhat * metric_vars.d2_lapse[i][j];
+
+        FOR1(k)
         {
-            primaryScalar += metric_vars.lapse * gamma_UU[i][j] * (vars.fhat * metric_vars.ricci_phys[i][j] + 2.0 * d1.fhat[i] * metric_vars.d1_ln_lapse[j] - 2.0 * vars.fhat * metric_vars.d1_ln_lapse[i] * metric_vars.d1_ln_lapse[j]
-                                                -d2.fhat[i][j])
-                                               + gamma_UU[i][j] * vars.fhat * metric_vars.d2_lapse[i][j];
+            primaryScalar += metric_vars.lapse * gamma_UU[i][j] * (chris_phys.ULL[k][i][j] * d1.fhat[k]
+                                            -vars.fhat * chris_phys.ULL[k][i][j] * metric_vars.d1_ln_lapse[k]);
 
-            FOR1(k)
+            FOR1(l)
             {
-                primaryScalar += metric_vars.lapse * gamma_UU[i][j] * (chris_phys.ULL[k][i][j] * d1.fhat[k]
-                                                -vars.fhat * chris_phys.ULL[k][i][j] * metric_vars.d1_ln_lapse[k]);
+                primaryScalar += gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.lapse * metric_vars.lapse * metric_vars.ricci_phys[k][l] * vars.fspatial[i][j];
+                primaryScalar += gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.lapse * (-metric_vars.lapse * d2.fspatial[i][j][k][l]);
+                                                    
 
-                FOR1(l)
+                FOR1(m)
                 {
-                    primaryScalar += gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.lapse * metric_vars.lapse * metric_vars.ricci_phys[k][l] * vars.fspatial[i][j];
-                    primaryScalar += gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.lapse * (-metric_vars.lapse * d2.fspatial[i][j][k][l]);
-                                                        
-
-                    FOR1(m)
+                    primaryScalar += - gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.lapse * metric_vars.lapse * (- chris_phys.ULL[m][l][k] * d1.fspatial[i][j][m] - chris_phys.ULL[m][l][i] * d1.fspatial[m][j][k] - chris_phys.ULL[m][l][j] * d1.fspatial[i][m][k]
+                                                        - metric_vars.d1_chris_phys[m][k][i][l] * vars.fspatial[m][j] - chris_phys.ULL[m][k][i] * d1.fspatial[m][j][l]
+                                                        - metric_vars.d1_chris_phys[m][j][k][l] * vars.fspatial[i][m] - chris_phys.ULL[m][j][k] * d1.fspatial[i][m][l]);
+                
+                    FOR1(n)
                     {
-                        primaryScalar += - gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.lapse * metric_vars.lapse * (- chris_phys.ULL[m][l][k] * d1.fspatial[i][j][m] - chris_phys.ULL[m][l][i] * d1.fspatial[m][j][k] - chris_phys.ULL[m][l][j] * d1.fspatial[i][m][k]
-                                                            - metric_vars.d1_chris_phys[m][k][i][l] * vars.fspatial[m][j] - chris_phys.ULL[m][k][i] * d1.fspatial[m][j][l]
-                                                            - metric_vars.d1_chris_phys[m][j][k][l] * vars.fspatial[i][m] - chris_phys.ULL[m][j][k] * d1.fspatial[i][m][l]);
-                    
-                        FOR1(n)
-                        {
-                          primaryScalar += - gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.lapse * metric_vars.lapse * (chris_phys.ULL[n][l][k] * chris_phys.ULL[m][n][i] * vars.fspatial[m][j] + chris_phys.ULL[n][l][i] * chris_phys.ULL[m][k][n] * vars.fspatial[m][j] + chris_phys.ULL[n][l][j] * chris_phys.ULL[m][k][i] * vars.fspatial[m][n]
-                                                                                + chris_phys.ULL[n][l][k] * chris_phys.ULL[m][n][j] * vars.fspatial[i][m] + chris_phys.ULL[n][l][j] * chris_phys.ULL[m][k][n] * vars.fspatial[i][m] + chris_phys.ULL[n][l][i] * chris_phys.ULL[m][k][j] * vars.fspatial[n][m]);
-                        }
+                        primaryScalar += - gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.lapse * metric_vars.lapse * (chris_phys.ULL[n][l][k] * chris_phys.ULL[m][n][i] * vars.fspatial[m][j] + chris_phys.ULL[n][l][i] * chris_phys.ULL[m][k][n] * vars.fspatial[m][j] + chris_phys.ULL[n][l][j] * chris_phys.ULL[m][k][i] * vars.fspatial[m][n]
+                                                                            + chris_phys.ULL[n][l][k] * chris_phys.ULL[m][n][j] * vars.fspatial[i][m] + chris_phys.ULL[n][l][j] * chris_phys.ULL[m][k][n] * vars.fspatial[i][m] + chris_phys.ULL[n][l][i] * chris_phys.ULL[m][k][j] * vars.fspatial[n][m]);
                     }
                 }
             }
         }
+    }
 
-        Tensor<1, data_t> primaryVector;
-        FOR1(i)
+    Tensor<1, data_t> primaryVector;
+    FOR1(i)
+    {
+        primaryVector[i] = metric_vars.lapse *  temp_mass * temp_mass * vars.fbar[i];
+
+        FOR2(j,k)
         {
-            primaryVector[i] = metric_vars.lapse *  temp_mass * temp_mass * vars.fbar[i];
+            primaryVector[i] +=  metric_vars.lapse * gamma_UU[j][k] * (d1.v[j][i][k]
+                                + vars.fbar[i] * metric_vars.ricci_phys[j][k]
+                                - vars.fbar[j] * metric_vars.ricci_phys[i][k]
+                                -d2.fbar[i][j][k]);    
+                            
 
-            FOR2(j,k)
+            FOR1(l)
             {
-                primaryVector[i] +=  metric_vars.lapse * gamma_UU[j][k] * (d1.v[j][i][k]
-                                    + vars.fbar[i] * metric_vars.ricci_phys[j][k]
-                                    - vars.fbar[j] * metric_vars.ricci_phys[i][k]
-                                    -d2.fbar[i][j][k]);    
-                                
+                primaryVector[i] += metric_vars.lapse * gamma_UU[j][k] * (-chris_phys.ULL[l][k][i] * vars.v[j][l] - chris_phys.ULL[l][k][j] * vars.v[l][i]
+                                                        +chris_phys.ULL[l][k][j] * d1.fbar[i][l] + chris_phys.ULL[l][k][i] * d1.fbar[l][j]
+                                                        +metric_vars.d1_chris_phys[l][j][i][k] * vars.fbar[l] + d1.fbar[l][k] * chris_phys.ULL[l][j][i]);
 
-                FOR1(l)
+                FOR1(m)
                 {
-                    primaryVector[i] += metric_vars.lapse * gamma_UU[j][k] * (-chris_phys.ULL[l][k][i] * vars.v[j][l] - chris_phys.ULL[l][k][j] * vars.v[l][i]
-                                                          +chris_phys.ULL[l][k][j] * d1.fbar[i][l] + chris_phys.ULL[l][k][i] * d1.fbar[l][j]
-                                                          +metric_vars.d1_chris_phys[l][j][i][k] * vars.fbar[l] + d1.fbar[l][k] * chris_phys.ULL[l][j][i]);
+                    primaryVector[i] += metric_vars.lapse *  gamma_UU[j][k] * (- chris_phys.ULL[m][k][j] * chris_phys.ULL[l][m][i] * vars.fbar[l] - chris_phys.ULL[m][k][i] * chris_phys.ULL[l][j][m] * vars.fbar[l]);
+                }
 
-                    FOR1(m)
-                    {
-                        primaryVector[i] += metric_vars.lapse *  gamma_UU[j][k] * (- chris_phys.ULL[m][k][j] * chris_phys.ULL[l][m][i] * vars.fbar[l] - chris_phys.ULL[m][k][i] * chris_phys.ULL[l][j][m] * vars.fbar[l]);
-                    }
+            } 
+        }
+    }     
 
-                } 
-            }
-        }     
-   
 
     rhs.fhat = 0.0;
     FOR2(i,j)
@@ -277,7 +277,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
   
     //Damping evolution
     
-    const double damping_coefficient = 10.0;
+    const double damping_coefficient = 1.0;
 
     rhs.Xhat = -2.0 * damping_coefficient * vars.Xhat - primaryScalar/metric_vars.lapse;
 
@@ -295,7 +295,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
             }
         }
     }
-
+    
     FOR2(i,j)
     {
         rhs.v[i][j] += - metric_vars.lapse * (d1.Xspatial[i][j] + d1.Xspatial[j][i]);

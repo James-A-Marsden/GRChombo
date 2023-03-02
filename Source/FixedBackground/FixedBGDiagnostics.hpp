@@ -143,7 +143,7 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
                     trace_momentum += gamma_UU[i][j] * chris_phys.ULL[k][i][j] * vars.fbar[k];
                 }
             }
-        
+            //Effective energy density of the stress energy tensor - just the mass term
             rho_eff = 0.0;
             FOR3(i,j,k)
             {
@@ -232,63 +232,6 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
              
     }
 };
- /*
-            data_t primaryScalar = 0.0;
-        
-            FOR2(i,j)
-            {
-                FOR1(k)
-                {
-                    FOR1(l)
-                    {
-                        primaryScalar += gamma_UU[i][k] * gamma_UU[j][l] * (metric_vars.ricci_phys[i][j] * vars.fspatial[k][l] 
-                                                                            + metric_vars.d1_lapse[k] * d1.fspatial[i][l][j] / metric_vars.lapse
-                                                                            - metric_vars.d1_lapse[k] * metric_vars.d1_lapse[l] * vars.fspatial[i][j] / metric_vars.lapse / metric_vars.lapse
-                                                                            + metric_vars.d2_lapse[k][l] * vars.fspatial[i][j] / metric_vars.lapse);
-                        FOR1(m)
-                        {
-                            primaryScalar += - gamma_UU[i][k] * gamma_UU[j][l] * (metric_vars.d1_lapse[k] * (chris_phys.ULL[m][i][j]  * vars.fspatial[m][l] + chris_phys.ULL[m][l][j] * vars.fspatial[i][m]) / metric_vars.lapse
-                                            + vars.fspatial[i][j] * chris_phys.ULL[m][l][k] * metric_vars.d1_lapse[m] / metric_vars.lapse);
-                        }
-                    }
-                }
-            } 
-            */
-            /*
-            Tensor<1, data_t> primaryVector;
-            FOR1(i)
-            {
-                primaryVector[i] = 0.0;
-
-                FOR2(j,k)
-                {
-                    primaryVector[i] += gamma_UU[j][k] * d1.v[j][i][k];
-
-                    FOR1(l)
-                    {
-                        primaryVector[i] += -gamma_UU[j][k] * (chris_phys.ULL[l][k][i] * vars.v[j][l] + chris_phys.ULL[l][k][j] * vars.v[l][i]);
-
-                    } 
-                }
-            }     
-            */
-            /*
-            Tensor<1, data_t> transverseVector;
-
-            FOR1(i)
-            {
-                transverseVector[i] = 0.0;
-                FOR2(j,k)
-                {
-                transverseVector[i] += gamma_UU[j][k] * (metric_vars.lapse * d1.fspatial[j][i][k] + vars.fspatial[i][j] * metric_vars.d1_lapse[k]);
-                    FOR1(l)
-                    {
-                        transverseVector[i] += -gamma_UU[j][k] * ( metric_vars.lapse * chris_phys.ULL[l][k][i] * vars.fspatial[j][l] + metric_vars.lapse * chris_phys.ULL[l][k][j] * vars.fspatial[l][i]);
-                    }
-                }
-            }
-            */
-            //Effective energy density of the stress energy tensor - just the mass term
 
 
 #endif /* FIXEDBGDIAGNOSTICS_HPP_ */
