@@ -33,8 +33,7 @@ class TaubFixedBG
     const params_t m_params;
     const double m_dx;
 
-    TaubFixedBG(params_t a_params, double a_dx)
-        : m_params(a_params), m_dx(a_dx)
+    TaubFixedBG(params_t a_params, double a_dx) : m_params(a_params), m_dx(a_dx)
     {
         // check this spin param is sensible
         if ((m_params.spin > m_params.mass) || (m_params.spin < -m_params.mass))
@@ -58,7 +57,6 @@ class TaubFixedBG
         data_t chi = TensorAlgebra::compute_determinant_sym(metric_vars.gamma);
         chi = pow(chi, -1.0 / 3.0);
         current_cell.store_vars(chi, c_chi);
-        
     }
 
     // Kerr Schild solution
@@ -78,73 +76,67 @@ class TaubFixedBG
         const data_t x = coords.x;
         const double y = coords.y;
         const double z = coords.z + 200.0;
-  
- 
-        vars.lapse = pow(z, -1.0/3.0);
-        FOR2(i, j)
-        {
-            vars.gamma[i][j] = 0.0;
-                
-        }
-        vars.gamma[0][0] = pow(z,4.0/3.0);
-        vars.gamma[1][1] = pow(z,4.0/3.0);
+
+        vars.lapse = pow(z, -1.0 / 3.0);
+        FOR2(i, j) { vars.gamma[i][j] = 0.0; }
+        vars.gamma[0][0] = pow(z, 4.0 / 3.0);
+        vars.gamma[1][1] = pow(z, 4.0 / 3.0);
         vars.gamma[2][2] = 1.0;
         using namespace TensorAlgebra;
         const auto gamma_UU = compute_inverse_sym(vars.gamma);
-        FOR1(i)
-        {
-            vars.shift[i] = 0;
-        }
-      
+        FOR1(i) { vars.shift[i] = 0; }
+
         // Calculate partial derivative of spatial metric
-        FOR3(i, j, k)
-        {
-            vars.d1_gamma[i][j][k] = 0.0;
-        }
+        FOR3(i, j, k) { vars.d1_gamma[i][j][k] = 0.0; }
         FOR1(k)
         {
-            vars.d1_gamma[0][0][k] = (4.0/3.0) * delta(k,2) * pow(z,1.0/3.0);
-            vars.d1_gamma[1][1][k] = (4.0/3.0) * delta(k,2) * pow(z,1.0/3.0);
+            vars.d1_gamma[0][0][k] =
+                (4.0 / 3.0) * delta(k, 2) * pow(z, 1.0 / 3.0);
+            vars.d1_gamma[1][1][k] =
+                (4.0 / 3.0) * delta(k, 2) * pow(z, 1.0 / 3.0);
         }
 
         vars.gamma_UU = compute_inverse_sym(vars.gamma);
 
-        FOR3(i,j,k)
-        {
-            vars.d1_gamma_UU[i][j][k] = 0.0;
-        }
+        FOR3(i, j, k) { vars.d1_gamma_UU[i][j][k] = 0.0; }
         FOR1(k)
         {
-            vars.d1_gamma_UU[0][0][k] = (-4.0/3.0) * delta(k,2) * pow(z,-7.0/3.0); 
-            vars.d1_gamma_UU[1][1][k] = (-4.0/3.0) * delta(k,2) * pow(z,-7.0/3.0); 
+            vars.d1_gamma_UU[0][0][k] =
+                (-4.0 / 3.0) * delta(k, 2) * pow(z, -7.0 / 3.0);
+            vars.d1_gamma_UU[1][1][k] =
+                (-4.0 / 3.0) * delta(k, 2) * pow(z, -7.0 / 3.0);
         }
-        //Second derivative of the spatial metric (can simplify further)
+        // Second derivative of the spatial metric (can simplify further)
         FOR1(i)
         {
-            FOR3(j,k,m)
-            {
-                vars.d2_gamma[i][j][k][m] = 0.0;
-            }
+            FOR3(j, k, m) { vars.d2_gamma[i][j][k][m] = 0.0; }
         }
-        FOR2(k,m)
+        FOR2(k, m)
         {
-            vars.d2_gamma[0][0][k][m] = (4.0/9.0) * delta(k,2) * delta(m,2) * pow(z,-2.0/3.0);
-            vars.d2_gamma[1][1][k][m] = (4.0/9.0) * delta(k,2) * delta(m,2) * pow(z,-2.0/3.0);
+            vars.d2_gamma[0][0][k][m] =
+                (4.0 / 9.0) * delta(k, 2) * delta(m, 2) * pow(z, -2.0 / 3.0);
+            vars.d2_gamma[1][1][k][m] =
+                (4.0 / 9.0) * delta(k, 2) * delta(m, 2) * pow(z, -2.0 / 3.0);
         }
-                                                
-        //Calculate derivative of the Christoffel symbol (phys)
+
+        // Calculate derivative of the Christoffel symbol (phys)
         FOR2(i, j)
         {
             FOR2(k, m)
             {
                 vars.d1_chris_phys[i][j][k][m] = 0.0;
-            
+
                 FOR1(n)
                 {
-                    vars.d1_chris_phys[i][j][k][m] += 0.5 * vars.d1_gamma_UU[i][n][m] * (vars.d1_gamma[k][n][j] + vars.d1_gamma[n][j][k] - vars.d1_gamma[j][k][n])
+                    vars.d1_chris_phys[i][j][k][m] +=
+                        0.5 * vars.d1_gamma_UU[i][n][m] *
+                            (vars.d1_gamma[k][n][j] + vars.d1_gamma[n][j][k] -
+                             vars.d1_gamma[j][k][n])
 
-                                                    + 0.5 * gamma_UU[i][n] * (vars.d2_gamma[k][n][j][m] + vars.d2_gamma[n][j][k][m] - vars.d2_gamma[j][k][n][m]);
-                
+                        + 0.5 * gamma_UU[i][n] *
+                              (vars.d2_gamma[k][n][j][m] +
+                               vars.d2_gamma[n][j][k][m] -
+                               vars.d2_gamma[j][k][n][m]);
                 }
             }
         }
@@ -153,33 +145,35 @@ class TaubFixedBG
         // calculate derivs of lapse and shift
         FOR1(i)
         {
-            vars.d1_lapse[i] = (-1.0/3.0) * delta(i,2) * pow(z,-4.0/3.0);
+            vars.d1_lapse[i] = (-1.0 / 3.0) * delta(i, 2) * pow(z, -4.0 / 3.0);
         }
 
-        FOR2(i,j)
+        FOR2(i, j)
         {
-            vars.d2_lapse[i][j] = (4.0/9.0) * delta(i,2) * delta(j,2) * pow(z,-7.0/3.0);
+            vars.d2_lapse[i][j] =
+                (4.0 / 9.0) * delta(i, 2) * delta(j, 2) * pow(z, -7.0 / 3.0);
         }
-       
 
         // use the fact that shift^i = lapse^2 * shift_i
-        FOR2(i, j) {vars.d1_shift[i][j] = 0.0;}
-    
-        FOR3(i,j,k) {vars.d2_shift[i][j][k] = 0.0;}
+        FOR2(i, j) { vars.d1_shift[i][j] = 0.0; }
+
+        FOR3(i, j, k) { vars.d2_shift[i][j][k] = 0.0; }
         // calculate the extrinsic curvature, using the fact that
         // 2 * lapse * K_ij = D_i \beta_j + D_j \beta_i - dgamma_ij dt
         // and dgamma_ij dt = 0 in chosen fixed gauge
-        //const auto chris_phys = compute_christoffel(vars.d1_gamma, gamma_UU);
+        // const auto chris_phys = compute_christoffel(vars.d1_gamma, gamma_UU);
 
-        Tensor<3, data_t> chris_local; 
-        FOR3(i,j,k)
+        Tensor<3, data_t> chris_local;
+        FOR3(i, j, k)
         {
-          chris_local[i][j][k] = 0.0;
-          FOR1(l)
-          {
-            chris_local[i][j][k] += 0.5 * gamma_UU[i][l] * (vars.d1_gamma[l][k][j] + vars.d1_gamma[j][l][k] - vars.d1_gamma[j][k][l]);
-          }
-          
+            chris_local[i][j][k] = 0.0;
+            FOR1(l)
+            {
+                chris_local[i][j][k] +=
+                    0.5 * gamma_UU[i][l] *
+                    (vars.d1_gamma[l][k][j] + vars.d1_gamma[j][l][k] -
+                     vars.d1_gamma[j][k][l]);
+            }
         }
 
         FOR2(i, j)
@@ -210,53 +204,64 @@ class TaubFixedBG
             /*
             FOR1(m)
             {
-                vars.d1_K_tensor[i][j][k] += vars.d1_gamma[m][j][k] * vars.d1_shift[m][i] + vars.gamma[m][j] * vars.d2_shift[m][i][k]
-                                            + vars.d1_gamma[m][i][k] * vars.d1_shift[m][j] + vars.gamma[m][i] * vars.d2_shift[m][j][k]
-                + (vars.d2_gamma[m][i][j][k] + vars.d2_gamma[m][j][i][k]) * vars.shift[m]
-                + (vars.d1_gamma[m][i][j] + vars.d1_gamma[m][j][i]) * vars.d1_shift[m][k];
-                FOR1(n)
+                vars.d1_K_tensor[i][j][k] += vars.d1_gamma[m][j][k] *
+            vars.d1_shift[m][i] + vars.gamma[m][j] * vars.d2_shift[m][i][k]
+                                            + vars.d1_gamma[m][i][k] *
+            vars.d1_shift[m][j] + vars.gamma[m][i] * vars.d2_shift[m][j][k]
+                + (vars.d2_gamma[m][i][j][k] + vars.d2_gamma[m][j][i][k]) *
+            vars.shift[m]
+                + (vars.d1_gamma[m][i][j] + vars.d1_gamma[m][j][i]) *
+            vars.d1_shift[m][k]; FOR1(n)
                 {
-                    vars.d1_K_tensor[i][j][k] += -2.0 * (vars.d1_chris_phys[m][i][j][k] * vars.gamma[m][n] * vars.shift[n]
-                    + chris_local[m][i][j] * vars.d1_gamma[m][n][k] * vars.shift[n]
-                    + chris_local[m][i][j] * vars.gamma[m][n] * vars.d1_shift[n][k]);
+                    vars.d1_K_tensor[i][j][k] += -2.0 *
+            (vars.d1_chris_phys[m][i][j][k] * vars.gamma[m][n] * vars.shift[n]
+                    + chris_local[m][i][j] * vars.d1_gamma[m][n][k] *
+            vars.shift[n]
+                    + chris_local[m][i][j] * vars.gamma[m][n] *
+            vars.d1_shift[n][k]);
                 }
 
             }
             vars.d1_K_tensor[i][j][k] *= 0.5 / vars.lapse;
-            vars.d1_K_tensor[i][j][k] += - vars.d1_lapse[k] / vars.lapse * vars.K_tensor[i][j];
+            vars.d1_K_tensor[i][j][k] += - vars.d1_lapse[k] / vars.lapse *
+            vars.K_tensor[i][j];
             */
-            //vars.d1_K_tensor[i][j][k] = 0.0;
+            // vars.d1_K_tensor[i][j][k] = 0.0;
         }
-                //Derivative of the trace, \partial_i K = \partial_i(gamma^jk K_jk)
+        // Derivative of the trace, \partial_i K = \partial_i(gamma^jk K_jk)
         FOR1(i)
         {
             vars.d1_K[i] = 0;
             /*
             FOR2(j,k)
             {
-                vars.d1_K[i] += vars.d1_gamma_UU[j][k][i] * vars.K_tensor[j][k] + gamma_UU[j][k] * vars.d1_K_tensor[j][k][i];
+                vars.d1_K[i] += vars.d1_gamma_UU[j][k][i] * vars.K_tensor[j][k]
+            + gamma_UU[j][k] * vars.d1_K_tensor[j][k][i];
             }
             */
         }
 
-        //spatial riemann curvature tensor 
-        
+        // spatial riemann curvature tensor
+
         FOR1(i)
         {
-            FOR3(j,k,l)
+            FOR3(j, k, l)
             {
-                vars.riemann_phys_ULLL[i][j][k][l] = vars.d1_chris_phys[i][l][j][k] - vars.d1_chris_phys[i][k][j][l];
+                vars.riemann_phys_ULLL[i][j][k][l] =
+                    vars.d1_chris_phys[i][l][j][k] -
+                    vars.d1_chris_phys[i][k][j][l];
 
                 FOR1(m)
                 {
-                    vars.riemann_phys_ULLL[i][j][k][l] += chris_local[m][l][j] * chris_local[i][m][k] - chris_local[m][k][j] * chris_local[i][m][l]; 
-                    
+                    vars.riemann_phys_ULLL[i][j][k][l] +=
+                        chris_local[m][l][j] * chris_local[i][m][k] -
+                        chris_local[m][k][j] * chris_local[i][m][l];
                 }
             }
         }
 
-        //spatial ricci tensor
-        FOR2(i,j)
+        // spatial ricci tensor
+        FOR2(i, j)
         {
             vars.ricci_phys[i][j] = 0;
             FOR1(k)
@@ -265,7 +270,7 @@ class TaubFixedBG
             }
         }
     }
-    
+
   public:
     // used to decide when to excise - ie when within the horizon of the BH
     // note that this is not templated over data_t

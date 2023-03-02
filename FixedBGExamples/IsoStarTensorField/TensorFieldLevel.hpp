@@ -9,8 +9,8 @@
 #include "DefaultLevelFactory.hpp"
 #include "GRAMRLevel.hpp"
 // Problem specific includes
-#include "TensorPotential.hpp"
 #include "FixedBGTensorField.hpp"
+#include "TensorPotential.hpp"
 
 //!  A class for the evolution of a tensor field, minimally coupled to gravity
 /*!
@@ -28,10 +28,9 @@ class TensorFieldLevel : public GRAMRLevel
     using GRAMRLevel::GRAMRLevel;
 
     // Typedef for tensor field
-    typedef FixedBGTensorField<TensorPotential>
-        TensorFieldWithPotential;
-    //typedef FixedBGTensorField
-    //    TensorFieldWithPotential;
+    typedef FixedBGTensorField<TensorPotential> TensorFieldWithPotential;
+    // typedef FixedBGTensorField
+    //     TensorFieldWithPotential;
     //! Things to do at the end of the advance step, after RK4 calculation
     virtual void specificAdvance();
 

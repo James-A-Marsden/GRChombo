@@ -84,7 +84,6 @@ template <class data_t> class Coordinates
         return simd_max(rho, minimum_rho);
     }
 
-
     /// This static function returns the radius subject to a floor
     /// for when no coordinates object exists.
     static data_t get_radius(IntVect integer_coords, double dx,

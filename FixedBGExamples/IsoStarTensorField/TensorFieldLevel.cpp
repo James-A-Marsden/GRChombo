@@ -16,29 +16,30 @@
 #include "FixedGridsTaggingCriterion.hpp"
 
 // Problem specific includes
-#include "TensorPotential.hpp"
 #include "ExcisionDiagnostics.hpp"
 #include "ExcisionEvolution.hpp"
-#include "FixedBGTensorField.hpp"
 #include "FixedBGDiagnostics.hpp"
-#include "FixedBGFluxes.hpp"
 #include "FixedBGEvolution.hpp"
+#include "FixedBGFluxes.hpp"
+#include "FixedBGTensorField.hpp"
 #include "FluxExtraction.hpp"
 #include "InitialConditions.hpp"
-#include "Sethbar.hpp"
-#include "SetRest.hpp"
 #include "IsoStarFixedBG.hpp"
+#include "SetRest.hpp"
+#include "Sethbar.hpp"
+#include "TensorPotential.hpp"
 #include "TraceFieldRemoval.hpp"
 
 // Things to do at each advance step, after the RK4 is calculated
 void TensorFieldLevel::specificAdvance()
 {
 
-    //Enforce the spatial rank 2 field component to be traceless
-    IsoStarFixedBG isostar_bg(m_p.bg_params, m_dx); 
-    BoxLoops::loop(TraceFieldRemoval<TensorFieldWithPotential, IsoStarFixedBG>(
-        isostar_bg),m_state_new, m_state_new, SKIP_GHOST_CELLS, disable_simd());
-                   
+    // Enforce the spatial rank 2 field component to be traceless
+    IsoStarFixedBG isostar_bg(m_p.bg_params, m_dx);
+    BoxLoops::loop(
+        TraceFieldRemoval<TensorFieldWithPotential, IsoStarFixedBG>(isostar_bg),
+        m_state_new, m_state_new, SKIP_GHOST_CELLS, disable_simd());
+
     // Check for nan's
     if (m_p.nan_check)
         BoxLoops::loop(NanCheck(), m_state_new, m_state_new, SKIP_GHOST_CELLS,
@@ -56,61 +57,60 @@ void TensorFieldLevel::initialData()
     // constraints etc, then initial conditions for fields
     SetValue set_zero(0.0);
     IsoStarFixedBG isostar_bg(m_p.bg_params, m_dx); // just calculates chi
-    //m_p.field_amplitude_re, m_p.field_amplitude_im,
+    // m_p.field_amplitude_re, m_p.field_amplitude_im,
 
     InitialConditions set_vars(m_p.potential_params.tensor_mass, m_p.center,
-                              m_p.bg_params, m_dx, m_p.initial_constant);
+                               m_p.bg_params, m_dx, m_p.initial_constant);
 
     Sethbar set_hbar(m_p.potential_params.tensor_mass, m_p.center,
-                            m_p.bg_params, m_dx, m_p.initial_constant);
+                     m_p.bg_params, m_dx, m_p.initial_constant);
 
     SetRest set_rest(m_p.potential_params.tensor_mass, m_p.center,
-    m_p.bg_params, m_dx, m_p.initial_constant);
+                     m_p.bg_params, m_dx, m_p.initial_constant);
 
     auto compute_pack = make_compute_pack(set_zero, isostar_bg);
 
     BoxLoops::loop(compute_pack, m_state_diagnostics, m_state_diagnostics,
                    SKIP_GHOST_CELLS);
-   
-    //NO EXCISION 
-    
-    BoxLoops::loop(set_vars, m_state_new, m_state_new, INCLUDE_GHOST_CELLS, disable_simd());
-    //fillAllGhosts();
-    //BoxLoops::loop(set_hbar, m_state_new, m_state_new, INCLUDE_GHOST_CELLS, disable_simd());
-    //fillAllGhosts();
-    //BoxLoops::loop(set_rest, m_state_new, m_state_new, INCLUDE_GHOST_CELLS, disable_simd());
+
+    // NO EXCISION
+
+    BoxLoops::loop(set_vars, m_state_new, m_state_new, INCLUDE_GHOST_CELLS,
+                   disable_simd());
+    // fillAllGhosts();
+    // BoxLoops::loop(set_hbar, m_state_new, m_state_new, INCLUDE_GHOST_CELLS,
+    // disable_simd()); fillAllGhosts(); BoxLoops::loop(set_rest, m_state_new,
+    // m_state_new, INCLUDE_GHOST_CELLS, disable_simd());
 
     // excise within horizon, no simd
-    BoxLoops::loop(
-        ExcisionEvolution<TensorFieldWithPotential, IsoStarFixedBG>(
-            m_dx, m_p.center, isostar_bg),
-        m_state_new, m_state_new, SKIP_GHOST_CELLS, disable_simd());
+    BoxLoops::loop(ExcisionEvolution<TensorFieldWithPotential, IsoStarFixedBG>(
+                       m_dx, m_p.center, isostar_bg),
+                   m_state_new, m_state_new, SKIP_GHOST_CELLS, disable_simd());
 
-
-    ///DIAGNOSTICS 
+    /// DIAGNOSTICS
 }
 
 // Things to do before outputting a plot file
-void TensorFieldLevel::prePlotLevel() {
+void TensorFieldLevel::prePlotLevel()
+{
 
     fillAllGhosts();
     TensorPotential potential(m_p.potential_params);
     TensorFieldWithPotential tensor_field(potential);
     IsoStarFixedBG isostar_bg(m_p.bg_params, m_dx);
 
-    FixedBGDiagnostics<TensorFieldWithPotential, IsoStarFixedBG>
-        diagnostics(tensor_field, isostar_bg, m_dx, m_p.center);
-    FixedBGFluxes<TensorFieldWithPotential,
-                                    IsoStarFixedBG>
-        energy_fluxes(tensor_field, isostar_bg, m_dx, m_p.center);
-    BoxLoops::loop(make_compute_pack(diagnostics, energy_fluxes),
-                    m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS, disable_simd());
+    FixedBGDiagnostics<TensorFieldWithPotential, IsoStarFixedBG> diagnostics(
+        tensor_field, isostar_bg, m_dx, m_p.center);
+    FixedBGFluxes<TensorFieldWithPotential, IsoStarFixedBG> energy_fluxes(
+        tensor_field, isostar_bg, m_dx, m_p.center);
+    BoxLoops::loop(make_compute_pack(diagnostics, energy_fluxes), m_state_new,
+                   m_state_diagnostics, SKIP_GHOST_CELLS, disable_simd());
     // excise within horizon
     BoxLoops::loop(
         ExcisionDiagnostics<TensorFieldWithPotential, IsoStarFixedBG>(
             m_dx, m_p.center, isostar_bg, m_p.inner_r, m_p.outer_r),
         m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
-        disable_simd());     
+        disable_simd());
 }
 
 // Things to do in RHS update, at each RK4 step
@@ -119,40 +119,39 @@ void TensorFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
 {
 
     IsoStarFixedBG isostar_bg(m_p.bg_params, m_dx);
-    BoxLoops::loop(TraceFieldRemoval<TensorFieldWithPotential, IsoStarFixedBG>(
-        isostar_bg),a_soln, a_soln, SKIP_GHOST_CELLS, disable_simd());
+    BoxLoops::loop(
+        TraceFieldRemoval<TensorFieldWithPotential, IsoStarFixedBG>(isostar_bg),
+        a_soln, a_soln, SKIP_GHOST_CELLS, disable_simd());
 
     // Calculate MatterCCZ4 right hand side with matter_t = TensorField
     // We don't want undefined values floating around in the constraints so
     // zero these
 
     // enforce continuous prescription for sigma as per arXiv:2104.06978
-    //const int ratio = pow(2, 5 * (m_level - m_p.max_level));
-    //const double sigma = m_p.sigma * double(ratio);
+    // const int ratio = pow(2, 5 * (m_level - m_p.max_level));
+    // const double sigma = m_p.sigma * double(ratio);
 
     TensorPotential potential(m_p.potential_params);
     TensorFieldWithPotential tensor_field(potential);
-    //TensorFieldWithPotential;
-    //IsoStarFixedBG isostar_bg(m_p.bg_params, m_dx);
+    // TensorFieldWithPotential;
+    // IsoStarFixedBG isostar_bg(m_p.bg_params, m_dx);
     FixedBGEvolution<TensorFieldWithPotential, IsoStarFixedBG> my_matter(
         tensor_field, isostar_bg, m_p.sigma, m_dx, m_p.center);
-        //tensor_field, isostar_bg, sigma, m_dx, m_p.center);
+    // tensor_field, isostar_bg, sigma, m_dx, m_p.center);
 
-    //TraceFieldRemoval<TensorFieldWithPotential, IsoStarFixedBG> make_traceless(isostar_bg); 
+    // TraceFieldRemoval<TensorFieldWithPotential, IsoStarFixedBG>
+    // make_traceless(isostar_bg);
 
     BoxLoops::loop(my_matter, a_soln, a_rhs, SKIP_GHOST_CELLS);
 
-    //Enforce traceless fspatial
-    //BoxLoops::loop(make_compute_pack(make_traceless), a_soln, a_soln, INCLUDE_GHOST_CELLS);    
-
+    // Enforce traceless fspatial
+    // BoxLoops::loop(make_compute_pack(make_traceless), a_soln, a_soln,
+    // INCLUDE_GHOST_CELLS);
 
     // excise within horizon, no simd
-    BoxLoops::loop(
-        ExcisionEvolution<TensorFieldWithPotential, IsoStarFixedBG>(
-            m_dx, m_p.center, isostar_bg),
-        a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd());
-
-    
+    BoxLoops::loop(ExcisionEvolution<TensorFieldWithPotential, IsoStarFixedBG>(
+                       m_dx, m_p.center, isostar_bg),
+                   a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd());
 }
 
 void TensorFieldLevel::specificPostTimeStep()
@@ -171,12 +170,12 @@ void TensorFieldLevel::specificPostTimeStep()
         FixedBGDiagnostics<TensorFieldWithPotential, IsoStarFixedBG>
             diagnostics(tensor_field, isostar_bg, m_dx, m_p.center);
 
-        FixedBGFluxes<TensorFieldWithPotential,
-                                       IsoStarFixedBG>
-            energy_fluxes(tensor_field, isostar_bg, m_dx, m_p.center);
+        FixedBGFluxes<TensorFieldWithPotential, IsoStarFixedBG> energy_fluxes(
+            tensor_field, isostar_bg, m_dx, m_p.center);
 
         BoxLoops::loop(make_compute_pack(diagnostics, energy_fluxes),
-                       m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS, disable_simd());
+                       m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS,
+                       disable_simd());
 
         // excise within horizon
         BoxLoops::loop(
@@ -221,15 +220,13 @@ void TensorFieldLevel::specificPostTimeStep()
 
 // enforce trace removal during RK4 substeps
 void TensorFieldLevel::specificUpdateODE(GRLevelData &a_soln,
-                                      const GRLevelData &a_rhs, Real a_dt)
+                                         const GRLevelData &a_rhs, Real a_dt)
 {
     IsoStarFixedBG isostar_bg(m_p.bg_params, m_dx);
-    BoxLoops::loop(TraceFieldRemoval<TensorFieldWithPotential, IsoStarFixedBG>(
-        isostar_bg),a_soln, a_soln, SKIP_GHOST_CELLS, disable_simd());
-
+    BoxLoops::loop(
+        TraceFieldRemoval<TensorFieldWithPotential, IsoStarFixedBG>(isostar_bg),
+        a_soln, a_soln, SKIP_GHOST_CELLS, disable_simd());
 }
-
-
 
 void TensorFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                                const FArrayBox &current_state)

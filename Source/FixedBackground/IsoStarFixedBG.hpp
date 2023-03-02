@@ -58,7 +58,6 @@ class IsoStarFixedBG
         data_t chi = TensorAlgebra::compute_determinant_sym(metric_vars.gamma);
         chi = pow(chi, -1.0 / 3.0);
         current_cell.store_vars(chi, c_chi);
-        
     }
 
     // Kerr Schild solution
@@ -70,7 +69,7 @@ class IsoStarFixedBG
 
         // Stellar params - mass M and spin a
         const double M = m_params.mass;
-        const double M2 = M * M; 
+        const double M2 = M * M;
         const double a = m_params.spin;
         const double a2 = a * a;
         const double C = 0.2;
@@ -83,128 +82,145 @@ class IsoStarFixedBG
         const double z = coords.z;
         const data_t r = coords.get_radius();
         const data_t r2 = r * r;
-        
- 
-        Tensor<1,data_t> d1_r;
-        Tensor<2,data_t> d2_r;
-        //For neatness
-        Tensor<1,data_t> X;
-        //First, get the derivatives of the radius
+
+        Tensor<1, data_t> d1_r;
+        Tensor<2, data_t> d2_r;
+        // For neatness
+        Tensor<1, data_t> X;
+        // First, get the derivatives of the radius
         X[0] = coords.x;
         X[1] = coords.y;
         X[2] = coords.z;
 
         using namespace TensorAlgebra;
 
-        FOR1(i)
-        {
-            d1_r[i] = X[i] / r;
-        }
+        FOR1(i) { d1_r[i] = X[i] / r; }
 
-        FOR2(i,j)
-        {
-            d2_r[i][j] = (delta(i,j) - X[i] * X[j] / r2) / r;
-        }
+        FOR2(i, j) { d2_r[i][j] = (delta(i, j) - X[i] * X[j] / r2) / r; }
 
-        //CONDITIONAL
+        // CONDITIONAL
         if (simd_compare_gt(r, M / C))
         {
-            vars.lapse = (1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r);
+            vars.lapse = (1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
 
-            
             // calculate derivs of lapse and shift
             FOR1(i)
             {
-                vars.d1_lapse[i] = 4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
-            }
-
-            FOR2(i,j)
-            {
-                vars.d2_lapse[i][j] = 4.0 * M * (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) * pow(M + 2.0 * r,-3.0);
+                vars.d1_lapse[i] =
+                    4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
             }
 
             FOR2(i, j)
             {
-                vars.gamma[i][j] = delta(i,j) * pow(1.0 + 0.5 * M / r,4.0);
-                    
+                vars.d2_lapse[i][j] =
+                    4.0 * M *
+                    (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) *
+                    pow(M + 2.0 * r, -3.0);
+            }
+
+            FOR2(i, j)
+            {
+                vars.gamma[i][j] = delta(i, j) * pow(1.0 + 0.5 * M / r, 4.0);
             }
             // Calculate partial derivative of spatial metric
             FOR3(i, j, k)
             {
-                vars.d1_gamma[i][j][k] = -0.25 * M * pow(M + 2.0 * r,3.0) * pow(r, -5.0) * d1_r[k] * delta(i,j);
+                vars.d1_gamma[i][j][k] = -0.25 * M * pow(M + 2.0 * r, 3.0) *
+                                         pow(r, -5.0) * d1_r[k] * delta(i, j);
             }
 
-            FOR2(i,j)
+            FOR2(i, j)
             {
-                FOR2(k,l)
+                FOR2(k, l)
                 {
-                    vars.d2_gamma[i][j][k][l] = -delta(i,j) * (M * (M + 2.0 * r) * (M + 2.0 * r) * (-(5.0 * M + 4.0 * r) * d1_r[k] * d1_r[l] + r * (M + 2.0 * r) * d2_r[k][l] ) ) * 0.25 * pow(r,-6.0);
+                    vars.d2_gamma[i][j][k][l] =
+                        -delta(i, j) *
+                        (M * (M + 2.0 * r) * (M + 2.0 * r) *
+                         (-(5.0 * M + 4.0 * r) * d1_r[k] * d1_r[l] +
+                          r * (M + 2.0 * r) * d2_r[k][l])) *
+                        0.25 * pow(r, -6.0);
                 }
-            } 
-            FOR3(i,j,k)
+            }
+            FOR3(i, j, k)
             {
-                vars.d1_gamma_UU[i][j][k] = delta(i,j) * 64.0 * M * d1_r[k] * pow(r,3.0) * pow(M + 2.0 * r,-5.0);
-            }           
+                vars.d1_gamma_UU[i][j][k] = delta(i, j) * 64.0 * M * d1_r[k] *
+                                            pow(r, 3.0) *
+                                            pow(M + 2.0 * r, -5.0);
+            }
         }
         else
         {
-            vars.lapse = (4.0 * (1.0 - C) * M2 + (4.0 - C) * C2 * C * r2) / ((2.0 + C) * (2.0 * M2 + C2 * C * r2));
+            vars.lapse = (4.0 * (1.0 - C) * M2 + (4.0 - C) * C2 * C * r2) /
+                         ((2.0 + C) * (2.0 * M2 + C2 * C * r2));
             FOR1(i)
             {
-                vars.d1_lapse[i] = 4.0 * M2 * C2 * C * r * d1_r[i] * pow((2.0 * M2 + C2 * C * r2),-2.0) ;
+                vars.d1_lapse[i] = 4.0 * M2 * C2 * C * r * d1_r[i] *
+                                   pow((2.0 * M2 + C2 * C * r2), -2.0);
                 FOR1(j)
                 {
-                    vars.d2_lapse[i][j] = (4.0 * M2 * C2 * C * ((2.0 * M2 - 3.0 * C2 * C * r2) *d1_r[i] * d1_r[j] + r * (2.0 * M2 + C2 * C * r2) * d2_r[i][j]))
-                                            * pow(2.0 * M2 + C2 * C * r2, -3.0);
+                    vars.d2_lapse[i][j] =
+                        (4.0 * M2 * C2 * C *
+                         ((2.0 * M2 - 3.0 * C2 * C * r2) * d1_r[i] * d1_r[j] +
+                          r * (2.0 * M2 + C2 * C * r2) * d2_r[i][j])) *
+                        pow(2.0 * M2 + C2 * C * r2, -3.0);
                 }
             }
 
-            FOR2(i,j)
+            FOR2(i, j)
             {
-                vars.gamma[i][j] = delta(i,j) * M2 * M2 * pow(2.0 + C, 6.0) * pow(2.0 * M2 + C2 * C * r2,-2.0)/16.0;
+                vars.gamma[i][j] = delta(i, j) * M2 * M2 * pow(2.0 + C, 6.0) *
+                                   pow(2.0 * M2 + C2 * C * r2, -2.0) / 16.0;
 
                 FOR1(k)
                 {
-                    vars.d1_gamma[i][j][k] = - delta(i,j) * M2 * M2 * C2 * C * pow((2.0 + C),6.0) * r * d1_r[k] * pow(2.0 * M2 + C2 * C * r2, -3.0) / 4.0; 
+                    vars.d1_gamma[i][j][k] =
+                        -delta(i, j) * M2 * M2 * C2 * C * pow((2.0 + C), 6.0) *
+                        r * d1_r[k] * pow(2.0 * M2 + C2 * C * r2, -3.0) / 4.0;
 
                     FOR1(l)
                     {
-                        vars.d2_gamma[i][j][k][l] = -delta(i,j) * ((M2 * M2 * C2 * C * pow(2.0 + C,6.0) * ((2.0 * M2 - 5.0 * C2 * C * r2 ) * d1_r[k] * d1_r[l] + r * (2.0 * M2 + C2 * C * r2) * d2_r[k][l]))
-                        / (4.0 * pow(2.0 * M2 + C2 * C * r2,4.0)));
+                        vars.d2_gamma[i][j][k][l] =
+                            -delta(i, j) *
+                            ((M2 * M2 * C2 * C * pow(2.0 + C, 6.0) *
+                              ((2.0 * M2 - 5.0 * C2 * C * r2) * d1_r[k] *
+                                   d1_r[l] +
+                               r * (2.0 * M2 + C2 * C * r2) * d2_r[k][l])) /
+                             (4.0 * pow(2.0 * M2 + C2 * C * r2, 4.0)));
                     }
                 }
             }
-            
-            FOR3(i,j,k)
+
+            FOR3(i, j, k)
             {
-                vars.d1_gamma_UU[i][j][k] = delta(i,j) * 64.0 * C2 * C * r * (2.0 * M2 + C2 * C * r2) * d1_r[k] * pow(2.0 + C, -6.0) /M2 / M2;
-            }  
+                vars.d1_gamma_UU[i][j][k] = delta(i, j) * 64.0 * C2 * C * r *
+                                            (2.0 * M2 + C2 * C * r2) * d1_r[k] *
+                                            pow(2.0 + C, -6.0) / M2 / M2;
+            }
         }
 
-
-        //Now the inverse metric
+        // Now the inverse metric
 
         const auto gamma_UU = compute_inverse_sym(vars.gamma);
         const auto chris_phys = compute_christoffel(vars.d1_gamma, gamma_UU);
 
-    
-
-        
-
-                                                
-        //Calculate derivative of the Christoffel symbol (phys)
+        // Calculate derivative of the Christoffel symbol (phys)
         FOR2(i, j)
         {
             FOR2(k, m)
             {
                 vars.d1_chris_phys[i][j][k][m] = 0.0;
-            
+
                 FOR1(n)
                 {
-                    vars.d1_chris_phys[i][j][k][m] += 0.5 * vars.d1_gamma_UU[i][n][m] * (vars.d1_gamma[k][n][j] + vars.d1_gamma[n][j][k] - vars.d1_gamma[j][k][n])
+                    vars.d1_chris_phys[i][j][k][m] +=
+                        0.5 * vars.d1_gamma_UU[i][n][m] *
+                            (vars.d1_gamma[k][n][j] + vars.d1_gamma[n][j][k] -
+                             vars.d1_gamma[j][k][n])
 
-                                                    + 0.5 * gamma_UU[i][n] * (vars.d2_gamma[k][n][j][m] + vars.d2_gamma[n][j][k][m] - vars.d2_gamma[j][k][n][m]);
-                
+                        + 0.5 * gamma_UU[i][n] *
+                              (vars.d2_gamma[k][n][j][m] +
+                               vars.d2_gamma[n][j][k][m] -
+                               vars.d2_gamma[j][k][n][m]);
                 }
             }
         }
@@ -215,15 +231,17 @@ class IsoStarFixedBG
         // calculate derivs of lapse and shift
         FOR1(i)
         {
-            vars.d1_lapse[i] = 4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
+            vars.d1_lapse[i] = 4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 *
+        r);
         }
 
         FOR2(i,j)
         {
-            vars.d2_lapse[i][j] = 4.0 * M * (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) * pow(M + 2.0 * r,-3.0);
+            vars.d2_lapse[i][j] = 4.0 * M * (d2_r[i][j] * (M + 2.0 * r) - 4.0 *
+        d1_r[i] * d1_r[j]) * pow(M + 2.0 * r,-3.0);
         }
         */
-        //Sign changing implementation
+        // Sign changing implementation
         /*
         vars.lapse = abs(1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r);
 
@@ -231,94 +249,90 @@ class IsoStarFixedBG
         // calculate derivs of lapse and shift
         FOR1(i)
         {
-            vars.d1_lapse[i] = M * (-2.0 * M + 4.0 * r) * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r) / r / sqrt(pow(1.0 - 0.5 * M /r,2.0));
+            vars.d1_lapse[i] = M * (-2.0 * M + 4.0 * r) * d1_r[i] / (M + 2.0 *
+        r) / (M + 2.0 * r) / r / sqrt(pow(1.0 - 0.5 * M /r,2.0));
         }
 
         FOR2(i,j)
         {
-            vars.d2_lapse[i][j] = (M * ((8.0 * pow(M,3.0) - 48.0 * M * M * r + 96.0 * M * r2 - 64.0 * r2 * r) *d1_r[i] * d1_r[j] + (-2.0 * pow(M,4.0)+ 8.0 * pow(M,3.0) * r - 32.0 * M * r2 * r + 32.0 * r2 * r2)* d2_r[i][j])) 
-            / (sqrt(pow(1.0 - 0.5 * M / r, 2.0)) * (M - 2.0 * r) * (M - 2.0 * r) * r * pow((M + 2.0 * r),3.0));
+            vars.d2_lapse[i][j] = (M * ((8.0 * pow(M,3.0) - 48.0 * M * M * r
+        + 96.0 * M * r2 - 64.0 * r2 * r) *d1_r[i] * d1_r[j] + (-2.0 *
+        pow(M,4.0)+ 8.0 * pow(M,3.0) * r - 32.0 * M * r2 * r + 32.0 * r2 * r2)*
+        d2_r[i][j])) / (sqrt(pow(1.0 - 0.5 * M / r, 2.0)) * (M - 2.0 * r) * (M
+        - 2.0 * r) * r * pow((M + 2.0 * r),3.0));
         }
         */
-    
-        //Zeroing implementation
-        
 
-        
+        // Zeroing implementation
+
         /*
         data_t horizon = M / 2.0;
-        
-        vars.lapse = simd_conditional(r > horizon , (1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r) ,0.0);
-        FOR1(i)
+
+        vars.lapse = simd_conditional(r > horizon , (1.0 - 0.5 * M /r) / (1.0 +
+        0.5 * M /r) ,0.0); FOR1(i)
         {
-            vars.d1_lapse[i] = simd_conditional(r > horizon, 4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r),0.0);
+            vars.d1_lapse[i] = simd_conditional(r > horizon, 4.0 * M * d1_r[i] /
+        (M + 2.0 * r) / (M + 2.0 * r),0.0);
         }
         FOR2(i,j)
         {
-            vars.d2_lapse[i][j] = simd_conditional(r > horizon, 4.0 * M * (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) * pow(M + 2.0 * r,-3.0),0.0);
+            vars.d2_lapse[i][j] = simd_conditional(r > horizon, 4.0 * M *
+        (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) * pow(M + 2.0 *
+        r,-3.0),0.0);
         }
         */
         data_t alpha2 = vars.lapse * vars.lapse;
 
-        FOR1(i)
-        {
-            vars.shift[i] = 0.0;
-        }
+        FOR1(i) { vars.shift[i] = 0.0; }
         // use the fact that shift^i = lapse^2 * shift_i
-        FOR2(i, j) {vars.d1_shift[i][j] = 0.0;}
-    
-        FOR3(i,j,k) {vars.d2_shift[i][j][k] = 0.0;}
+        FOR2(i, j) { vars.d1_shift[i][j] = 0.0; }
+
+        FOR3(i, j, k) { vars.d2_shift[i][j][k] = 0.0; }
         // calculate the extrinsic curvature, using the fact that
         // 2 * lapse * K_ij = D_i \beta_j + D_j \beta_i - dgamma_ij dt
         // and dgamma_ij dt = 0 in chosen fixed gauge
-        //const auto chris_phys = compute_christoffel(vars.d1_gamma, gamma_UU);
+        // const auto chris_phys = compute_christoffel(vars.d1_gamma, gamma_UU);
 
-        Tensor<3, data_t> chris_local; 
-        FOR3(i,j,k)
-        {
-          chris_local[i][j][k] = 0.0;
-          FOR1(l)
-          {
-            chris_local[i][j][k] += 0.5 * gamma_UU[i][l] * (vars.d1_gamma[l][k][j] + vars.d1_gamma[j][l][k] - vars.d1_gamma[j][k][l]);
-          }
-          
-        }
-
-        FOR2(i, j)
-        {
-            vars.K_tensor[i][j] = 0.0;
-   
-   
-        }
-        vars.K = compute_trace(gamma_UU, vars.K_tensor);
+        Tensor<3, data_t> chris_local;
         FOR3(i, j, k)
         {
-            vars.d1_K_tensor[i][j][k] = 0.0;
-        }
-                //Derivative of the trace, \partial_i K = \partial_i(gamma^jk K_jk)
-        FOR1(i)
-        {
-            vars.d1_K[i] = 0.0;
+            chris_local[i][j][k] = 0.0;
+            FOR1(l)
+            {
+                chris_local[i][j][k] +=
+                    0.5 * gamma_UU[i][l] *
+                    (vars.d1_gamma[l][k][j] + vars.d1_gamma[j][l][k] -
+                     vars.d1_gamma[j][k][l]);
+            }
         }
 
-        //spatial riemann curvature tensor 
-        
+        FOR2(i, j) { vars.K_tensor[i][j] = 0.0; }
+        vars.K = compute_trace(gamma_UU, vars.K_tensor);
+        FOR3(i, j, k) { vars.d1_K_tensor[i][j][k] = 0.0; }
+        // Derivative of the trace, \partial_i K = \partial_i(gamma^jk K_jk)
+        FOR1(i) { vars.d1_K[i] = 0.0; }
+
+        // spatial riemann curvature tensor
+
         FOR1(i)
         {
-            FOR3(j,k,l)
+            FOR3(j, k, l)
             {
-                vars.riemann_phys_ULLL[i][j][k][l] = vars.d1_chris_phys[i][l][j][k] - vars.d1_chris_phys[i][k][j][l];
+                vars.riemann_phys_ULLL[i][j][k][l] =
+                    vars.d1_chris_phys[i][l][j][k] -
+                    vars.d1_chris_phys[i][k][j][l];
 
                 FOR1(m)
                 {
-                    vars.riemann_phys_ULLL[i][j][k][l] += chris_phys.ULL[m][l][j] * chris_phys.ULL[i][m][k] - chris_phys.ULL[m][k][j] * chris_phys.ULL[i][m][l]; 
-                    
+                    vars.riemann_phys_ULLL[i][j][k][l] +=
+                        chris_phys.ULL[m][l][j] * chris_phys.ULL[i][m][k] -
+                        chris_phys.ULL[m][k][j] * chris_phys.ULL[i][m][l];
                 }
             }
         }
 
-        //spatial ricci tensor
-        FOR2(i,j)
+        // spatial ricci tensor
+        FOR2(i, j)
         {
             vars.ricci_phys[i][j] = 0.0;
             FOR1(k)
@@ -327,7 +341,7 @@ class IsoStarFixedBG
             }
         }
     }
-    
+
   public:
     // used to decide when to excise - ie when within the horizon of the BH
     // note that this is not templated over data_t
@@ -345,12 +359,11 @@ class IsoStarFixedBG
         const double z = coords.z;
         const double r = sqrt(x * x + y * y + z * z);
 
-        //const double horizon_distance = r / (M/2.0);
+        // const double horizon_distance = r / (M/2.0);
         const double horizon_distance = r;
-        //return sqrt(horizon_distance);
+        // return sqrt(horizon_distance);
         return horizon_distance;
     }
-
 };
 
 #endif /* ISOSCHWARZSCHILDFIXEDBG_HPP_ */

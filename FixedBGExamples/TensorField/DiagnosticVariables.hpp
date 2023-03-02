@@ -9,11 +9,11 @@
 // assign an enum to each variable
 enum
 {
-    c_chi,    // the conformal factor of the metric, not evolved
-    c_rho,    // the energy density of the SF
-    c_rhoJ,   // the energy density of the SF
-    c_Edot,   // the energy density of the SF
-    c_Jdot,   // the energy density of the SF
+    c_chi,  // the conformal factor of the metric, not evolved
+    c_rho,  // the energy density of the SF
+    c_rhoJ, // the energy density of the SF
+    c_Edot, // the energy density of the SF
+    c_Jdot, // the energy density of the SF
     c_Kout,
     c_d1Kout1,
     c_d1Kout2,
@@ -39,19 +39,33 @@ enum
 namespace DiagnosticVariables
 {
 static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
-    "chi", "rho", "rhoJ", "Edot", "Jdot", "Kout", "d1Kout1", "d1Kout2", "d1Kout3",
+    "chi",
+    "rho",
+    "rhoJ",
+    "Edot",
+    "Jdot",
+    "Kout",
+    "d1Kout1",
+    "d1Kout2",
+    "d1Kout3",
     "trace_field",
     "traceB",
     "traceRT",
-    "d1fhat1", "d1fhat2", "d1fhat3",
+    "d1fhat1",
+    "d1fhat2",
+    "d1fhat3",
     "KinvK",
-    "lorenzCont", "lorenzProj1", "lorenzProj2", "lorenzProj3",
+    "lorenzCont",
+    "lorenzProj1",
+    "lorenzProj2",
+    "lorenzProj3",
     "primaryConstraintScalar",
-    "primaryConstraintVector1", "primaryConstraintVector2", "primaryConstraintVector3"
-    };
+    "primaryConstraintVector1",
+    "primaryConstraintVector2",
+    "primaryConstraintVector3"};
 /*
-    
+
 */
-}
+} // namespace DiagnosticVariables
 
 #endif /* DIAGNOSTICVARIABLES_HPP */

@@ -12,11 +12,10 @@
 #include "DimensionDefinitions.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "Tensor.hpp"
-#include "TensorPotential.hpp"
 #include "TensorAlgebra.hpp"
+#include "TensorPotential.hpp"
 #include "UserVariables.hpp" //This files needs NUM_VARS, total num of components
 #include "VarsTools.hpp"
-
 
 template <class potential_t = TensorPotential> class FixedBGTensorField
 {
@@ -31,48 +30,52 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         : my_potential(a_potential)
     {
     }
-    
+
     //! Structure containing the rhs variables for the matter fields
     template <class data_t> struct Vars
     {
 
-        
-        //Tensor field components
-        Tensor<2,data_t> fspatial; //Spatial component of the tensor field
+        // Tensor field components
+        Tensor<2, data_t> fspatial; // Spatial component of the tensor field
 
-        Tensor<1,data_t> fbar;
+        Tensor<1, data_t> fbar;
 
         data_t fhat;
 
-        //Conjugate components
-        Tensor<2,data_t> v; //Spatial rank 2 v field
+        // Conjugate components
+        Tensor<2, data_t> v; // Spatial rank 2 v field
 
-        //Constraint damping variables
+        // Constraint damping variables
 
-        Tensor<1, data_t> Xspatial; //Rank 1 
+        Tensor<1, data_t> Xspatial; // Rank 1
 
-        data_t Xhat; //Scalar
-
+        data_t Xhat; // Scalar
 
         /// Defines the mapping between members of Vars and Chombo grid
         /// variables (enum in User_Variables)
         template <typename mapping_function_t>
         void enum_mapping(mapping_function_t mapping_function)
         {
-            //Map the components defined in user parameters to their full objects.
-            //Field variables 
-            VarsTools::define_symmetric_enum_mapping(mapping_function, GRInterval<c_fspatial11,c_fspatial33>(), fspatial);
+            // Map the components defined in user parameters to their full
+            // objects. Field variables
+            VarsTools::define_symmetric_enum_mapping(
+                mapping_function, GRInterval<c_fspatial11, c_fspatial33>(),
+                fspatial);
 
-            VarsTools::define_enum_mapping(mapping_function, GRInterval<c_fbar1,c_fbar3>(), fbar);
+            VarsTools::define_enum_mapping(
+                mapping_function, GRInterval<c_fbar1, c_fbar3>(), fbar);
 
             VarsTools::define_enum_mapping(mapping_function, c_fhat, fhat);
-            //conjugate variables 
-    
-            VarsTools::define_symmetric_enum_mapping(mapping_function, GRInterval<c_v11,c_v33>(), v);
+            // conjugate variables
 
-            //Constraint Damping variables
+            VarsTools::define_symmetric_enum_mapping(
+                mapping_function, GRInterval<c_v11, c_v33>(), v);
 
-            VarsTools::define_enum_mapping(mapping_function, GRInterval<c_Xspatial1,c_Xspatial3>(), Xspatial);
+            // Constraint Damping variables
+
+            VarsTools::define_enum_mapping(
+                mapping_function, GRInterval<c_Xspatial1, c_Xspatial3>(),
+                Xspatial);
             VarsTools::define_enum_mapping(mapping_function, c_Xhat, Xhat);
         }
     };
@@ -81,19 +84,20 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
     //!  2nd derivs
     template <class data_t> struct Diff2Vars
     {
-        //data_t phi;
-        Tensor<2,data_t> fspatial;//Spatial component of the tensor field
-        Tensor<1,data_t> fbar;//Half-projected component of the tensor field
-        data_t fhat;//Scalar part of the tensor field 
+        // data_t phi;
+        Tensor<2, data_t> fspatial; // Spatial component of the tensor field
+        Tensor<1, data_t> fbar; // Half-projected component of the tensor field
+        data_t fhat;            // Scalar part of the tensor field
 
         /// Defines the mapping between members of Vars and Chombo grid
         ///  variables (enum in User_Variables)
         template <typename mapping_function_t>
         void enum_mapping(mapping_function_t mapping_function)
         {
-           
-            VarsTools::define_symmetric_enum_mapping(mapping_function, GRInterval<c_fspatial11,c_fspatial33>(), fspatial);
 
+            VarsTools::define_symmetric_enum_mapping(
+                mapping_function, GRInterval<c_fspatial11, c_fspatial33>(),
+                fspatial);
         }
     };
 
@@ -157,7 +161,6 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         const vars_t<Tensor<1, data_t>> &d1,       //!< value of the 1st derivs
         const diff2_vars_t<Tensor<2, data_t>> &d2, //!< value of the 2nd derivs
         const vars_t<data_t> &advec);
-
 };
 
 #include "FixedBGTensorField.impl.hpp"

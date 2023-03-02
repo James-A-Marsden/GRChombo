@@ -92,8 +92,8 @@ class IsoKerrFixedBG
         const data_t cos_theta = z / R;
         const data_t sin_theta = rho / R;
 
-        const data_t cot_theta = cos_theta / sin_theta; 
-        const data_t cot_theta2 = cot_theta * cot_theta; 
+        const data_t cot_theta = cos_theta / sin_theta;
+        const data_t cot_theta2 = cot_theta * cot_theta;
 
         const data_t cos_theta2 = cos_theta * cos_theta;
         const data_t sin_theta2 = sin_theta * sin_theta;
@@ -116,10 +116,9 @@ class IsoKerrFixedBG
         // In the paper this is script 'A', not to be confused with A_ij
         const data_t AA = (r_BL2 + a2) * (r_BL2 + a2) - Delta * a2 * sin_theta2;
 
-        const data_t Delta2 = Delta * Delta; 
-        const data_t Sigma2 = Sigma * Sigma;  
-        const data_t AA2 = AA * AA; 
-
+        const data_t Delta2 = Delta * Delta;
+        const data_t Sigma2 = Sigma * Sigma;
+        const data_t AA2 = AA * AA;
 
         // now the components per eqn (47) using psi04 = Sigma / R2;
         const data_t gamma_RR = Sigma * (1.0 + 0.25 * r_plus / R) *
@@ -141,21 +140,18 @@ class IsoKerrFixedBG
         const Tensor<1, data_t> drhodx = {x / rho, y / rho, 0.0};
         Tensor<1, data_t> dRdx = {x / R, y / R, z / R};
 
-        //New derivatives of rho, R 
-        Tensor<2,data_t> d2rhodx2;
+        // New derivatives of rho, R
+        Tensor<2, data_t> d2rhodx2;
         FOR1(i)
         {
-            d2rhodx2[0][i] = delta(i,0) / rho - x * drhodx[i] / rho2; 
-            d2rhodx2[1][i] = delta(i,1) / rho - y * drhodx[i] / rho2; 
-            d2rhodx2[0][i] = 0.0; 
+            d2rhodx2[0][i] = delta(i, 0) / rho - x * drhodx[i] / rho2;
+            d2rhodx2[1][i] = delta(i, 1) / rho - y * drhodx[i] / rho2;
+            d2rhodx2[0][i] = 0.0;
         }
 
-        Tensor<2,data_t> d2Rdx2;
+        Tensor<2, data_t> d2Rdx2;
 
-        FOR2(i,j)
-        {
-            d2Rdx2[i][j] = delta(i,j) / R - x_i[i] * dRdx[j] / R2; 
-        }
+        FOR2(i, j) { d2Rdx2[i][j] = delta(i, j) / R - x_i[i] * dRdx[j] / R2; }
 
         Tensor<2, data_t> jac;
         Tensor<3, data_t> djacdx;
@@ -186,37 +182,70 @@ class IsoKerrFixedBG
             djacdx[2][2][i] = 0.0;
         }
 
-        //Second order derivative of the Jacobian
-        Tensor<4, data_t> d2jacdx2; 
+        // Second order derivative of the Jacobian
+        Tensor<4, data_t> d2jacdx2;
 
-        FOR3(i,j,k)
+        FOR3(i, j, k)
         {
-            d2jacdx2[0][i][j][k] = -delta(i,j) * dRdx[k] / R2 - (delta(i,k) * x_i[j] / R2 + delta(j,k) * x_i[i] /R2) /R - 3.0 *  x_i[i] * x_i[j] * dRdx[k] / (R2 * R2);
+            d2jacdx2[0][i][j][k] =
+                -delta(i, j) * dRdx[k] / R2 -
+                (delta(i, k) * x_i[j] / R2 + delta(j, k) * x_i[i] / R2) / R -
+                3.0 * x_i[i] * x_i[j] * dRdx[k] / (R2 * R2);
         }
 
-        FOR2(i,j)
+        FOR2(i, j)
         {
-            d2jacdx2[1][0][i][j] = 1.0 / R2 / rho * (delta(i,0) delta(j,2) + delta(i,2) * delta(j,0)) 
-                                    - (2.0 * dRdx[j]/R + drhodx[j]/rho) * (delta(i,0) * z + delta(i,2) * x) / R2 / rho
-                                    + (delta(j,0) * z + delta(j,2) * x) * (-drhodx[i] / rho - 2.0 * dRdx[i] / R)
-                                    + x * z / R2 / rho * (-d2rhodx2[i][j] / rho - 2.0 * d2Rdx2[i][j] / R)
-                                    + x * z /R2 / rho * (drhodx[i] * drhodx[j] / rho2 + 2.0 * dRdx[i] * dRdx[j] / R2)
-                                    + (- 2.0 * x * z * dRdx[j] / R / R2 / rho - x * z drhodx[j] / R2 / rho2) * (-drhodx[i] / rho - 2.0 * dRdx[i] / R);
+            d2jacdx2[1][0][i][j] =
+                1.0 / R2 / rho *
+                    (delta(i, 0) delta(j, 2) + delta(i, 2) * delta(j, 0)) -
+                (2.0 * dRdx[j] / R + drhodx[j] / rho) *
+                    (delta(i, 0) * z + delta(i, 2) * x) / R2 / rho +
+                (delta(j, 0) * z + delta(j, 2) * x) *
+                    (-drhodx[i] / rho - 2.0 * dRdx[i] / R) +
+                x * z / R2 / rho *
+                    (-d2rhodx2[i][j] / rho - 2.0 * d2Rdx2[i][j] / R) +
+                x * z / R2 / rho *
+                    (drhodx[i] * drhodx[j] / rho2 +
+                     2.0 * dRdx[i] * dRdx[j] / R2) +
+                (-2.0 * x * z * dRdx[j] / R / R2 / rho -
+                 x * z drhodx[j] / R2 / rho2) *
+                    (-drhodx[i] / rho - 2.0 * dRdx[i] / R);
 
-            d2jacdx2[1][1][i][j] = 1.0 / R2 / rho * (delta(i,1) delta(j,2) + delta(i,2) * delta(j,1)) 
-                                    - (2.0 * dRdx[j]/R + drhodx[j]/rho) * (delta(i,1) * z + delta(i,2) * y) / R2 / rho
-                                    + (delta(j,1) * z + delta(j,2) * y) * (-drhodx[i] / rho - 2.0 * dRdx[i] / R)
-                                    + y * z / R2 / rho * (-d2rhodx2[i][j] / rho - 2.0 * d2Rdx2[i][j] / R)
-                                    + y * z /R2 / rho * (drhodx[i] * drhodx[j] / rho2 + 2.0 * dRdx[i] * dRdx[j] / R2)
-                                    + (- 2.0 * y * z * dRdx[j] / R / R2 / rho - y * z drhodx[j] / R2 / rho2) * (-drhodx[i] / rho - 2.0 * dRdx[i] / R);
+            d2jacdx2[1][1][i][j] =
+                1.0 / R2 / rho *
+                    (delta(i, 1) delta(j, 2) + delta(i, 2) * delta(j, 1)) -
+                (2.0 * dRdx[j] / R + drhodx[j] / rho) *
+                    (delta(i, 1) * z + delta(i, 2) * y) / R2 / rho +
+                (delta(j, 1) * z + delta(j, 2) * y) *
+                    (-drhodx[i] / rho - 2.0 * dRdx[i] / R) +
+                y * z / R2 / rho *
+                    (-d2rhodx2[i][j] / rho - 2.0 * d2Rdx2[i][j] / R) +
+                y * z / R2 / rho *
+                    (drhodx[i] * drhodx[j] / rho2 +
+                     2.0 * dRdx[i] * dRdx[j] / R2) +
+                (-2.0 * y * z * dRdx[j] / R / R2 / rho -
+                 y * z drhodx[j] / R2 / rho2) *
+                    (-drhodx[i] / rho - 2.0 * dRdx[i] / R);
 
-            d2jacdx2[1][2][i][j] = (-d2rhodx2[i][j] + 2.0 * drhodx[i] * dRdx[j] / R + 2.0 * drhodx[j] * dRdx[i] / R + 2.0 * rho * d2Rdx2[i][j] / R - 6.0 * rho * dRdx[i] * dRdx[j] / R2) / R2; 
+            d2jacdx2[1][2][i][j] =
+                (-d2rhodx2[i][j] + 2.0 * drhodx[i] * dRdx[j] / R +
+                 2.0 * drhodx[j] * dRdx[i] / R + 2.0 * rho * d2Rdx2[i][j] / R -
+                 6.0 * rho * dRdx[i] * dRdx[j] / R2) /
+                R2;
 
-            d2jacdx2[2][0][i][j] = 2.0 * (delta(i,1) * drhodx[j] + y * delta(j,1) * drhodx[i] + y * d2rhodx2[i][j] - 3.0 * y * drhodx[i] * drhodx[j] / rho) /rho2 / rho; 
+            d2jacdx2[2][0][i][j] =
+                2.0 *
+                (delta(i, 1) * drhodx[j] + y * delta(j, 1) * drhodx[i] +
+                 y * d2rhodx2[i][j] - 3.0 * y * drhodx[i] * drhodx[j] / rho) /
+                rho2 / rho;
 
-            d2jacdx2[2][1][i][j] = -2.0 * (delta(i,0) * drhodx[j] + x * delta(j,0) * drhodx[i] + x * d2rhodx2[i][j] - 3.0 * x * drhodx[i] * drhodx[j] / rho) /rho2 / rho; 
+            d2jacdx2[2][1][i][j] =
+                -2.0 *
+                (delta(i, 0) * drhodx[j] + x * delta(j, 0) * drhodx[i] +
+                 x * d2rhodx2[i][j] - 3.0 * x * drhodx[i] * drhodx[j] / rho) /
+                rho2 / rho;
 
-            d2jacdx2[2][2][i][j] = 0.0; 
+            d2jacdx2[2][2][i][j] = 0.0;
         }
 
         // derivs wrt R
@@ -229,7 +258,7 @@ class IsoKerrFixedBG
             gamma_RR * (dSigmadR / Sigma - 1.0 / R - drBLdR / (r_BL - r_minus) -
                         0.5 * r_plus / R2 / (1.0 + 0.25 * r_plus / R));
         const data_t dgammappdR = gamma_pp * (dAAdR / AA - dSigmadR / Sigma);
-        
+
         // derivs wrt theta
         const data_t dSigmadtheta = -2.0 * a2 * cos_theta * sin_theta;
         const data_t dAAdtheta = -2.0 * Delta * a2 * sin_theta * cos_theta;
@@ -255,114 +284,132 @@ class IsoKerrFixedBG
             dgammappdx[i] = jac[0][i] * dgammappdR + jac[1][i] * dgammappdtheta;
         }
 
-                //derivs wrt x (a bit janky, but should work) Note this is with respect to x,y,z - not R, theta, phi
+        // derivs wrt x (a bit janky, but should work) Note this is with respect
+        // to x,y,z - not R, theta, phi
 
         Tensor<1, data_t> dsin_thetadx;
-        FOR1(i)
-        {
-            dsin_thetadx[i] = drhodx[i] / R - rho * dRdx[i] / R2; 
-        }
+        FOR1(i) { dsin_thetadx[i] = drhodx[i] / R - rho * dRdx[i] / R2; }
         Tensor<1, data_t> dcos_thetadx;
-        FOR1(i)
-        {
-            dcos_thetadx[i] = delta(i,2) / R - z * dRdx[i] / R2;
-        }
+        FOR1(i) { dcos_thetadx[i] = delta(i, 2) / R - z * dRdx[i] / R2; }
         Tensor<1, data_t> dcot_thetadx;
-        FOR1(i)
-        {
-            dcot_thetadx[i] = delta(i,2) / rho - drhodx[i] * z / rho2; 
-        }
+        FOR1(i) { dcot_thetadx[i] = delta(i, 2) / rho - drhodx[i] * z / rho2; }
         Tensor<1, data_t> dsin_phidx;
-        FOR1(i)
-        {
-            dsin_phidx[i] = delta(i,1) / rho - y * drhodx[i] / rho2; 
-        }
+        FOR1(i) { dsin_phidx[i] = delta(i, 1) / rho - y * drhodx[i] / rho2; }
         Tensor<1, data_t> dcos_phidx;
-        FOR1(i)
-        {
-            dcos_phidx[i] = delta(i,0) / rho - x * drhodx[i] / rho2; 
-        }
+        FOR1(i) { dcos_phidx[i] = delta(i, 0) / rho - x * drhodx[i] / rho2; }
         Tensor<1, data_t> drBLdR_ddx;
-        FOR1(i)
-        {
-            drBLdR_ddx[i] = 0.125 * r_plus * r_plus * dRdx[i] / R2 / R;
-        }
-    
+        FOR1(i) { drBLdR_ddx[i] = 0.125 * r_plus * r_plus * dRdx[i] / R2 / R; }
+
         Tensor<1, data_t> dDeltadR_ddx;
         FOR1(i)
         {
-            dDeltaR_ddx[i] = drBLdR_ddx[i] * (2.0 * r_BL - 2.0 * M) + drBLdR * (2.0 * drBLdx[i]);
-        } 
+            dDeltaR_ddx[i] = drBLdR_ddx[i] * (2.0 * r_BL - 2.0 * M) +
+                             drBLdR * (2.0 * drBLdx[i]);
+        }
         Tensor<1, data_t> dSigmadR_ddx;
         FOR1(i)
         {
-            dSigmadR_ddx[i] = 2.0 * drBLdx[i] * drBLdR + 2.0 * r_BL * drBLdR_ddx[i];
+            dSigmadR_ddx[i] =
+                2.0 * drBLdx[i] * drBLdR + 2.0 * r_BL * drBLdR_ddx[i];
         }
         Tensor<1, data_t> dSigmadtheta_ddx;
         FOR1(i)
         {
-            dSigmadtheta_ddx[i] =  -2.0 * a2 * (dsin_thetadx[i] * cos_theta + dcos_thetadx[i] * sin_theta);
+            dSigmadtheta_ddx[i] =
+                -2.0 * a2 *
+                (dsin_thetadx[i] * cos_theta + dcos_thetadx[i] * sin_theta);
         }
         Tensor<1, data_t> dAAdtheta_ddx;
         FOR1(i)
         {
-            dAAdtheta_ddx[i] = -2.0 * a2 * Delta * (dsin_thetadx[i] * cos_theta + dcos_thetadx[i] * sin_theta)
-                                -2.0 * dDeltadx[i] * a2 * sin_theta * cos_theta;
+            dAAdtheta_ddx[i] = -2.0 * a2 * Delta *
+                                   (dsin_thetadx[i] * cos_theta +
+                                    dcos_thetadx[i] * sin_theta) -
+                               2.0 * dDeltadx[i] * a2 * sin_theta * cos_theta;
         }
         Tensor<1, data_t> dAAdR_ddx;
         FOR1(i)
         {
             dAAdR_ddx[i] = 4.0 * (drBLdr_ddx[i] * r_BL * (r_BL2 + a2) + drBLdR * drBLdx[i] * (r_BL2 + a2) + 4.0 * r_BL drBLdR * (2.0 * r_BL * drBLdx[i])
-                                            -DDeltadR_ddx[i] * a2 * sin_theta2 - dDeltadR * a2 * 2.0 * sin_theta * dsin_thetadx[i]; 
-        } 
+                                            -DDeltadR_ddx[i] * a2 * sin_theta2 - dDeltadR * a2 * 2.0 * sin_theta * dsin_thetadx[i];
+        }
         Tensor<1, data_t> dgammaRRdR_ddx;
         FOR1(i)
         {
-            dgammaRRdR_ddx[i] = dgammaRRdx[i] * dgammaRRdR / gammaRR + gammaRR * (dSigmadR_ddx[i] / Sigma - dSigmadx[i] * dSigmadR / Sigma2 - dRdx[i] / R2 - drBLdR_ddx[i] / (r_BL - r_minus)
-            + drBLdR * drBLdx[i] / (r_BL - r_minus) / (r_BL - r_minus) + r_plus / R2 / R / (1.0 + 0.25 * r_plus / R) - 0.5 * r_plus / R2 * (-0.25 / R2 * dRdx[i]) / (1.0 + 0.25 * r_plus/ R) / (1.0 + 0.25 * r_plus/ R));
+            dgammaRRdR_ddx[i] =
+                dgammaRRdx[i] * dgammaRRdR / gammaRR +
+                gammaRR *
+                    (dSigmadR_ddx[i] / Sigma - dSigmadx[i] * dSigmadR / Sigma2 -
+                     dRdx[i] / R2 - drBLdR_ddx[i] / (r_BL - r_minus) +
+                     drBLdR * drBLdx[i] / (r_BL - r_minus) / (r_BL - r_minus) +
+                     r_plus / R2 / R / (1.0 + 0.25 * r_plus / R) -
+                     0.5 * r_plus / R2 * (-0.25 / R2 * dRdx[i]) /
+                         (1.0 + 0.25 * r_plus / R) / (1.0 + 0.25 * r_plus / R));
         }
         Tensor<1, data_t> dgammaRRdtheta_ddx;
         FOR1(i)
         {
-            dgammaRRdtheta_ddx[i] = dgammaRRdx[i] * dSigmadtheta / Sigma + gamma_RR * dSigmadtheta_ddx[i] / Sigma - gamma_RR * dSigmadtheta * dSigmadx[i] / Sigma2; 
-        }   
+            dgammaRRdtheta_ddx[i] =
+                dgammaRRdx[i] * dSigmadtheta / Sigma +
+                gamma_RR * dSigmadtheta_ddx[i] / Sigma -
+                gamma_RR * dSigmadtheta * dSigmadx[i] / Sigma2;
+        }
         Tensor<1, data_t> dgammappdR_ddx;
         FOR1(i)
         {
-            dgammappdR_ddx[i] = dgammappdx[i] * (dAAdR / AA - dSigmadR / Sigma) + gamma_pp * (dAAdR_ddx[i] / AA - dAAdR * dAAdx[i] / AA2 - dSigmadR_ddx[i] / Sigma + dSigmadR * dSigmadx[i] / Sigma2); 
+            dgammappdR_ddx[i] =
+                dgammappdx[i] * (dAAdR / AA - dSigmadR / Sigma) +
+                gamma_pp *
+                    (dAAdR_ddx[i] / AA - dAAdR * dAAdx[i] / AA2 -
+                     dSigmadR_ddx[i] / Sigma + dSigmadR * dSigmadx[i] / Sigma2);
         }
         Tensor<1, data_t> dgammappdtheta_ddx;
         FOR1(i)
         {
-            dgammappdtheta_ddx[i] = dgammappdx[i] * (dAAdtheta / AA - dSigmadtheta / Sigma) + gamma_pp * (dAAdtheta_ddx[i] / AA - dAAdtheta * dAAdx[i] / AA2 - dSigmadtheta_ddx[i] / Sigma + dSigmadtheta * dSigmadx[i] / Sigma2)
-                                    + 2.0 * (dcos_thetadx[i] * sin_theta + cos_theta * dsin_thetadx[i]) * AA / Sigma + 2.0 * cos_theta * sin_theta * (dAAdx[i] / Sigma - AA * dSigmadx[i] / Sigma2);
+            dgammappdtheta_ddx[i] =
+                dgammappdx[i] * (dAAdtheta / AA - dSigmadtheta / Sigma) +
+                gamma_pp * (dAAdtheta_ddx[i] / AA - dAAdtheta * dAAdx[i] / AA2 -
+                            dSigmadtheta_ddx[i] / Sigma +
+                            dSigmadtheta * dSigmadx[i] / Sigma2) +
+                2.0 *
+                    (dcos_thetadx[i] * sin_theta +
+                     cos_theta * dsin_thetadx[i]) *
+                    AA / Sigma +
+                2.0 * cos_theta * sin_theta *
+                    (dAAdx[i] / Sigma - AA * dSigmadx[i] / Sigma2);
         }
 
-
-
-        //const data_t dgammappdtheta =
-            //gamma_pp * (dAAdtheta / AA - dSigmadtheta / Sigma) +
-            //2.0 * cos_theta * sin_theta * AA / Sigma;
+        // const data_t dgammappdtheta =
+        // gamma_pp * (dAAdtheta / AA - dSigmadtheta / Sigma) +
+        // 2.0 * cos_theta * sin_theta * AA / Sigma;
         Tensor<2, data_t> d2rBLdx2;
         Tensor<2, data_t> d2Sigmadx2;
         Tensor<2, data_t> d2Deltadx2;
         Tensor<2, data_t> d2AAdx2;
         Tensor<2, data_t> d2gammaRRdx2;
         Tensor<2, data_t> d2gammappdx2;
-        FOR2(i,j)
+        FOR2(i, j)
         {
-            d2rBLdx2[i][j] = djacdx[0][i][j] * drBLdR + jac[0][i] * drBLdR_ddx[j];
-            d2Sigmadx2[i][j] = djacdx[0][i][j] * dSigmadR + jac[0][i] * dSigmadR_ddx[j] + djacdx[1][i][j] * dSigmadtheta + jac[1][i] * dSigmadtheta_ddx[j];
-            d2Deltadx2[i][j] = djacdx[0][i][j] * dDeltadR + jac[0][i] * dDeltadR_ddx[i];
-            d2AAdx2[i][j] = djacdx[0][i][j] * dAAdR + jac[0][i] * dAAdR_ddx[i] + djacdx[1][i][j] * dAAdtheta + jac[1][i] * dAAdtheta_ddx[i];
-            d2gammaRRdx2[i] = djacdx[0][i][j] * dgammaRRdR + jac[0][i] * dgammaRRdR_ddx[i] + djacdx[1][i][j] * dgammaRRdtheta + jac[1][i] * dgammaRRdtheta_ddx[i];  
-            d2gammappdx2[i] = djacdx[0][i][j] * dgammappdR + jac[0][i] * dgammappdR_ddx[i] + djacdx[1][i][j] * dgammappdtheta + jac[1][i] * dgammappdtheta_ddx[i]; 
-            
+            d2rBLdx2[i][j] =
+                djacdx[0][i][j] * drBLdR + jac[0][i] * drBLdR_ddx[j];
+            d2Sigmadx2[i][j] = djacdx[0][i][j] * dSigmadR +
+                               jac[0][i] * dSigmadR_ddx[j] +
+                               djacdx[1][i][j] * dSigmadtheta +
+                               jac[1][i] * dSigmadtheta_ddx[j];
+            d2Deltadx2[i][j] =
+                djacdx[0][i][j] * dDeltadR + jac[0][i] * dDeltadR_ddx[i];
+            d2AAdx2[i][j] = djacdx[0][i][j] * dAAdR + jac[0][i] * dAAdR_ddx[i] +
+                            djacdx[1][i][j] * dAAdtheta +
+                            jac[1][i] * dAAdtheta_ddx[i];
+            d2gammaRRdx2[i] = djacdx[0][i][j] * dgammaRRdR +
+                              jac[0][i] * dgammaRRdR_ddx[i] +
+                              djacdx[1][i][j] * dgammaRRdtheta +
+                              jac[1][i] * dgammaRRdtheta_ddx[i];
+            d2gammappdx2[i] = djacdx[0][i][j] * dgammappdR +
+                              jac[0][i] * dgammappdR_ddx[i] +
+                              djacdx[1][i][j] * dgammappdtheta +
+                              jac[1][i] * dgammappdtheta_ddx[i];
         }
-
-
-
-
 
         // populate ADM vars - lapse and shift
         // use analytic continuation for lapse within horizon
@@ -400,77 +447,190 @@ class IsoKerrFixedBG
                                      jac[2][i] * jac[2][j] * dgammappdx[k];
         }
 
-        //NEW - second derivative of the spatial metric 
+        // NEW - second derivative of the spatial metric
 
-        FOR3(i,j,k)
+        FOR3(i, j, k)
         {
             FOR1(l)
             {
-                vars.d2_gamma[i][j][k][l] = d2jacdx2[0][j][k][l] * jac[0][i] * gamma_RR + djacdx[0][j][k] * djacdx[0][i][l] * gamma_RR + djacdx[0][j][k] * jac[0][i] * dgammaRRdx[l]
-                                        + d2jacdx2[0][i][k][l] * jac[0][j] * gamma_RR + djacdx[0][i][k] * djacdx[0][j][l] * gamma_RR + djacdx[0][i][k] * jac[0][j] * dgammaRRdx[l]
-                                        + d2jacdx2[1][j][k][l] * jac[1][i] * Sigma + djacdx[1][j][k] * djacdx[1][i][l] * Sigma +  djacdx[1][j][k] * jac[1][i] * dSigmadx[l]
-                                        + d2jacdx2[1][i][k][l] * jac[1][j] * Sigma + djacdx[1][i][k] * djacdx[1][j][l] * Sigma + djacdx[1][i][k] * jac[1][j] * dSigmadx[l]
-                                        + d2jacdx2[2][j][k][l] * jac[2][i] * gamma_pp + djacdx[2][j][k] * djacdx[2][i][l] * gamma_pp + djacdx[2][j][k] * jac[2][i] * dgammappdx[i]
-                                        + d2jacdx2[2][i][k][l] * jac[2][j] * gamma_pp + djacdx[2][i][k] * djacdx[2][j][l] * gamma_pp + djacdx[2][i][k] * jac[2][j] * dgammappdx[i]
-                                        + djacdx[0][i][l] * jac[0][j] * dgammaRRdx[k] + jac[0][i] * djacdx[0][j][l] * dgammaRRdx[k] + jac[0][i] * jac[0][j] * d2gammaRRdx2[k][l]
-                                        + djacdx[1][i][l] * jac[1][j] * dSigmadx[k] + jac[1][i] * djacdx[1][j][l] * dSigmadx[k] + jac[1][i] * jac[1][j] * d2Sigmadx2[k][l]
-                                        + djacdx[2][i][l] * jac[2][j] * dgammappdx[k] + jac[2][i] * djacdx[2][j][l] * dgammappdx[k] + jac[2][i] * jac[2][j] * d2gammappdx2[k][l];
+                vars.d2_gamma[i][j][k][l] =
+                    d2jacdx2[0][j][k][l] * jac[0][i] * gamma_RR +
+                    djacdx[0][j][k] * djacdx[0][i][l] * gamma_RR +
+                    djacdx[0][j][k] * jac[0][i] * dgammaRRdx[l] +
+                    d2jacdx2[0][i][k][l] * jac[0][j] * gamma_RR +
+                    djacdx[0][i][k] * djacdx[0][j][l] * gamma_RR +
+                    djacdx[0][i][k] * jac[0][j] * dgammaRRdx[l] +
+                    d2jacdx2[1][j][k][l] * jac[1][i] * Sigma +
+                    djacdx[1][j][k] * djacdx[1][i][l] * Sigma +
+                    djacdx[1][j][k] * jac[1][i] * dSigmadx[l] +
+                    d2jacdx2[1][i][k][l] * jac[1][j] * Sigma +
+                    djacdx[1][i][k] * djacdx[1][j][l] * Sigma +
+                    djacdx[1][i][k] * jac[1][j] * dSigmadx[l] +
+                    d2jacdx2[2][j][k][l] * jac[2][i] * gamma_pp +
+                    djacdx[2][j][k] * djacdx[2][i][l] * gamma_pp +
+                    djacdx[2][j][k] * jac[2][i] * dgammappdx[i] +
+                    d2jacdx2[2][i][k][l] * jac[2][j] * gamma_pp +
+                    djacdx[2][i][k] * djacdx[2][j][l] * gamma_pp +
+                    djacdx[2][i][k] * jac[2][j] * dgammappdx[i] +
+                    djacdx[0][i][l] * jac[0][j] * dgammaRRdx[k] +
+                    jac[0][i] * djacdx[0][j][l] * dgammaRRdx[k] +
+                    jac[0][i] * jac[0][j] * d2gammaRRdx2[k][l] +
+                    djacdx[1][i][l] * jac[1][j] * dSigmadx[k] +
+                    jac[1][i] * djacdx[1][j][l] * dSigmadx[k] +
+                    jac[1][i] * jac[1][j] * d2Sigmadx2[k][l] +
+                    djacdx[2][i][l] * jac[2][j] * dgammappdx[k] +
+                    jac[2][i] * djacdx[2][j][l] * dgammappdx[k] +
+                    jac[2][i] * jac[2][j] * d2gammappdx2[k][l];
             }
         }
 
         FOR1(i)
         {
-            vars.d1_gamma_UU[0][0][i] = dSigmadx[i] * cot_theta2 / AA + Sigma * 2.0 * cot_theta * dcot_thetadx[i] / AA - Sigma * cot_theta2 * dAAdx[i] / AA2 
-                                        - dSigmadx[i] * (sin_theta2 * sin_phi2 + 16.0 * R2 * R * cos_phi2 * sin_theta2 * (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus)) / Sigma2
-                                        + 2.0 * (sin_theta * dsin_thetadx[i] * sin_phi2 + sin_phi * dsin_phidx[i] * sin_theta2) / Sigma
-                                        + 48.0 * R2  * dRdx[i] * cos_phi2 * sin_theta2 * (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus) / Sigma 
-                                        + 32.0 * R2 * R * cos_phi * dcos_phidx[i] * sin_theta2 * (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus) / Sigma 
-                                        + 32.0 * R2 * R * sin_theta* dsin_thetadx[i] * cos_phi2 * (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus) / Sigma 
-                                        + 16.0 * R2 * R * cos_phi2 * sin_theta2 * drBLdx[i] / (4.0 * R + r_plus) / (4.0 * R + r_plus) / Sigma 
-                                        - 16.0 * R2 * R * cos_phi2 * sin_theta2 * (r_BL - r_minus) * 8.0 * dRdx[i] / (4.0 * R + r_plus) (4.0 * R + r_plus) (4.0 * R + r_plus) / Sigma;
+            vars.d1_gamma_UU[0][0][i] =
+                dSigmadx[i] * cot_theta2 / AA +
+                Sigma * 2.0 * cot_theta * dcot_thetadx[i] / AA -
+                Sigma * cot_theta2 * dAAdx[i] / AA2 -
+                dSigmadx[i] *
+                    (sin_theta2 * sin_phi2 +
+                     16.0 * R2 * R * cos_phi2 * sin_theta2 * (r_BL - r_minus) /
+                         (4.0 * R + r_plus) / (4.0 * R + r_plus)) /
+                    Sigma2 +
+                2.0 *
+                    (sin_theta * dsin_thetadx[i] * sin_phi2 +
+                     sin_phi * dsin_phidx[i] * sin_theta2) /
+                    Sigma +
+                48.0 * R2 * dRdx[i] * cos_phi2 * sin_theta2 * (r_BL - r_minus) /
+                    (4.0 * R + r_plus) / (4.0 * R + r_plus) / Sigma +
+                32.0 * R2 * R * cos_phi * dcos_phidx[i] * sin_theta2 *
+                    (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus) /
+                    Sigma +
+                32.0 * R2 * R * sin_theta * dsin_thetadx[i] * cos_phi2 *
+                    (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus) /
+                    Sigma +
+                16.0 * R2 * R * cos_phi2 * sin_theta2 * drBLdx[i] /
+                    (4.0 * R + r_plus) / (4.0 * R + r_plus) / Sigma -
+                16.0 * R2 * R * cos_phi2 * sin_theta2 * (r_BL - r_minus) * 8.0 *
+                    dRdx[i] /
+                    (4.0 * R + r_plus)(4.0 * R + r_plus)(4.0 * R + r_plus) /
+                    Sigma;
 
-            vars.d1_gamma_UU[0][1][i] = dRdx[i] / Sigma * (- Sigma2 * cot_theta / AA + cos_theta * sin_theta * sin_phi2 + 16.0 * R2 * R * cos_phi2 * sin_theta * cos_theta * (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus) )
-            -R * dSigmadx[i] / Sigma2 * (- Sigma2 * cot_theta / AA + cos_theta * sin_theta * sin_phi2 + 16.0 * R2 * R * cos_phi2 * sin_theta * cos_theta * (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus) )
-            + (R/Sigma) * (- 2.0 * dSigmadx[i] * Sigma * cot_theta / AA  - Sigma2 * dcot_thetadx[i] / AA + Sigma2 * cot_theta * dAAdx[i] / AA2
-                            + dcos_thetadx[i] * sin_theta * sin_phi2 + cos_theta * dsin_thetadx[i] * sin_phi2 + 2.0 * cos_theta * sin_theta * dsin_phidx[i] * sin_phi
-                            + 16.0 * 3.0 * R2 * dRdx[i] * cos_phi2 * sin_theta * cos_theta * (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus)
-                            + 16.0 * R2 * R * 2.0 * dcos_phidx[i] * cos_phi * sin_theta * cos_theta * (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus)
-                            + 16.0 * R2 * R * cos_phi2 * dsin_thetadx[i] * cos_theta * (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus)
-                            + 16.0 * R2 * R * cos_phi2 * sin_theta * dcos_thetadx[i] * (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus)
-                            + 16.0 * R2 * R * cos_phi2 * sin_theta * cos_theta * drBLdx[i] / (4.0 * R + r_plus) / (4.0 * R + r_plus)
-                            - 16.0 * 8.0 * R2 * R * cos_phi2 * sin_theta * cos_theta * (r_BL - r_minus) * dRdx[i] / (4.0 * R + r_plus) / (4.0 * R + r_plus) / (4.0 * R + r_plus)); 
+            vars.d1_gamma_UU[0][1][i] =
+                dRdx[i] / Sigma *
+                    (-Sigma2 * cot_theta / AA +
+                     cos_theta * sin_theta * sin_phi2 +
+                     16.0 * R2 * R * cos_phi2 * sin_theta * cos_theta *
+                         (r_BL - r_minus) / (4.0 * R + r_plus) /
+                         (4.0 * R + r_plus)) -
+                R * dSigmadx[i] / Sigma2 *
+                    (-Sigma2 * cot_theta / AA +
+                     cos_theta * sin_theta * sin_phi2 +
+                     16.0 * R2 * R * cos_phi2 * sin_theta * cos_theta *
+                         (r_BL - r_minus) / (4.0 * R + r_plus) /
+                         (4.0 * R + r_plus)) +
+                (R / Sigma) *
+                    (-2.0 * dSigmadx[i] * Sigma * cot_theta / AA -
+                     Sigma2 * dcot_thetadx[i] / AA +
+                     Sigma2 * cot_theta * dAAdx[i] / AA2 +
+                     dcos_thetadx[i] * sin_theta * sin_phi2 +
+                     cos_theta * dsin_thetadx[i] * sin_phi2 +
+                     2.0 * cos_theta * sin_theta * dsin_phidx[i] * sin_phi +
+                     16.0 * 3.0 * R2 * dRdx[i] * cos_phi2 * sin_theta *
+                         cos_theta * (r_BL - r_minus) / (4.0 * R + r_plus) /
+                         (4.0 * R + r_plus) +
+                     16.0 * R2 * R * 2.0 * dcos_phidx[i] * cos_phi * sin_theta *
+                         cos_theta * (r_BL - r_minus) / (4.0 * R + r_plus) /
+                         (4.0 * R + r_plus) +
+                     16.0 * R2 * R * cos_phi2 * dsin_thetadx[i] * cos_theta *
+                         (r_BL - r_minus) / (4.0 * R + r_plus) /
+                         (4.0 * R + r_plus) +
+                     16.0 * R2 * R * cos_phi2 * sin_theta * dcos_thetadx[i] *
+                         (r_BL - r_minus) / (4.0 * R + r_plus) /
+                         (4.0 * R + r_plus) +
+                     16.0 * R2 * R * cos_phi2 * sin_theta * cos_theta *
+                         drBLdx[i] / (4.0 * R + r_plus) / (4.0 * R + r_plus) -
+                     16.0 * 8.0 * R2 * R * cos_phi2 * sin_theta * cos_theta *
+                         (r_BL - r_minus) * dRdx[i] / (4.0 * R + r_plus) /
+                         (4.0 * R + r_plus) / (4.0 * R + r_plus));
 
-            vars.d1_gamma_UU[0][2][i] = (dRdx[i] / Sigma) * (cos_phi * sin_theta2 * sin_phi * (1.0 + 16.0 * R2 * R * (r_minus - r_BL) / (4.0 * R + r_plus) / (4.0 * R + r_plus)))
-                                        -(R * dSigmadx[i] / Sigma2) * (cos_phi * sin_theta2 * sin_phi * (1.0 + 16.0 * R2 * R * (r_minus - r_BL) / (4.0 * R + r_plus) / (4.0 * R + r_plus)))
-                                        + (R / Sigma) * (dcos_phidx[i] * sin_theta2 * sin_phi * (1.0 + 16.0 * R2 * R * (r_minus - r_BL) / (4.0 * R + r_plus) / (4.0 * R + r_plus)))
-                                        + (R / Sigma) * (cos_phi * 2.0 * sin_theta * dsin_thetadx[i] * sinphi * (1.0 + 16.0 * R2 * R * (r_minus - r_BL) / (4.0 * R + r_plus) / (4.0 * R + r_plus)))
-                                        + (R / Sigma) * (cos_phi * sin_theta2 * dsin_phidx[i] * (1.0 + 16.0 * R2 * R * (r_minus - r_BL) / (4.0 * R + r_plus) / (4.0 * R + r_plus)))
-                                        + (R / Sigma) * (cos_phi * sin_theta2 * sin_phi * (16.0 * 3.0 * R2 * dRdx[i] * (r_minus - r_BL) / (4.0 * R + r_plus) / (4.0 * R + r_plus) 
-                                                                                            + -16.0 * R2 * R * drBLdx[i] / (4.0 * R + r_plus) / (4.0 * R + r_plus)
-                                                                                            + 16.0 * R2 *  R * (r_minus - r_BL) * (-8.0) * dRdx[i] / (4.0 * R + r_plus) / (4.0 * R + r_plus) / (4.0 * R + r_plus)));
-        
-            vars.d1_gamma_UU[1][1][i] = (2.0 * R * dRdx[i] / Sigma - R2 * dSigmadx[i] / Sigma2) * (Sigma2 / AA + cos_theta2 * sin_phi2  + 1.0 * R2 * R * cos_theta2 * cos_phi2 * (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus))
-                                        + (R2 / Sigma) * (2.0 * Sigma * dSigmadx[i] / AA - Sigma2 * dAAdx[i] / AA2 + 2.0 * dcos_thetadx[i] * cos_theta * sin_phi2 + 2.0 * cos_theta2 * dsin_phidx[i] * sin_phi
-                                                            + (16.0 * 3.0 * R2 * dRdx[i] * cos_theta2 * cos_phi2 * (r_BL - r_minus) + 16.0 * R2 * R * 2.0 * cos_theta * dcos_thetadx[i] * cos_phi2 * (r_BL - r_minus)
-                                                                + 16.0 * R2 * R * cos_theta2 * 2.0 * cos_phi * dcos_phidx[i] * (r_BL - r_minus)
-                                                                + 16.0 * R2 * R * cos_theta2 * cos_phi2 * drBLdx[i]) / (4.0 * R + r_plus) / (4.0 * R + r_plus)
-                                                                - 16.0 * R2 * R * cos_theta2 * cos_phi2 * (r_BL - r_minus) * 8.0 * dRdx[i] / (4.0 * R + r_plus) / (4.0 * R + r_plus) / (4.0 * R + r_plus));
+            vars.d1_gamma_UU[0][2][i] =
+                (dRdx[i] / Sigma) *
+                    (cos_phi * sin_theta2 * sin_phi *
+                     (1.0 + 16.0 * R2 * R * (r_minus - r_BL) /
+                                (4.0 * R + r_plus) / (4.0 * R + r_plus))) -
+                (R * dSigmadx[i] / Sigma2) *
+                    (cos_phi * sin_theta2 * sin_phi *
+                     (1.0 + 16.0 * R2 * R * (r_minus - r_BL) /
+                                (4.0 * R + r_plus) / (4.0 * R + r_plus))) +
+                (R / Sigma) *
+                    (dcos_phidx[i] * sin_theta2 * sin_phi *
+                     (1.0 + 16.0 * R2 * R * (r_minus - r_BL) /
+                                (4.0 * R + r_plus) / (4.0 * R + r_plus))) +
+                (R / Sigma) *
+                    (cos_phi * 2.0 * sin_theta * dsin_thetadx[i] * sinphi *
+                     (1.0 + 16.0 * R2 * R * (r_minus - r_BL) /
+                                (4.0 * R + r_plus) / (4.0 * R + r_plus))) +
+                (R / Sigma) *
+                    (cos_phi * sin_theta2 * dsin_phidx[i] *
+                     (1.0 + 16.0 * R2 * R * (r_minus - r_BL) /
+                                (4.0 * R + r_plus) / (4.0 * R + r_plus))) +
+                (R / Sigma) * (cos_phi * sin_theta2 * sin_phi *
+                               (16.0 * 3.0 * R2 * dRdx[i] * (r_minus - r_BL) /
+                                    (4.0 * R + r_plus) / (4.0 * R + r_plus) +
+                                -16.0 * R2 * R * drBLdx[i] /
+                                    (4.0 * R + r_plus) / (4.0 * R + r_plus) +
+                                16.0 * R2 * R * (r_minus - r_BL) * (-8.0) *
+                                    dRdx[i] / (4.0 * R + r_plus) /
+                                    (4.0 * R + r_plus) / (4.0 * R + r_plus)));
+
+            vars.d1_gamma_UU[1][1][i] =
+                (2.0 * R * dRdx[i] / Sigma - R2 * dSigmadx[i] / Sigma2) *
+                    (Sigma2 / AA + cos_theta2 * sin_phi2 +
+                     1.0 * R2 * R * cos_theta2 * cos_phi2 * (r_BL - r_minus) /
+                         (4.0 * R + r_plus) / (4.0 * R + r_plus)) +
+                (R2 / Sigma) *
+                    (2.0 * Sigma * dSigmadx[i] / AA - Sigma2 * dAAdx[i] / AA2 +
+                     2.0 * dcos_thetadx[i] * cos_theta * sin_phi2 +
+                     2.0 * cos_theta2 * dsin_phidx[i] * sin_phi +
+                     (16.0 * 3.0 * R2 * dRdx[i] * cos_theta2 * cos_phi2 *
+                          (r_BL - r_minus) +
+                      16.0 * R2 * R * 2.0 * cos_theta * dcos_thetadx[i] *
+                          cos_phi2 * (r_BL - r_minus) +
+                      16.0 * R2 * R * cos_theta2 * 2.0 * cos_phi *
+                          dcos_phidx[i] * (r_BL - r_minus) +
+                      16.0 * R2 * R * cos_theta2 * cos_phi2 * drBLdx[i]) /
+                         (4.0 * R + r_plus) / (4.0 * R + r_plus) -
+                     16.0 * R2 * R * cos_theta2 * cos_phi2 * (r_BL - r_minus) *
+                         8.0 * dRdx[i] / (4.0 * R + r_plus) /
+                         (4.0 * R + r_plus) / (4.0 * R + r_plus));
 
             vars.d1_gamma_UU[1][2][i] = (2.0 * R * dRdx[i] / Sigma - R2 * dSigmadx[i] / Sigma2 - 8.0 * R2 * dRdx[i] / Sigma / (4.0 * R + r_plus)) * cos_theta * cos_phi * sin_theta * sin_phi * (16.0 * R2 * R * r_minus + (4.0 * R + r_plus) * (4.0 * R + r_plus) - 16.0 & R2 * R * r_BL) / (4.0 * R + r_plus) / (4.0 * R + r_plus)
                                         + (R2 * (16.0 * R2 * R * r_minus + (4.0 * R + r_plus) * (4.0 * R + r_plus) - 16.0 * R2 * R * r_BL)/ Sigma / (4.0 * R + r_plus) / (4.0 * R + r_plus)) * (dcos_thetadx[i] * cos_phi * sin_theta * sin_phi + 
                                         cos_theta * dcos_phidx[i] * sin_theta * sin_phi + cos_theta * cos_phi * dsin_thetadx[i] * sin_phi + cos_theta * cos_phi * sin_theta * dsin_phidx[i]))
                                         + (R2 * cos_theta * cos_phi * sin_theta * sin_phi) / (4.0 * R + r_plus) / (4.0 * R + r_plus) * (16.0 * 3.0 * R2 * dRdx[i] * r_minus + 8.0 * dRdx[i] * (4.0 * R + r_plus) - 16.0 * 3.0 * R2 * dRdx[i] * r_BL - 16.0 * R2 * R * drBLdx[i]);
-            
-            vars.d1_gamma_UU[2][2][i] = (2.0 * dRdx[i] * R * sin_theta2 / Sigma + R2 * 2.0 * dsin_thetadx[i] * sin_theta / Sigma - R2 * sin_theta2 * dSigmadx[i] / Sigma2) * (cos_phi2 + 16.0 * R2 * R * sin_phi2 * (r_BL - r_minus)  / (4.0 * R + r_minus) / (4.0 * R + r_minus))
-                                        +(R2 * sin_theta2 / Sigma) * (2.0 * cos_phi * dcos_phidx[i] + 16.0 * 3.0 * R2 * dRdx[i] * sin_phi * (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus) + 16.0 * R2 * R * 2.0 * dsin_phidx[i] * sin_phi * (r_BL - r_minus) / (4.0 * R + r_plus) / (4.0 * R + r_plus) 
-                                                                        + 16.0 * R2 * R * sin_phi2 * drBLdx[i] / (4.0 * R + r_plus) / (4.0 * R + r_plus)  - 16.0 * 8.0 * dRdx[i] * R2 * R * sin_phi2 * (r_BL - r_minus) / (4.0 * R + r_plus)  / (4.0 * R + r_plus)  / (4.0 * R + r_plus) );
-        
+
+            vars.d1_gamma_UU[2][2][i] =
+                (2.0 * dRdx[i] * R * sin_theta2 / Sigma +
+                 R2 * 2.0 * dsin_thetadx[i] * sin_theta / Sigma -
+                 R2 * sin_theta2 * dSigmadx[i] / Sigma2) *
+                    (cos_phi2 + 16.0 * R2 * R * sin_phi2 * (r_BL - r_minus) /
+                                    (4.0 * R + r_minus) / (4.0 * R + r_minus)) +
+                (R2 * sin_theta2 / Sigma) *
+                    (2.0 * cos_phi * dcos_phidx[i] +
+                     16.0 * 3.0 * R2 * dRdx[i] * sin_phi * (r_BL - r_minus) /
+                         (4.0 * R + r_plus) / (4.0 * R + r_plus) +
+                     16.0 * R2 * R * 2.0 * dsin_phidx[i] * sin_phi *
+                         (r_BL - r_minus) / (4.0 * R + r_plus) /
+                         (4.0 * R + r_plus) +
+                     16.0 * R2 * R * sin_phi2 * drBLdx[i] / (4.0 * R + r_plus) /
+                         (4.0 * R + r_plus) -
+                     16.0 * 8.0 * dRdx[i] * R2 * R * sin_phi2 *
+                         (r_BL - r_minus) / (4.0 * R + r_plus) /
+                         (4.0 * R + r_plus) / (4.0 * R + r_plus));
+
             vars.d1_gamma_UU[1][0][i] = vars.d1_gamma_UU[0][1][i];
             vars.d1_gamma_UU[2][0][i] = vars.d1_gamma_UU[0][2][i];
             vars.d1_gamma_UU[2][1][i] = vars.d1_gamma_UU[1][2][i];
-                                        
         }
-
 
         // calculate derivs of lapse and shift
         // use analytic continuation of lapse within the horizon
@@ -482,15 +642,18 @@ class IsoKerrFixedBG
                 (dDeltadx[i] / Delta + dSigmadx[i] / Sigma - dAAdx[i] / AA);
         }
 
-        //Extra derivative of the lapse
+        // Extra derivative of the lapse
 
-        FOR2(i,j)
+        FOR2(i, j)
         {
-            vars.d2_lapse[i][j] = vars.d1_lapse[j] * vars.d1_lapse[i] / vars.lapse 
-                                    + 0.5 * vars.lapse * (d2Deltadx2[i][j] / Delta - dDeltadx[i] * dDeltadx[j] / Delta2
-                                                        + d2Sigmadx2[i][j] / Sigma - dSigmadx[i] * dSigmadx[j] / Sigma2
-                                                        + d2AAdx2[i][j] / AA - dAAdx[i] * dAAdx[j] / AA2); 
-
+            vars.d2_lapse[i][j] =
+                vars.d1_lapse[j] * vars.d1_lapse[i] / vars.lapse +
+                0.5 * vars.lapse *
+                    (d2Deltadx2[i][j] / Delta -
+                     dDeltadx[i] * dDeltadx[j] / Delta2 +
+                     d2Sigmadx2[i][j] / Sigma -
+                     dSigmadx[i] * dSigmadx[j] / Sigma2 + d2AAdx2[i][j] / AA -
+                     dAAdx[i] * dAAdx[j] / AA2);
         }
 
         FOR2(i, j) { vars.d1_shift[i][j] = 0.0; }
@@ -504,16 +667,24 @@ class IsoKerrFixedBG
                 vars.shift[1] *
                 (drBLdx[i] / r_BL - dAAdx[i] / AA + delta(i, 0) / x);
         }
-        
-        FOR3(i,j,k) {vars.d2_shift[i][j][k] = 0.0;}
 
-        FOR2(i,j)
+        FOR3(i, j, k) { vars.d2_shift[i][j][k] = 0.0; }
+
+        FOR2(i, j)
         {
-            vars.d2_shift[0][i][j] = vars.d1_shift[0][j] * vars.d1_shift[0][i] / vars.shift[0] 
-                                    + vars.shift[0] * (d2rBLdx2[i][j] / r_BL - drBLdx[i] * drBLdx[j] / r_BL2 - d2AAdx2[i][j] / AA + dAAdx[i] * dAAdx[j] / AA2 - delta(i,1) * delta(j,1) / (y * y));
+            vars.d2_shift[0][i][j] =
+                vars.d1_shift[0][j] * vars.d1_shift[0][i] / vars.shift[0] +
+                vars.shift[0] *
+                    (d2rBLdx2[i][j] / r_BL - drBLdx[i] * drBLdx[j] / r_BL2 -
+                     d2AAdx2[i][j] / AA + dAAdx[i] * dAAdx[j] / AA2 -
+                     delta(i, 1) * delta(j, 1) / (y * y));
 
-            vars.d2_shift[1][i][j] = vars.d1_shift[1][j] * vars.d1_shift[1][i] / vars.shift[1] 
-                                    + vars.shift[1] * (d2rBLdx2[i][j] / r_BL - drBLdx[i] * drBLdx[j] / r_BL2 - d2AAdx2[i][j] / AA + dAAdx[i] * dAAdx[j] / AA2 - delta(i,0) * delta(j,0) / (x * x));
+            vars.d2_shift[1][i][j] =
+                vars.d1_shift[1][j] * vars.d1_shift[1][i] / vars.shift[1] +
+                vars.shift[1] *
+                    (d2rBLdx2[i][j] / r_BL - drBLdx[i] * drBLdx[j] / r_BL2 -
+                     d2AAdx2[i][j] / AA + dAAdx[i] * dAAdx[j] / AA2 -
+                     delta(i, 0) * delta(j, 0) / (x * x));
         }
         // calculate the extrinsic curvature, using the fact that
         // 2 * lapse * K_ij = D_i \beta_j + D_j \beta_i - dgamma_ij dt
@@ -539,19 +710,23 @@ class IsoKerrFixedBG
         }
         vars.K = compute_trace(vars.K_tensor, gamma_UU);
 
-
         FOR2(i, j)
         {
             FOR2(k, m)
             {
                 vars.d1_chris_phys[i][j][k][m] = 0.0;
-            
+
                 FOR1(n)
                 {
-                    vars.d1_chris_phys[i][j][k][m] += 0.5 * vars.d1_gamma_UU[i][n][m] * (vars.d1_gamma[k][n][j] + vars.d1_gamma[n][j][k] - vars.d1_gamma[j][k][n])
+                    vars.d1_chris_phys[i][j][k][m] +=
+                        0.5 * vars.d1_gamma_UU[i][n][m] *
+                            (vars.d1_gamma[k][n][j] + vars.d1_gamma[n][j][k] -
+                             vars.d1_gamma[j][k][n])
 
-                                                    + 0.5 * gamma_UU[i][n] * (vars.d2_gamma[k][n][j][m] + vars.d2_gamma[n][j][k][m] - vars.d2_gamma[j][k][n][m]);
-                
+                        + 0.5 * gamma_UU[i][n] *
+                              (vars.d2_gamma[k][n][j][m] +
+                               vars.d2_gamma[n][j][k][m] -
+                               vars.d2_gamma[j][k][n][m]);
                 }
             }
         }
@@ -561,51 +736,66 @@ class IsoKerrFixedBG
 
             FOR1(m)
             {
-                vars.d1_K_tensor[i][j][k] += vars.d1_gamma[m][j][k] * vars.d1_shift[m][i] + vars.gamma[m][j] * vars.d2_shift[m][i][k]
-                                            + vars.d1_gamma[m][i][k] * vars.d1_shift[m][j] + vars.gamma[m][i] * vars.d2_shift[m][j][k]
-                + (vars.d2_gamma[m][i][j][k] + vars.d2_gamma[m][j][i][k]) * vars.shift[m]
-                + (vars.d1_gamma[m][i][j] + vars.d1_gamma[m][j][i]) * vars.d1_shift[m][k];
+                vars.d1_K_tensor[i][j][k] +=
+                    vars.d1_gamma[m][j][k] * vars.d1_shift[m][i] +
+                    vars.gamma[m][j] * vars.d2_shift[m][i][k] +
+                    vars.d1_gamma[m][i][k] * vars.d1_shift[m][j] +
+                    vars.gamma[m][i] * vars.d2_shift[m][j][k] +
+                    (vars.d2_gamma[m][i][j][k] + vars.d2_gamma[m][j][i][k]) *
+                        vars.shift[m] +
+                    (vars.d1_gamma[m][i][j] + vars.d1_gamma[m][j][i]) *
+                        vars.d1_shift[m][k];
                 FOR1(n)
                 {
-                    vars.d1_K_tensor[i][j][k] += -2.0 * (vars.d1_chris_phys[m][i][j][k] * vars.gamma[m][n] * vars.shift[n]
-                    + chris_local[m][i][j] * vars.d1_gamma[m][n][k] * vars.shift[n]
-                    + chris_local[m][i][j] * vars.gamma[m][n] * vars.d1_shift[n][k]);
+                    vars.d1_K_tensor[i][j][k] +=
+                        -2.0 * (vars.d1_chris_phys[m][i][j][k] *
+                                    vars.gamma[m][n] * vars.shift[n] +
+                                chris_local[m][i][j] * vars.d1_gamma[m][n][k] *
+                                    vars.shift[n] +
+                                chris_local[m][i][j] * vars.gamma[m][n] *
+                                    vars.d1_shift[n][k]);
                 }
-
             }
             vars.d1_K_tensor[i][j][k] *= 0.5 / vars.lapse;
-            vars.d1_K_tensor[i][j][k] += - vars.d1_lapse[k] / vars.lapse * vars.K_tensor[i][j];
+            vars.d1_K_tensor[i][j][k] +=
+                -vars.d1_lapse[k] / vars.lapse * vars.K_tensor[i][j];
 
-            //vars.d1_K_tensor[i][j][k] = 0.0;
+            // vars.d1_K_tensor[i][j][k] = 0.0;
         }
-                //Derivative of the trace, \partial_i K = \partial_i(gamma^jk K_jk)
+        // Derivative of the trace, \partial_i K = \partial_i(gamma^jk K_jk)
         FOR1(i)
         {
             vars.d1_K[i] = 0.0;
-            FOR2(j,k)
+            FOR2(j, k)
             {
-                vars.d1_K[i] += vars.d1_gamma_UU[j][k][i] * vars.K_tensor[j][k] + gamma_UU[j][k] * vars.d1_K_tensor[j][k][i];
+                vars.d1_K[i] +=
+                    vars.d1_gamma_UU[j][k][i] * vars.K_tensor[j][k] +
+                    gamma_UU[j][k] * vars.d1_K_tensor[j][k][i];
             }
         }
 
-        //spatial riemann curvature tensor 
-        
+        // spatial riemann curvature tensor
+
         FOR1(i)
         {
-            FOR3(j,k,l)
+            FOR3(j, k, l)
             {
-                vars.riemann_phys_ULLL[i][j][k][l] = vars.d1_chris_phys[i][l][j][k] - vars.d1_chris_phys[i][k][j][l];
+                vars.riemann_phys_ULLL[i][j][k][l] =
+                    vars.d1_chris_phys[i][l][j][k] -
+                    vars.d1_chris_phys[i][k][j][l];
 
                 FOR1(m)
                 {
-                    vars.riemann_phys_ULLL[i][j][k][l] += chris_local[m][l][j] * chris_local[i][m][k] - chris_local[m][k][j] * chris_local[i][m][l]; 
-                    //vars.riemann_phys_ULLL[i][j][k][l] = 0;
+                    vars.riemann_phys_ULLL[i][j][k][l] +=
+                        chris_local[m][l][j] * chris_local[i][m][k] -
+                        chris_local[m][k][j] * chris_local[i][m][l];
+                    // vars.riemann_phys_ULLL[i][j][k][l] = 0;
                 }
             }
         }
 
-        //spatial ricci tensor
-        FOR2(i,j)
+        // spatial ricci tensor
+        FOR2(i, j)
         {
             vars.ricci_phys[i][j] = 0;
             FOR1(k)
@@ -615,13 +805,7 @@ class IsoKerrFixedBG
         }
     }
 
-
-
-
-
-
-
-    //Other 3+1 ADM derivatives 
+    // Other 3+1 ADM derivatives
 
   public:
     // used to decide when to excise - ie when within the horizon of the BH
