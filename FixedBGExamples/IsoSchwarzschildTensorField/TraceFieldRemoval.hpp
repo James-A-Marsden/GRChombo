@@ -45,7 +45,6 @@ template <class matter_t, class background_t> class TraceFieldRemoval
     template <class data_t> void compute(Cell<data_t> current_cell) const
     {
         // copy data from chombo gridpoint into local variables, and calc 1st
-        // derivs
         const auto vars = current_cell.template load_vars<MatterVars>();
 
         // get the metric vars
@@ -55,29 +54,12 @@ template <class matter_t, class background_t> class TraceFieldRemoval
         using namespace TensorAlgebra;
         const auto gamma_UU =
             TensorAlgebra::compute_inverse_sym(metric_vars.gamma);
-        const auto chris_phys =
-            compute_christoffel(metric_vars.d1_gamma, gamma_UU);
 
         data_t fspatial_trace =
             TensorAlgebra::compute_trace(vars.fspatial, gamma_UU);
 
-        Tensor<2, data_t> new_fspatial;
+        current_cell.store_vars(fspatial_trace, c_fhat);
 
-        FOR2(i, j)
-        {
-            new_fspatial[i][j] =
-                vars.fspatial[i][j] -
-                (1.0 / 3.0) * metric_vars.gamma[i][j] *
-                    (fspatial_trace + vars.fhat / metric_vars.lapse);
-        }
-        /*
-        current_cell.store_vars(new_fspatial[0][0], c_fspatial11);
-        current_cell.store_vars(new_fspatial[0][1], c_fspatial12);
-        current_cell.store_vars(new_fspatial[0][2], c_fspatial13);
-        current_cell.store_vars(new_fspatial[1][1], c_fspatial22);
-        current_cell.store_vars(new_fspatial[1][2], c_fspatial23);
-        current_cell.store_vars(new_fspatial[2][2], c_fspatial33);
-        */
     }
 };
 #endif /* TRACEFIELDREMOVAL_HPP_ */

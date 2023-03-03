@@ -5,9 +5,9 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-#output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/paper_convergence/profile_high_three"
-chk_prefix =  IsoTensor_Chk_
-plot_prefix = IsoTensor_Plot_
+output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/paper_convergence/profile_high_three_debug"
+chk_prefix =  IsoTensor_ThreeLevel_m0p0_dk1p0_L16_N128_gauge_Chk_
+plot_prefix = IsoTensor_ThreeLevel_m0p0_dk1p0_L16_N128_gauge_Plt_
 #restart_file = 
 
 # subpaths - specific directories for hdf5, pout, extraction data
@@ -26,8 +26,8 @@ data_subpath = "data"
 # dt will be dx*dt_multiplier on each grid level
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
 
-checkpoint_interval = 10
-plot_interval = 10
+checkpoint_interval = 5
+plot_interval = 5
 
 #num_plot_vars = 30
 #plot_vars = fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
@@ -61,6 +61,16 @@ max_level = 2 There are (max_level+1) grids, so min is zero
 # Need one for each level, ie max_level+1 items
 # Generally you do not need to regrid frequently on every level
 regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
+
+tensor_field_mass = 0.0
+
+#Value of the damping coefficient
+damping_kappa = 1.0
+
+#for constraint damping = 1 no constraint damping = 0
+damping_switch = 0
+
+
 
 # Max box size
 max_grid_size = 16

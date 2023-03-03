@@ -23,14 +23,20 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
     //! The local copy of the potential
     potential_t my_potential;
 
+    double m_tensor_field_mass;
+    double m_damping_kappa;
+    int m_damping_switch;
+
   public:
     //!  Constructor of class FixedBGTensorField, inputs are the matter
     // //!  parameters.
-    FixedBGTensorField(const potential_t a_potential)
-        : my_potential(a_potential)
+    FixedBGTensorField(const potential_t a_potential, double a_tensor_field_mass, double a_damping_kappa, int a_damping_switch)
+        : my_potential(a_potential),
+        m_tensor_field_mass(a_tensor_field_mass),
+        m_damping_kappa(a_damping_kappa),
+        m_damping_switch(a_damping_switch)
     {
     }
-
     //! Structure containing the rhs variables for the matter fields
     template <class data_t> struct Vars
     {
@@ -160,7 +166,10 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
             &metric_vars, //!< the value of the metric variables
         const vars_t<Tensor<1, data_t>> &d1,       //!< value of the 1st derivs
         const diff2_vars_t<Tensor<2, data_t>> &d2, //!< value of the 2nd derivs
-        const vars_t<data_t> &advec);
+        const vars_t<data_t> &advec,
+        const double tensor_field_mass,
+        const double damping_kappa,
+        int damping_switch);
 };
 
 #include "FixedBGTensorField.impl.hpp"

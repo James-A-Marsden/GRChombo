@@ -149,140 +149,34 @@ class IsoSchwarzschildFixedBG
                 }
             }
         }
-        /*
-        vars.lapse = (1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r);
+      
+        vars.lapse = (1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
+        // Flip to minus sign inside horizon, not zeroing?
 
-        data_t alpha2 = vars.lapse * vars.lapse;
         // calculate derivs of lapse and shift
         FOR1(i)
         {
-            vars.d1_lapse[i] = 4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 *
-        r);
+            vars.d1_lapse[i] =
+                4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
+
+            vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
         }
 
-        FOR2(i,j)
+        FOR2(i, j)
         {
-            vars.d2_lapse[i][j] = 4.0 * M * (d2_r[i][j] * (M + 2.0 * r) - 4.0 *
-        d1_r[i] * d1_r[j]) * pow(M + 2.0 * r,-3.0);
-        }
-        */
-        // Sign changing implementation
-        /*
-        vars.lapse = abs(1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r);
+            vars.d2_lapse[i][j] =
+                4.0 * M *
+                (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) *
+                pow(M + 2.0 * r, -3.0);
 
-        data_t alpha2 = vars.lapse * vars.lapse;
-        // calculate derivs of lapse and shift
-        FOR1(i)
-        {
-            vars.d1_lapse[i] = M * (-2.0 * M + 4.0 * r) * d1_r[i] / (M + 2.0 *
-        r) / (M + 2.0 * r) / r / sqrt(pow(1.0 - 0.5 * M /r,2.0));
+            vars.d2_ln_lapse[i][j] =
+                -(4.0 * M *
+                    (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
+                    4.0 * r2 * d2_r[i][j])) /
+                (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
         }
 
-        FOR2(i,j)
-        {
-            vars.d2_lapse[i][j] = (M * ((8.0 * pow(M,3.0) - 48.0 * M * M * r
-        + 96.0 * M * r2 - 64.0 * r2 * r) *d1_r[i] * d1_r[j] + (-2.0 *
-        pow(M,4.0)+ 8.0 * pow(M,3.0) * r - 32.0 * M * r2 * r + 32.0 * r2 * r2)*
-        d2_r[i][j])) / (sqrt(pow(1.0 - 0.5 * M / r, 2.0)) * (M - 2.0 * r) * (M
-        - 2.0 * r) * r * pow((M + 2.0 * r),3.0));
-        }
-        */
-
-        // Zeroing implementation
-
-        // if (simd_compare_gt(r,0.0))
-
-        const double minimum_lapse = 1e-6;
-        // if (simd_compare_gt(r, M / 2.0))
-        if (simd_compare_gt(r, 0.0))
-        {
-            // vars.lapse = simd_max((1.0 - 0.5 * M /r) / (1.0 + 0.5 * M
-            // /r),minimum_lapse);
-            vars.lapse = (1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
-            // Flip to minus sign inside horizon, not zeroing?
-            // vars.lapse = simd_max((1.0 - 0.5 * M /r) / (1.0 + 0.5 * M
-            // /r),-(1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r));
-
-            // calculate derivs of lapse and shift
-            FOR1(i)
-            {
-                vars.d1_lapse[i] =
-                    4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
-
-                vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
-            }
-
-            FOR2(i, j)
-            {
-                vars.d2_lapse[i][j] =
-                    4.0 * M *
-                    (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) *
-                    pow(M + 2.0 * r, -3.0);
-
-                vars.d2_ln_lapse[i][j] =
-                    -(4.0 * M *
-                      (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
-                       4.0 * r2 * d2_r[i][j])) /
-                    (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
-            }
-        }
-        else
-        // Try zeroing
-        {
-            // Flip to minus sign
-            vars.lapse = minimum_lapse;
-            FOR1(i)
-            {
-                vars.d1_lapse[i] = 0.0;
-
-                vars.d1_ln_lapse[i] = 0.0;
-                FOR1(j)
-                {
-                    vars.d2_lapse[i][j] = 0.0;
-
-                    vars.d2_ln_lapse[i][j] = 0.0;
-                }
-            }
-        }
-        /*
-        {
-            //Flip to minus sign
-            vars.lapse = -(1.0 - 0.5 * M /r) / (1.0 + 0.5 * M /r);
-            FOR1(i)
-            {
-                vars.d1_lapse[i] = -4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0
-        * r);
-
-                vars.d1_ln_lapse[i] = 4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
-                FOR1(j)
-                {
-                vars.d2_lapse[i][j] = -4.0 * M * (d2_r[i][j] * (M + 2.0 * r)
-        - 4.0 * d1_r[i] * d1_r[j]) * pow(M + 2.0 * r,-3.0);
-
-                vars.d2_ln_lapse[i][j] = (4.0 * M * (8.0 * r * d1_r[i] * d1_r[j]
-        + M * M * d2_r[i][j] - 4.0 * r2 * d2_r[i][j]))/(M * M - 4.0 * r2) /(M *
-        M - 4.0 * r2);
-                }
-            }
-
-        }
-        */
-        /*
-        data_t horizon = M / 2.0;
-
-        vars.lapse = simd_conditional(r > horizon , (1.0 - 0.5 * M /r) / (1.0 +
-        0.5 * M /r) ,0.0); FOR1(i)
-        {
-            vars.d1_lapse[i] = simd_conditional(r > horizon, 4.0 * M * d1_r[i] /
-        (M + 2.0 * r) / (M + 2.0 * r),0.0);
-        }
-        FOR2(i,j)
-        {
-            vars.d2_lapse[i][j] = simd_conditional(r > horizon, 4.0 * M *
-        (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) * pow(M + 2.0 *
-        r,-3.0),0.0);
-        }
-        */
+       
         data_t alpha2 = vars.lapse * vars.lapse;
 
         FOR1(i) { vars.shift[i] = 0.0; }
@@ -363,18 +257,6 @@ class IsoSchwarzschildFixedBG
 
         const double horizon_distance = r / (M / 2.0);
 
-        // const double horizon_distance = 100000.0;
-        /*
-        if (M>0.0)
-        {
-            horizon_distance = r / (M/2.0);
-        }
-        else
-        {
-            horizon_distance = 0.0;
-        }
-        */
-        // return sqrt(horizon_distance);
         return horizon_distance;
     }
 };
