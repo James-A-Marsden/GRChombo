@@ -374,12 +374,12 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     if(damping_switch > 0)
     FOR2(i,j)
     {
-        rhs.v[i][j] -= 100.0 * metric_vars.gamma[i][j] * damping_kappa * vars.Xhat
+        rhs.v[i][j] +=  metric_vars.gamma[i][j] * damping_kappa * vars.Xhat
             - metric_vars.lapse * (d1.Xspatial[i][j] + d1.Xspatial[j][i]); 
     
         FOR1(k)
         {
-                rhs.v[i][j] -= metric_vars.lapse * 2.0 * chris_phys.ULL[k][i][j] * vars.Xspatial[k];
+                rhs.v[i][j] += metric_vars.lapse * 2.0 * chris_phys.ULL[k][i][j] * vars.Xspatial[k];
         }
     }
         
