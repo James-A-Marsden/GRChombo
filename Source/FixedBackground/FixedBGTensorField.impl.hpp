@@ -86,7 +86,7 @@ void FixedBGTensorField<potential_t>::matter_rhs(
 {
     // call the function for the rhs excluding the potential
     //double mass = m_tensor_field_mass;
-    matter_rhs_excl_potential(total_rhs, vars, metric_vars, d1, d2, advec, m_tensor_field_mass, m_damping_kappa, m_damping_kappa);
+    matter_rhs_excl_potential(total_rhs, vars, metric_vars, d1, d2, advec, m_tensor_field_mass, m_damping_kappa, m_damping_switch);
 }
 
 // the RHS excluding the potential terms
@@ -107,7 +107,46 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
     
     // Evolution equations for the field and the conjugate variables:
+    //replacement of fhat
+    data_t fspatial_trace = 0.0;
+    FOR2(i,j)
+    {
+        fspatial_trace += - metric_vars.lapse * gamma_UU[i][j] * vars.fspatial[i][j];
+    }
+    //Derivative of the trace of fspatial
+    Tensor<1,data_t> d1_fspatial_trace;
+    Tensor<2,data_t> d2_fspatial_trace; 
 
+    FOR1(i)
+    {
+        d1_fspatial_trace[i] = 0.0;
+
+        FOR2(j,k)
+        {
+            d1_fspatial_trace[i] += -metric_vars.d1_lapse[i] * gamma_UU[j][k] * vars.fspatial[j][k]
+                                    -metric_vars.lapse * (metric_vars.d1_gamma_UU[j][k][i] * vars.fspatial[j][k]
+                                                            +gamma_UU[j][k] * d1.fspatial[j][k][i]);
+        }
+    }
+
+    FOR2(i,j)
+    {
+        d2_fspatial_trace[i][j] = 0.0;
+
+        FOR2(k,l)
+        {
+             d2_fspatial_trace[i][j] += -metric_vars.d2_lapse[i][j] * gamma_UU[k][l] * vars.fspatial[k][l]
+                                     -metric_vars.d1_lapse[i] * metric_vars.d1_gamma_UU[k][l][j] * vars.fspatial[k][l]
+                                     -metric_vars.d1_lapse[i] * gamma_UU[k][l] * d1.fspatial[k][l][j]
+                                     -metric_vars.d1_lapse[j] * metric_vars.d1_gamma_UU[k][l][i] * vars.fspatial[k][l]
+                                     -metric_vars.lapse * metric_vars.d2_gamma_UU[k][l][i][j] * vars.fspatial[k][l]
+                                     -metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][i] * d1.fspatial[k][l][j]
+                                     -metric_vars.d1_lapse[j] * gamma_UU[k][l] * d1.fspatial[k][l][i]
+                                     -metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][j] * d1.fspatial[k][l][i]
+                                     -metric_vars.lapse * gamma_UU[k][l] * d2.fspatial[k][l][i][j];
+        }
+    }
+    
     rhs.fhat = 0.0;
     FOR2(i, j)
     {
@@ -125,7 +164,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     FOR1(i)
     {
 
-        rhs.fbar[i] = vars.fhat * metric_vars.d1_ln_lapse[i];
+        rhs.fbar[i] = fspatial_trace * metric_vars.d1_ln_lapse[i];
         FOR2(j, k)
         {
             rhs.fbar[i] += gamma_UU[j][k] *
@@ -174,7 +213,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
             rhs.v[i][j] = metric_vars.lapse * tensor_field_mass * tensor_field_mass *
                               vars.fspatial[i][j] -
                           2.0 * metric_vars.lapse * tensorRiemannTerm[i][j] +
-                          2.0 * vars.fhat * metric_vars.ricci_phys[i][j];
+                          2.0 * fspatial_trace * metric_vars.ricci_phys[i][j];
             FOR1(k)
             {
                 FOR1(l)
@@ -244,24 +283,24 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
     //We need constraints here for the damping variables
     data_t primaryScalar =
-        metric_vars.lapse * tensor_field_mass * tensor_field_mass * vars.fhat;
+        metric_vars.lapse * tensor_field_mass * tensor_field_mass * fspatial_trace;
 
     FOR2(i, j)
     {
         primaryScalar +=
             metric_vars.lapse * gamma_UU[i][j] *
-                (vars.fhat * metric_vars.ricci_phys[i][j] +
-                 2.0 * d1.fhat[i] * metric_vars.d1_ln_lapse[j] -
-                 2.0 * vars.fhat * metric_vars.d1_ln_lapse[i] *
+                (fspatial_trace * metric_vars.ricci_phys[i][j] +
+                 2.0 * d1_fspatial_trace[i] * metric_vars.d1_ln_lapse[j] -
+                 2.0 * fspatial_trace * metric_vars.d1_ln_lapse[i] *
                      metric_vars.d1_ln_lapse[j] -
-                 d2.fhat[i][j]) +
-            gamma_UU[i][j] * vars.fhat * metric_vars.d2_lapse[i][j];
+                 d2_fspatial_trace[i][j]) +
+            gamma_UU[i][j] * fspatial_trace * metric_vars.d2_lapse[i][j];
 
         FOR1(k)
         {
             primaryScalar += metric_vars.lapse * gamma_UU[i][j] *
-                             (chris_phys.ULL[k][i][j] * d1.fhat[k] -
-                              vars.fhat * chris_phys.ULL[k][i][j] *
+                             (chris_phys.ULL[k][i][j] * d1_fspatial_trace[k] -
+                              fspatial_trace * chris_phys.ULL[k][i][j] *
                                   metric_vars.d1_ln_lapse[k]);
 
             FOR1(l)
@@ -354,14 +393,16 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
 
     
-    rhs.Xhat = - 0.5 * damping_kappa * vars.Xhat - 0.5 * primaryScalar /
-    metric_vars.lapse;
+    //rhs.Xhat = - 0.5 * damping_kappa * vars.Xhat - 0.5 * primaryScalar /
+    //metric_vars.lapse;
+    rhs.Xhat = - 0.5 * damping_kappa * vars.Xhat + 0.5 * primaryScalar /
+    metric_vars.lapse;    
 
     FOR1(i)
     {
         rhs.Xspatial[i] =  - damping_kappa * vars.Xspatial[i] +
-    metric_vars.lapse * d1.Xhat[i] - vars.Xhat * metric_vars.d1_lapse[i] +
-    primaryVector[i];
+    //metric_vars.lapse * d1.Xhat[i] - vars.Xhat * metric_vars.d1_lapse[i] + primaryVector[i];
+    metric_vars.lapse * d1.Xhat[i] - vars.Xhat * metric_vars.d1_lapse[i] - primaryVector[i];
 
         FOR1(j)
         {
@@ -371,15 +412,15 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
         }
     }
     
-    if(damping_switch > 0)
+    if(damping_switch > 0.5)
     FOR2(i,j)
     {
-        rhs.v[i][j] +=  metric_vars.gamma[i][j] * damping_kappa * vars.Xhat
+        rhs.v[i][j] -=  metric_vars.gamma[i][j] * damping_kappa * vars.Xhat
             - metric_vars.lapse * (d1.Xspatial[i][j] + d1.Xspatial[j][i]); 
     
         FOR1(k)
         {
-                rhs.v[i][j] += metric_vars.lapse * 2.0 * chris_phys.ULL[k][i][j] * vars.Xspatial[k];
+                rhs.v[i][j] -= metric_vars.lapse * 2.0 * chris_phys.ULL[k][i][j] * vars.Xspatial[k];
         }
     }
         

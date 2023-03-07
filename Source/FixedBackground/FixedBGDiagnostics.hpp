@@ -109,7 +109,44 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
 
         if (rr > horizon)
         {
+            //replacement of fhat
+            data_t fspatial_trace = 0.0;
+            FOR2(i,j)
+            {
+                fspatial_trace += - metric_vars.lapse * gamma_UU[i][j] * vars.fspatial[i][j];
+            }
+            //Derivative of the trace of fspatial
+            Tensor<1,data_t> d1_fspatial_trace; 
 
+            FOR1(i)
+            {
+                d1_fspatial_trace[i] = 0.0;
+
+                FOR2(j,k)
+                {
+                    d1_fspatial_trace[i] += -metric_vars.d1_lapse[i] * gamma_UU[j][k] * vars.fspatial[j][k]
+                                            -metric_vars.lapse * (metric_vars.d1_gamma_UU[j][k][i] * vars.fspatial[j][k]
+                                                                    +gamma_UU[j][k] * d1.fspatial[j][k][i]);
+                }
+            }
+            Tensor<2, data_t> d2_fspatial_trace;            
+            FOR2(i,j)
+            {
+                d2_fspatial_trace[i][j] = 0.0;
+
+                FOR2(k,l)
+                {
+                    d2_fspatial_trace[i][j] += -metric_vars.d2_lapse[i][j] * gamma_UU[k][l] * vars.fspatial[k][l]
+                                            -metric_vars.d1_lapse[i] * metric_vars.d1_gamma_UU[k][l][j] * vars.fspatial[k][l]
+                                            -metric_vars.d1_lapse[i] * gamma_UU[k][l] * d1.fspatial[k][l][j]
+                                            -metric_vars.d1_lapse[j] * metric_vars.d1_gamma_UU[k][l][i] * vars.fspatial[k][l]
+                                            -metric_vars.lapse * metric_vars.d2_gamma_UU[k][l][i][j] * vars.fspatial[k][l]
+                                            -metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][i] * d1.fspatial[k][l][j]
+                                            -metric_vars.d1_lapse[j] * gamma_UU[k][l] * d1.fspatial[k][l][i]
+                                            -metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][j] * d1.fspatial[k][l][i]
+                                            -metric_vars.lapse * gamma_UU[k][l] * d2.fspatial[k][l][i][j];
+                }
+            }
             // TRACE DIAGNOSTICS
 
             trace_field = vars.fhat / metric_vars.lapse;
@@ -139,24 +176,24 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
                 }
             }
 
-            primaryScalar = metric_vars.lapse * m_tensor_field_mass * m_tensor_field_mass * vars.fhat;
+            primaryScalar = metric_vars.lapse * m_tensor_field_mass * m_tensor_field_mass * fspatial_trace;
 
             FOR2(i, j)
             {
                 primaryScalar +=
                     metric_vars.lapse * gamma_UU[i][j] *
-                        (vars.fhat * metric_vars.ricci_phys[i][j] +
-                         2.0 * d1.fhat[i] * metric_vars.d1_ln_lapse[j] -
-                         2.0 * vars.fhat * metric_vars.d1_ln_lapse[i] *
+                        (fspatial_trace * metric_vars.ricci_phys[i][j] +
+                         2.0 * d1_fspatial_trace[i] * metric_vars.d1_ln_lapse[j] -
+                         2.0 * fspatial_trace * metric_vars.d1_ln_lapse[i] *
                              metric_vars.d1_ln_lapse[j] -
-                         d2.fhat[i][j]) +
-                    gamma_UU[i][j] * vars.fhat * metric_vars.d2_lapse[i][j];
+                         d2_fspatial_trace[i][j]) +
+                    gamma_UU[i][j] * fspatial_trace * metric_vars.d2_lapse[i][j];
 
                 FOR1(k)
                 {
                     primaryScalar += metric_vars.lapse * gamma_UU[i][j] *
-                                     (chris_phys.ULL[k][i][j] * d1.fhat[k] -
-                                      vars.fhat * chris_phys.ULL[k][i][j] *
+                                     (chris_phys.ULL[k][i][j] * d1_fspatial_trace[k] -
+                                      fspatial_trace * chris_phys.ULL[k][i][j] *
                                           metric_vars.d1_ln_lapse[k]);
 
                     FOR1(l)

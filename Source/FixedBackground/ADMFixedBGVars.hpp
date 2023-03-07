@@ -36,6 +36,7 @@ template <class data_t> struct Vars
     Tensor<3, data_t> d2_shift;
     Tensor<4, data_t> d2_gamma;
     Tensor<3, data_t> d1_gamma_UU;
+    Tensor<4, data_t> d2_gamma_UU;
     Tensor<4, data_t> d1_chris_phys;
     Tensor<4, data_t> riemann_phys_ULLL;
     Tensor<2, data_t> ricci_phys;

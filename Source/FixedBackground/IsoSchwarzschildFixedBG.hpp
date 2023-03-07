@@ -128,6 +128,14 @@ class IsoSchwarzschildFixedBG
                                         pow(r, 3.0) * pow(M + 2.0 * r, -5.0);
         }
 
+        FOR2(i, j)
+        {
+            FOR2(k,l)
+            {
+                vars.d2_gamma_UU[i][j][k][l] = delta(i, j) * 64.0 * M * r2 * (d1_r[k] * d1_r[l] * (3.0 * M - 4.0 * r) + r * d2_r[k][l] * (2.0 * r + M))* pow(2.0 * r + M, -6.0);
+            }
+        }
+
         // Calculate derivative of the Christoffel symbol (phys)
         FOR2(i, j)
         {
