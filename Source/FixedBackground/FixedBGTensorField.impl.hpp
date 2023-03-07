@@ -393,16 +393,13 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
 
     
-    //rhs.Xhat = - 0.5 * damping_kappa * vars.Xhat - 0.5 * primaryScalar /
-    //metric_vars.lapse;
-    rhs.Xhat = - 0.5 * damping_kappa * vars.Xhat + 0.5 * primaryScalar /
-    metric_vars.lapse;    
+    rhs.Xhat = - 0.5 * damping_kappa * vars.Xhat - 0.5 * primaryScalar / metric_vars.lapse;
 
     FOR1(i)
     {
         rhs.Xspatial[i] =  - damping_kappa * vars.Xspatial[i] +
-    //metric_vars.lapse * d1.Xhat[i] - vars.Xhat * metric_vars.d1_lapse[i] + primaryVector[i];
-    metric_vars.lapse * d1.Xhat[i] - vars.Xhat * metric_vars.d1_lapse[i] - primaryVector[i];
+                metric_vars.lapse * d1.Xhat[i] - vars.Xhat * metric_vars.d1_lapse[i] + primaryVector[i];
+    
 
         FOR1(j)
         {
@@ -415,12 +412,12 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     if(damping_switch > 0.5)
     FOR2(i,j)
     {
-        rhs.v[i][j] -=  metric_vars.gamma[i][j] * damping_kappa * vars.Xhat
+        rhs.v[i][j] +=  metric_vars.gamma[i][j] * damping_kappa * vars.Xhat
             - metric_vars.lapse * (d1.Xspatial[i][j] + d1.Xspatial[j][i]); 
     
         FOR1(k)
         {
-                rhs.v[i][j] -= metric_vars.lapse * 2.0 * chris_phys.ULL[k][i][j] * vars.Xspatial[k];
+                rhs.v[i][j] += metric_vars.lapse * 2.0 * chris_phys.ULL[k][i][j] * vars.Xspatial[k];
         }
     }
         
