@@ -39,9 +39,11 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
 
   public:
     FixedBGDiagnostics(matter_t a_matter, background_t a_background,
-                       double a_dx, std::array<double, CH_SPACEDIM> a_center, double a_tensor_field_mass)
+                       double a_dx, std::array<double, CH_SPACEDIM> a_center,
+                       double a_tensor_field_mass)
         : m_matter(a_matter), m_deriv(a_dx), m_dx(a_dx),
-          m_background(a_background), m_center(a_center), m_tensor_field_mass(a_tensor_field_mass)
+          m_background(a_background), m_center(a_center),
+          m_tensor_field_mass(a_tensor_field_mass)
     {
     }
 
@@ -109,42 +111,60 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
 
         if (rr > horizon)
         {
-            //replacement of fhat
+            // replacement of fhat
             data_t fspatial_trace = 0.0;
-            FOR2(i,j)
+            FOR2(i, j)
             {
-                fspatial_trace += - metric_vars.lapse * gamma_UU[i][j] * vars.fspatial[i][j];
+                fspatial_trace +=
+                    -metric_vars.lapse * gamma_UU[i][j] * vars.fspatial[i][j];
             }
-            //Derivative of the trace of fspatial
-            Tensor<1,data_t> d1_fspatial_trace; 
+            // Derivative of the trace of fspatial
+            Tensor<1, data_t> d1_fspatial_trace;
 
             FOR1(i)
             {
                 d1_fspatial_trace[i] = 0.0;
 
-                FOR2(j,k)
+                FOR2(j, k)
                 {
-                    d1_fspatial_trace[i] += -metric_vars.d1_lapse[i] * gamma_UU[j][k] * vars.fspatial[j][k]
-                                            -metric_vars.lapse * (metric_vars.d1_gamma_UU[j][k][i] * vars.fspatial[j][k]
-                                                                    +gamma_UU[j][k] * d1.fspatial[j][k][i]);
+                    d1_fspatial_trace[i] +=
+                        -metric_vars.d1_lapse[i] * gamma_UU[j][k] *
+                            vars.fspatial[j][k] -
+                        metric_vars.lapse *
+                            (metric_vars.d1_gamma_UU[j][k][i] *
+                                 vars.fspatial[j][k] +
+                             gamma_UU[j][k] * d1.fspatial[j][k][i]);
                 }
             }
-            Tensor<2, data_t> d2_fspatial_trace;            
-            FOR2(i,j)
+            Tensor<2, data_t> d2_fspatial_trace;
+            FOR2(i, j)
             {
                 d2_fspatial_trace[i][j] = 0.0;
 
-                FOR2(k,l)
+                FOR2(k, l)
                 {
-                    d2_fspatial_trace[i][j] += -metric_vars.d2_lapse[i][j] * gamma_UU[k][l] * vars.fspatial[k][l]
-                                            -metric_vars.d1_lapse[i] * metric_vars.d1_gamma_UU[k][l][j] * vars.fspatial[k][l]
-                                            -metric_vars.d1_lapse[i] * gamma_UU[k][l] * d1.fspatial[k][l][j]
-                                            -metric_vars.d1_lapse[j] * metric_vars.d1_gamma_UU[k][l][i] * vars.fspatial[k][l]
-                                            -metric_vars.lapse * metric_vars.d2_gamma_UU[k][l][i][j] * vars.fspatial[k][l]
-                                            -metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][i] * d1.fspatial[k][l][j]
-                                            -metric_vars.d1_lapse[j] * gamma_UU[k][l] * d1.fspatial[k][l][i]
-                                            -metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][j] * d1.fspatial[k][l][i]
-                                            -metric_vars.lapse * gamma_UU[k][l] * d2.fspatial[k][l][i][j];
+                    d2_fspatial_trace[i][j] +=
+                        -metric_vars.d2_lapse[i][j] * gamma_UU[k][l] *
+                            vars.fspatial[k][l] -
+                        metric_vars.d1_lapse[i] *
+                            metric_vars.d1_gamma_UU[k][l][j] *
+                            vars.fspatial[k][l] -
+                        metric_vars.d1_lapse[i] * gamma_UU[k][l] *
+                            d1.fspatial[k][l][j] -
+                        metric_vars.d1_lapse[j] *
+                            metric_vars.d1_gamma_UU[k][l][i] *
+                            vars.fspatial[k][l] -
+                        metric_vars.lapse *
+                            metric_vars.d2_gamma_UU[k][l][i][j] *
+                            vars.fspatial[k][l] -
+                        metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][i] *
+                            d1.fspatial[k][l][j] -
+                        metric_vars.d1_lapse[j] * gamma_UU[k][l] *
+                            d1.fspatial[k][l][i] -
+                        metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][j] *
+                            d1.fspatial[k][l][i] -
+                        metric_vars.lapse * gamma_UU[k][l] *
+                            d2.fspatial[k][l][i][j];
                 }
             }
             // TRACE DIAGNOSTICS
@@ -170,31 +190,36 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
             {
                 FOR1(l)
                 {
-                    rho_eff += 0.25 * m_tensor_field_mass * m_tensor_field_mass * gamma_UU[i][k] *
+                    rho_eff += 0.25 * m_tensor_field_mass *
+                               m_tensor_field_mass * gamma_UU[i][k] *
                                gamma_UU[j][l] * vars.fspatial[i][j] *
                                vars.fspatial[k][l];
                 }
             }
 
-            primaryScalar = metric_vars.lapse * m_tensor_field_mass * m_tensor_field_mass * fspatial_trace;
+            primaryScalar = metric_vars.lapse * m_tensor_field_mass *
+                            m_tensor_field_mass * fspatial_trace;
 
             FOR2(i, j)
             {
                 primaryScalar +=
                     metric_vars.lapse * gamma_UU[i][j] *
                         (fspatial_trace * metric_vars.ricci_phys[i][j] +
-                         2.0 * d1_fspatial_trace[i] * metric_vars.d1_ln_lapse[j] -
+                         2.0 * d1_fspatial_trace[i] *
+                             metric_vars.d1_ln_lapse[j] -
                          2.0 * fspatial_trace * metric_vars.d1_ln_lapse[i] *
                              metric_vars.d1_ln_lapse[j] -
                          d2_fspatial_trace[i][j]) +
-                    gamma_UU[i][j] * fspatial_trace * metric_vars.d2_lapse[i][j];
+                    gamma_UU[i][j] * fspatial_trace *
+                        metric_vars.d2_lapse[i][j];
 
                 FOR1(k)
                 {
-                    primaryScalar += metric_vars.lapse * gamma_UU[i][j] *
-                                     (chris_phys.ULL[k][i][j] * d1_fspatial_trace[k] -
-                                      fspatial_trace * chris_phys.ULL[k][i][j] *
-                                          metric_vars.d1_ln_lapse[k]);
+                    primaryScalar +=
+                        metric_vars.lapse * gamma_UU[i][j] *
+                        (chris_phys.ULL[k][i][j] * d1_fspatial_trace[k] -
+                         fspatial_trace * chris_phys.ULL[k][i][j] *
+                             metric_vars.d1_ln_lapse[k]);
 
                     FOR1(l)
                     {
@@ -258,8 +283,8 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
 
             FOR1(i)
             {
-                primaryVector[i] =
-                    metric_vars.lapse * m_tensor_field_mass * m_tensor_field_mass * vars.fbar[i];
+                primaryVector[i] = metric_vars.lapse * m_tensor_field_mass *
+                                   m_tensor_field_mass * vars.fbar[i];
 
                 FOR2(j, k)
                 {

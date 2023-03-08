@@ -95,15 +95,15 @@ class TensorFieldTaggingCriterion
                     d1_fspatial22
                         [idir]; // + d1_fspatial33[idir] * d1_fspatial33[idir]
                                 //+d1_fspatial12[idir] * d1_fspatial12[idir] +
-                                //d1_fspatial13[idir] * d1_fspatial13[idir] +
-                                //d1_fspatial23[idir] * d1_fspatial23[idir];
+                                // d1_fspatial13[idir] * d1_fspatial13[idir] +
+                                // d1_fspatial23[idir] * d1_fspatial23[idir];
 
             mod_d1_v +=
                 d1_v11[idir] * d1_v11[idir] +
                 d1_v22[idir] * d1_v22[idir]; // + d1_v33[idir] * d1_v33[idir]
                                              //+d1_v12[idir] * d1_v12[idir] +
-                                             //d1_v13[idir] * d1_v13[idir] +
-                                             //d1_v23[idir] * d1_v23[idir];
+                                             // d1_v13[idir] * d1_v13[idir] +
+                                             // d1_v23[idir] * d1_v23[idir];
         }
         // temp
         // const double threshold_field = 0.0000001;

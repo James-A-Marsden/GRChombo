@@ -58,8 +58,7 @@ template <class matter_t, class background_t> class TraceFieldRemoval
         data_t fspatial_trace =
             TensorAlgebra::compute_trace(vars.fspatial, gamma_UU);
 
-        //current_cell.store_vars(fspatial_trace/metric_vars.lapse, c_fhat);
-
+        // current_cell.store_vars(fspatial_trace/metric_vars.lapse, c_fhat);
     }
 };
 #endif /* TRACEFIELDREMOVAL_HPP_ */
