@@ -292,6 +292,9 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     }
 
     // We need constraints here for the damping variables
+    // KC - this seems to be a copy and paste of what is in the diagnostic class
+    // - can we instead create a static function in that class that calculates
+    // these quantities and then reuse it here. This approach is prone to error.
     data_t primaryScalar = metric_vars.lapse * m_tensor_field_mass *
                            m_tensor_field_mass * fspatial_trace;
 
@@ -419,6 +422,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     }
 
     if (m_damping_is_active)
+    {
         FOR2(i, j)
         {
             rhs.v[i][j] +=
@@ -431,6 +435,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
                                chris_phys.ULL[k][i][j] * vars.Xspatial[k];
             }
         }
+    }
 }
 
 #endif /* FIXEDBGTENSORFIELD_IMPL_HPP_ */
