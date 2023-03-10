@@ -6,8 +6,8 @@ integral_filename = RhoIntegral
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
 output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/paper_convergence/profile_debug"
-chk_prefix =  IsoTensor_ThreeLevel_m0p0_k1_L16_N128_gauge_Chk_
-plot_prefix = IsoTensor_ThreeLevel_m0p0_k1_L16_N128_gauge_Plt_
+chk_prefix =  IsoTensor_ThreeLevel_m0p0_k1_L4_N256_gauge_Chk_
+plot_prefix = IsoTensor_ThreeLevel_m0p0_k1_L4_N256_gauge_Plt_
 #restart_file = 
 
 # subpaths - specific directories for hdf5, pout, extraction data
@@ -32,8 +32,8 @@ plot_interval = 5
 #num_plot_vars = 30
 #plot_vars = fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
 
-num_plot_vars = 4
-plot_vars = primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
+num_plot_vars = 6
+plot_vars = trace_field trace_momentum primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
 
 stop_time = 16.0
 dt_multiplier = 0.1
@@ -44,9 +44,9 @@ dt_multiplier = 0.1
 L = 16.0
 bh_center = 8.0 8.0 8.0
 
-N1 = 128
-N2 = 128
-N3 = 128
+N1 = 256
+N2 = 256
+N3 = 256
 
 # Regridding
 #tag_buffer_size = 0
@@ -67,7 +67,7 @@ tensor_field_mass = 0.0
 #Value of the damping coefficient
 damping_kappa = 1.0
 
-#switch constaint damping on or off --- true or false
+#switch constaint damping on or off
 damping_switch = true
 
 

@@ -101,6 +101,11 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
         Tensor<1, data_t> primaryVector;
         FOR1(i) { primaryVector[i] = 0.0; }
 
+        data_t fspatial_trace = 0.0;
+        Tensor<1,data_t> d1_fspatial_trace; 
+        FOR1(i){d1_fspatial_trace[i] = 0.0;}
+        Tensor<2, data_t> d2_fspatial_trace;   
+        FOR2(i,j){d2_fspatial_trace[i][j] = 0.0;}
         data_t trace_field = 0.0;
         data_t trace_momentum = 0.0;
 
@@ -110,13 +115,13 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
         if (rr > horizon)
         {
             //replacement of fhat
-            data_t fspatial_trace = 0.0;
+            
             FOR2(i,j)
             {
                 fspatial_trace += - metric_vars.lapse * gamma_UU[i][j] * vars.fspatial[i][j];
             }
             //Derivative of the trace of fspatial
-            Tensor<1,data_t> d1_fspatial_trace; 
+            
 
             FOR1(i)
             {
@@ -129,7 +134,7 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
                                                                     +gamma_UU[j][k] * d1.fspatial[j][k][i]);
                 }
             }
-            Tensor<2, data_t> d2_fspatial_trace;            
+                     
             FOR2(i,j)
             {
                 d2_fspatial_trace[i][j] = 0.0;
@@ -183,79 +188,68 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
                 primaryScalar +=
                     metric_vars.lapse * gamma_UU[i][j] *
                         (fspatial_trace * metric_vars.ricci_phys[i][j] +
-                         2.0 * d1_fspatial_trace[i] * metric_vars.d1_ln_lapse[j] -
-                         2.0 * fspatial_trace * metric_vars.d1_ln_lapse[i] *
-                             metric_vars.d1_ln_lapse[j] -
-                         d2_fspatial_trace[i][j]) +
+                        2.0 * d1_fspatial_trace[i] * metric_vars.d1_ln_lapse[j] -
+                        2.0 * fspatial_trace * metric_vars.d1_ln_lapse[i] *
+                            metric_vars.d1_ln_lapse[j] -
+                        d2_fspatial_trace[i][j]) +
                     gamma_UU[i][j] * fspatial_trace * metric_vars.d2_lapse[i][j];
 
                 FOR1(k)
                 {
                     primaryScalar += metric_vars.lapse * gamma_UU[i][j] *
-                                     (chris_phys.ULL[k][i][j] * d1_fspatial_trace[k] -
-                                      fspatial_trace * chris_phys.ULL[k][i][j] *
-                                          metric_vars.d1_ln_lapse[k]);
+                                    (chris_phys.ULL[k][i][j] * d1_fspatial_trace[k] -
+                                    fspatial_trace * chris_phys.ULL[k][i][j] *
+                                        metric_vars.d1_ln_lapse[k]);
 
                     FOR1(l)
                     {
                         primaryScalar += gamma_UU[i][k] * gamma_UU[j][l] *
-                                         metric_vars.lapse * metric_vars.lapse *
-                                         metric_vars.ricci_phys[k][l] *
-                                         vars.fspatial[i][j];
-                        primaryScalar +=
-                            gamma_UU[i][k] * gamma_UU[j][l] *
-                            metric_vars.lapse *
-                            (-metric_vars.lapse * d2.fspatial[i][j][k][l]);
+                                        metric_vars.lapse * metric_vars.lapse *
+                                        metric_vars.ricci_phys[k][l] *
+                                        vars.fspatial[i][j];
+                        primaryScalar += gamma_UU[i][k] * gamma_UU[j][l] *
+                                        metric_vars.lapse *
+                                        (-metric_vars.lapse * d2.fspatial[i][j][k][l]);
 
                         FOR1(m)
                         {
                             primaryScalar +=
-                                -gamma_UU[i][k] * gamma_UU[j][l] *
-                                metric_vars.lapse * metric_vars.lapse *
-                                (-chris_phys.ULL[m][l][k] *
-                                     d1.fspatial[i][j][m] -
-                                 chris_phys.ULL[m][l][i] *
-                                     d1.fspatial[m][j][k] -
-                                 chris_phys.ULL[m][l][j] *
-                                     d1.fspatial[i][m][k] -
-                                 metric_vars.d1_chris_phys[m][k][i][l] *
-                                     vars.fspatial[m][j] -
-                                 chris_phys.ULL[m][k][i] *
-                                     d1.fspatial[m][j][l] -
-                                 metric_vars.d1_chris_phys[m][j][k][l] *
-                                     vars.fspatial[i][m] -
-                                 chris_phys.ULL[m][j][k] *
-                                     d1.fspatial[i][m][l]);
+                                -gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.lapse *
+                                metric_vars.lapse *
+                                (-chris_phys.ULL[m][l][k] * d1.fspatial[i][j][m] -
+                                chris_phys.ULL[m][l][i] * d1.fspatial[m][j][k] -
+                                chris_phys.ULL[m][l][j] * d1.fspatial[i][m][k] -
+                                metric_vars.d1_chris_phys[m][k][i][l] *
+                                    vars.fspatial[m][j] -
+                                chris_phys.ULL[m][k][i] * d1.fspatial[m][j][l] -
+                                metric_vars.d1_chris_phys[m][j][k][l] *
+                                    vars.fspatial[i][m] -
+                                chris_phys.ULL[m][j][k] * d1.fspatial[i][m][l]);
 
                             FOR1(n)
                             {
                                 primaryScalar +=
                                     -gamma_UU[i][k] * gamma_UU[j][l] *
                                     metric_vars.lapse * metric_vars.lapse *
-                                    (chris_phys.ULL[n][l][k] *
-                                         chris_phys.ULL[m][n][i] *
-                                         vars.fspatial[m][j] +
-                                     chris_phys.ULL[n][l][i] *
-                                         chris_phys.ULL[m][k][n] *
-                                         vars.fspatial[m][j] +
-                                     chris_phys.ULL[n][l][j] *
-                                         chris_phys.ULL[m][k][i] *
-                                         vars.fspatial[m][n] +
-                                     chris_phys.ULL[n][l][k] *
-                                         chris_phys.ULL[m][n][j] *
-                                         vars.fspatial[i][m] +
-                                     chris_phys.ULL[n][l][j] *
-                                         chris_phys.ULL[m][k][n] *
-                                         vars.fspatial[i][m] +
-                                     chris_phys.ULL[n][l][i] *
-                                         chris_phys.ULL[m][k][j] *
-                                         vars.fspatial[n][m]);
+                                    (chris_phys.ULL[n][l][k] * chris_phys.ULL[m][n][i] *
+                                        vars.fspatial[m][j] +
+                                    chris_phys.ULL[n][l][i] * chris_phys.ULL[m][k][n] *
+                                        vars.fspatial[m][j] +
+                                    chris_phys.ULL[n][l][j] * chris_phys.ULL[m][k][i] *
+                                        vars.fspatial[m][n] +
+                                    chris_phys.ULL[n][l][k] * chris_phys.ULL[m][n][j] *
+                                        vars.fspatial[i][m] +
+                                    chris_phys.ULL[n][l][j] * chris_phys.ULL[m][k][n] *
+                                        vars.fspatial[i][m] +
+                                    chris_phys.ULL[n][l][i] * chris_phys.ULL[m][k][j] *
+                                        vars.fspatial[n][m]);
                             }
                         }
                     }
                 }
             }
 
+            
             FOR1(i)
             {
                 primaryVector[i] =
@@ -265,31 +259,37 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
                 {
                     primaryVector[i] +=
                         metric_vars.lapse * gamma_UU[j][k] *
-                        (d1.v[j][i][k] +
-                         vars.fbar[i] * metric_vars.ricci_phys[j][k] -
-                         vars.fbar[j] * metric_vars.ricci_phys[i][k] -
-                         d2.fbar[i][j][k]);
+                        (-metric_vars.lapse * d1.v[j][i][k] + vars.fbar[i] * metric_vars.ricci_phys[j][k] -
+                        vars.fbar[j] * metric_vars.ricci_phys[i][k] -
+                        d2.fbar[i][j][k]);
+
+                    primaryVector[i] += 2.0 * gamma_UU[j][k] * (metric_vars.d1_lapse[k] * d1.fbar[i][j]
+                                                            -metric_vars.lapse * vars.fbar[i] * metric_vars.d1_ln_lapse[j] * metric_vars.d1_ln_lapse[k]);
+
+                    primaryVector[i] += gamma_UU[j][k] * vars.fbar[i] * metric_vars.d2_lapse[j][k];
 
                     FOR1(l)
                     {
                         primaryVector[i] +=
                             metric_vars.lapse * gamma_UU[j][k] *
-                            (-chris_phys.ULL[l][k][i] * vars.v[j][l] -
-                             chris_phys.ULL[l][k][j] * vars.v[l][i] +
-                             chris_phys.ULL[l][k][j] * d1.fbar[i][l] +
-                             chris_phys.ULL[l][k][i] * d1.fbar[l][j] +
-                             metric_vars.d1_chris_phys[l][j][i][k] *
-                                 vars.fbar[l] +
-                             d1.fbar[l][k] * chris_phys.ULL[l][j][i]);
+                            (metric_vars.lapse * chris_phys.ULL[l][k][i] * vars.v[j][l] +
+                            metric_vars.lapse * chris_phys.ULL[l][k][j] * vars.v[l][i] +
+                            chris_phys.ULL[l][k][j] * d1.fbar[i][l] +
+                            chris_phys.ULL[l][k][i] * d1.fbar[l][j] +
+                            metric_vars.d1_chris_phys[l][j][i][k] * vars.fbar[l] +
+                            d1.fbar[l][k] * chris_phys.ULL[l][j][i]);
 
+                        primaryVector[i] += - 2.0 * gamma_UU[j][k] * metric_vars.d1_lapse[k] * chris_phys.ULL[l][j][i] * vars.fbar[l];
+
+                        primaryVector[i] += - gamma_UU[j][k] * vars.fbar[i] * chris_phys.ULL[l][j][k] * metric_vars.d1_lapse[l];
                         FOR1(m)
                         {
                             primaryVector[i] +=
                                 metric_vars.lapse * gamma_UU[j][k] *
-                                (-chris_phys.ULL[m][k][j] *
-                                     chris_phys.ULL[l][m][i] * vars.fbar[l] -
-                                 chris_phys.ULL[m][k][i] *
-                                     chris_phys.ULL[l][j][m] * vars.fbar[l]);
+                                (-chris_phys.ULL[m][k][j] * chris_phys.ULL[l][m][i] *
+                                    vars.fbar[l] -
+                                chris_phys.ULL[m][k][i] * chris_phys.ULL[l][j][m] *
+                                    vars.fbar[l]);
                         }
                     }
                 }

@@ -30,7 +30,7 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
   public:
     //!  Constructor of class FixedBGTensorField, inputs are the matter
     // //!  parameters.
-    FixedBGTensorField(const potential_t a_potential, double a_tensor_field_mass, double a_damping_kappa, int a_damping_switch)
+    FixedBGTensorField(const potential_t a_potential, double a_tensor_field_mass, double a_damping_kappa, bool a_damping_switch)
         : my_potential(a_potential),
         m_tensor_field_mass(a_tensor_field_mass),
         m_damping_kappa(a_damping_kappa),
@@ -169,7 +169,7 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         const vars_t<data_t> &advec,
         const double tensor_field_mass,
         const double damping_kappa,
-        int damping_switch);
+        bool damping_switch);
 };
 
 #include "FixedBGTensorField.impl.hpp"

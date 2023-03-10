@@ -36,7 +36,7 @@ class SimulationParameters : public FixedBGSimulationParametersBase
 
         pp.load("tensor_field_mass",tensor_field_mass, 0.0);
         pp.load("damping_kappa",damping_kappa, 1.0);
-        pp.load("damping_switch",damping_switch, 0);
+        pp.load("damping_switch",damping_switch, false);
 
         pp.load("inner_r", inner_r, 1.0);
         pp.load("outer_r", outer_r, 0.75 * L);
@@ -51,7 +51,7 @@ class SimulationParameters : public FixedBGSimulationParametersBase
     
     double tensor_field_mass;
     double damping_kappa;
-    int damping_switch;
+    bool damping_switch;
 
     std::string integral_filename;
     // Collection of parameters necessary for the sims
