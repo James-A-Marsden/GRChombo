@@ -25,16 +25,17 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
 
     double m_tensor_field_mass;
     double m_damping_kappa;
-    int m_damping_switch;
+    bool m_damping_is_active;
 
   public:
     //!  Constructor of class FixedBGTensorField, inputs are the matter
     // //!  parameters.
-    FixedBGTensorField(const potential_t a_potential, double a_tensor_field_mass, double a_damping_kappa, bool a_damping_switch)
-        : my_potential(a_potential),
-        m_tensor_field_mass(a_tensor_field_mass),
-        m_damping_kappa(a_damping_kappa),
-        m_damping_switch(a_damping_switch)
+    FixedBGTensorField(const potential_t a_potential,
+                       double a_tensor_field_mass, double a_damping_kappa,
+                       bool a_damping_is_active)
+        : my_potential(a_potential), m_tensor_field_mass(a_tensor_field_mass),
+          m_damping_kappa(a_damping_kappa),
+          m_damping_is_active(a_damping_is_active)
     {
     }
     //! Structure containing the rhs variables for the matter fields
@@ -43,19 +44,15 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
 
         // Tensor field components
         Tensor<2, data_t> fspatial; // Spatial component of the tensor field
-
         Tensor<1, data_t> fbar;
-
         data_t fhat;
 
         // Conjugate components
         Tensor<2, data_t> v; // Spatial rank 2 v field
 
         // Constraint damping variables
-
         Tensor<1, data_t> Xspatial; // Rank 1
-
-        data_t Xhat; // Scalar
+        data_t Xhat;                // Scalar
 
         /// Defines the mapping between members of Vars and Chombo grid
         /// variables (enum in User_Variables)
@@ -78,7 +75,6 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
                 mapping_function, GRInterval<c_v11, c_v33>(), v);
 
             // Constraint Damping variables
-
             VarsTools::define_enum_mapping(
                 mapping_function, GRInterval<c_Xspatial1, c_Xspatial3>(),
                 Xspatial);
@@ -100,7 +96,6 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         template <typename mapping_function_t>
         void enum_mapping(mapping_function_t mapping_function)
         {
-
             VarsTools::define_symmetric_enum_mapping(
                 mapping_function, GRInterval<c_fspatial11, c_fspatial33>(),
                 fspatial);
@@ -159,17 +154,14 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
     template <class data_t, template <typename> class vars_t,
               template <typename> class diff2_vars_t,
               template <typename> class rhs_vars_t>
-    static void matter_rhs_excl_potential(
+    void matter_rhs_excl_potential(
         rhs_vars_t<data_t> &rhs, //!< the value of the RHS terms for the sf vars
         const vars_t<data_t> &vars, //!< the values of all the variables
         const MetricVars<data_t>
             &metric_vars, //!< the value of the metric variables
         const vars_t<Tensor<1, data_t>> &d1,       //!< value of the 1st derivs
         const diff2_vars_t<Tensor<2, data_t>> &d2, //!< value of the 2nd derivs
-        const vars_t<data_t> &advec,
-        const double tensor_field_mass,
-        const double damping_kappa,
-        bool damping_switch);
+        const vars_t<data_t> &advec) const;
 };
 
 #include "FixedBGTensorField.impl.hpp"

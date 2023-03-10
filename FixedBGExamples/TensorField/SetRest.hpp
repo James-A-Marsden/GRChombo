@@ -46,8 +46,8 @@ class SetRest
             const std::array<double, CH_SPACEDIM> a_center,
             const KerrSchildFixedBG::params_t a_bg_params, const double a_dx,
             const double a_initial_constant) //, const double a_fhat, const
-                                             //Tensor<1,data_t> a_fbar, const
-                                             //Tensor<2,data_t> a_fspatial)
+                                             // Tensor<1,data_t> a_fbar, const
+                                             // Tensor<2,data_t> a_fspatial)
         : m_dx(a_dx), m_center(a_center), m_bg_params(a_bg_params),
           m_tensor_mass(tensor_mass), m_initial_constant(a_initial_constant),
           m_deriv(a_dx)

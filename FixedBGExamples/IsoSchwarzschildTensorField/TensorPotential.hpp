@@ -25,14 +25,14 @@ class TensorPotential
 
     double return_params() const
     {
-      const double m = m_params.tensor_mass;
-      return m;
+        const double m = m_params.tensor_mass;
+        return m;
     }
     //! Set the potential function for the tensor field here
     /*
     template <class data_t, template <typename> class vars_t>
     // using MetricVars = typename ADMFixedBGVars::template Vars<data_t>;
-    
+
     void compute_potential(data_t &V_of_F, data_t &dVdF,
                            const vars_t<data_t> &vars) const
     {

@@ -34,13 +34,13 @@ class SimulationParameters : public FixedBGSimulationParametersBase
         pp.load("bh_spin", bg_params.spin, 0.0);
         pp.load("bh_center", bg_params.center, center);
 
-        pp.load("tensor_field_mass",tensor_field_mass, 0.0);
-        pp.load("damping_kappa",damping_kappa, 1.0);
-        pp.load("damping_switch",damping_switch, false);
+        pp.load("tensor_field_mass", tensor_field_mass, 0.0);
+        pp.load("damping_kappa", damping_kappa, 1.0);
+        pp.load("damping_is_active", damping_is_active, false);
 
         pp.load("inner_r", inner_r, 1.0);
         pp.load("outer_r", outer_r, 0.75 * L);
-        
+
         // pp.load("tensor_field_mass", tensor_mass, 1);
     }
 
@@ -48,10 +48,10 @@ class SimulationParameters : public FixedBGSimulationParametersBase
     // double field_amplitude_re, field_amplitude_im, regrid_length;
     double regrid_length;
     double inner_r, outer_r;
-    
+
     double tensor_field_mass;
     double damping_kappa;
-    bool damping_switch;
+    bool damping_is_active;
 
     std::string integral_filename;
     // Collection of parameters necessary for the sims

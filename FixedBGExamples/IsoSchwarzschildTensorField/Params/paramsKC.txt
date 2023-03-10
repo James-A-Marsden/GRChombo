@@ -68,7 +68,7 @@ tensor_field_mass = 0.0
 damping_kappa = 1.0
 
 #switch constaint damping on or off --- true or false
-damping_switch = true
+damping_is_active = true
 
 
 

@@ -130,9 +130,13 @@ class IsoSchwarzschildFixedBG
 
         FOR2(i, j)
         {
-            FOR2(k,l)
+            FOR2(k, l)
             {
-                vars.d2_gamma_UU[i][j][k][l] = delta(i, j) * 64.0 * M * r2 * (d1_r[k] * d1_r[l] * (3.0 * M - 4.0 * r) + r * d2_r[k][l] * (2.0 * r + M))* pow(2.0 * r + M, -6.0);
+                vars.d2_gamma_UU[i][j][k][l] =
+                    delta(i, j) * 64.0 * M * r2 *
+                    (d1_r[k] * d1_r[l] * (3.0 * M - 4.0 * r) +
+                     r * d2_r[k][l] * (2.0 * r + M)) *
+                    pow(2.0 * r + M, -6.0);
             }
         }
 
@@ -157,7 +161,7 @@ class IsoSchwarzschildFixedBG
                 }
             }
         }
-      
+
         vars.lapse = (1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
         // Flip to minus sign inside horizon, not zeroing?
 
@@ -179,12 +183,11 @@ class IsoSchwarzschildFixedBG
 
             vars.d2_ln_lapse[i][j] =
                 -(4.0 * M *
-                    (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
-                    4.0 * r2 * d2_r[i][j])) /
+                  (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
+                   4.0 * r2 * d2_r[i][j])) /
                 (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
         }
 
-       
         data_t alpha2 = vars.lapse * vars.lapse;
 
         FOR1(i) { vars.shift[i] = 0.0; }
