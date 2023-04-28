@@ -1,0 +1,7 @@
+/work2/09281/marsdenj/frontera/3DChombo/GRChombo/Examples/BoostedHeadOn
+Mon 24 Apr 16:26:19 CDT 2023
+TACC:  Starting up job 5418851 
+TACC:  Starting parallel tasks... 
+ number_procs = 448
+ threads = 4
+ simd width (doubles) = 8

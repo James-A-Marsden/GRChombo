@@ -1,0 +1,14 @@
+
+Currently Loaded Modules:
+  1) git/2.24.1      4) pmix/3.1.4      7) TACC           10) impi/18.0.5
+  2) autotools/1.2   5) hwloc/1.11.12   8) intel/18.0.5   11) phdf5/1.10.4
+  3) cmake/3.24.2    6) xalt/2.10.34    9) python3/3.7.0  12) gsl/2.5
+
+ 
+
+Parameter: lapse_power = 0.5 warning: set to 1.0 for 1+log slicing !!!
+slurmstepd: error: *** JOB 5426910 ON c203-002 CANCELLED AT 2023-04-27T11:34:50 ***
+[mpiexec@c203-002.frontera.tacc.utexas.edu] control_cb (../../pm/pmiserv/pmiserv_cb.c:863): connection to proxy 12 at host c203-014 failed
+[mpiexec@c203-002.frontera.tacc.utexas.edu] HYDT_dmxu_poll_wait_for_event (../../tools/demux/demux_poll.c:76): callback returned error status
+[mpiexec@c203-002.frontera.tacc.utexas.edu] HYD_pmci_wait_for_completion (../../pm/pmiserv/pmiserv_pmci.c:520): error waiting for event
+[mpiexec@c203-002.frontera.tacc.utexas.edu] main (../../ui/mpich/mpiexec.c:1157): process manager error waiting for completion
