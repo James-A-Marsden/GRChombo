@@ -105,60 +105,6 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     const auto chris_phys = compute_christoffel(metric_vars.d1_gamma, gamma_UU);
 
     // Evolution equations for the field and the conjugate variables:
-    // replacement of trace of h
-    data_t ftrace_sub = 0.0;
-    // replacement of fhat
-    data_t fhat_sub = 0.0;
-    FOR2(i, j)
-    {
-        fhat_sub +=
-            -metric_vars.lapse * gamma_UU[i][j] * vars.fspatial[i][j];
-    }
-    // Derivative of the trace of fspatial
-    Tensor<1, data_t> d1_fhat_sub;
-    Tensor<2, data_t> d2_fhat_sub;
-
-    FOR1(i)
-    {
-        d1_fhat_sub[i] = 0.0;
-
-        FOR2(j, k)
-        {
-            d1_fhat_sub[i] +=
-                -metric_vars.d1_lapse[i] * gamma_UU[j][k] *
-                    vars.fspatial[j][k] -
-                metric_vars.lapse *
-                    (metric_vars.d1_gamma_UU[j][k][i] * vars.fspatial[j][k] +
-                     gamma_UU[j][k] * d1.fspatial[j][k][i]);
-        }
-    }
-
-    FOR2(i, j)
-    {
-        d2_fhat_sub[i][j] = 0.0;
-
-        FOR2(k, l)
-        {
-            d2_fhat_sub[i][j] +=
-                -metric_vars.d2_lapse[i][j] * gamma_UU[k][l] *
-                    vars.fspatial[k][l] -
-                metric_vars.d1_lapse[i] * metric_vars.d1_gamma_UU[k][l][j] *
-                    vars.fspatial[k][l] -
-                metric_vars.d1_lapse[i] * gamma_UU[k][l] *
-                    d1.fspatial[k][l][j] -
-                metric_vars.d1_lapse[j] * metric_vars.d1_gamma_UU[k][l][i] *
-                    vars.fspatial[k][l] -
-                metric_vars.lapse * metric_vars.d2_gamma_UU[k][l][i][j] *
-                    vars.fspatial[k][l] -
-                metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][i] *
-                    d1.fspatial[k][l][j] -
-                metric_vars.d1_lapse[j] * gamma_UU[k][l] *
-                    d1.fspatial[k][l][i] -
-                metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][j] *
-                    d1.fspatial[k][l][i] -
-                metric_vars.lapse * gamma_UU[k][l] * d2.fspatial[k][l][i][j];
-        }
-    }
 
     rhs.fhat = 0.0;
     FOR2(i, j)
@@ -226,18 +172,19 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
                           2.0 * metric_vars.lapse * tensorRiemannTerm[i][j] +
                           2.0 * vars.fhat * metric_vars.ricci_phys[i][j];
             //Additions from D_i D_j H
-            rhs.v[i][j] += d1.fhat[i] * metric_vars.d1_ln_lapse[j] + d1.fhat[j] * metric_vars.d1_ln_lapse[i]
-                            -2.0 * vars.fhat * metric_vars.d1_ln_lapse[i] * metric_vars.d1_ln_lapse[j];
+            rhs.v[i][j] += -1.0 * (d1.fhat[i] * metric_vars.d1_ln_lapse[j] + d1.fhat[j] * metric_vars.d1_ln_lapse[i]
+                            - vars.fhat * metric_vars.d1_ln_lapse[i] * metric_vars.d1_ln_lapse[j]);
 
-            rhs.v[i][j] += -d2.fhat[i][j]
-                            + vars.fhat * metric_vars.d2_lapse[i][j] / metric_vars.lapse;
+            rhs.v[i][j] += +d2.fhat[i][j]
+                            - vars.fhat * metric_vars.d2_ln_lapse[i][j];
+                           
             //Additions from g_munu m^2 H
-            rhs.v[i][j] += m_tensor_field_mass * m_tensor_field_mass * metric_vars.gamma[i][j] * vars.fhat;
+            rhs.v[i][j] += - m_tensor_field_mass * m_tensor_field_mass * metric_vars.gamma[i][j] * vars.fhat;
             FOR1(k)
             {
                 //Additions from D_i D_j H
-                rhs.v[i][j] += chris_phys.ULL[k][i][j] * d1.fhat[k]
-                              - vars.fhat * chris_phys.ULL[k][i][j] * metric_vars.d1_ln_lapse[k];
+                rhs.v[i][j] +=  - chris_phys.ULL[k][i][j] * d1.fhat[k]
+                              +vars.fhat * chris_phys.ULL[k][i][j] * metric_vars.d1_ln_lapse[k];
                 FOR1(l)
                 {
                     rhs.v[i][j] +=
@@ -249,13 +196,13 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
                              d1.fspatial[j][k][l] * metric_vars.d1_lapse[i]);
 
                     //Additions from D_i D_j H
-                    rhs.v[i][j] += -metric_vars.lapse * (d1.fspatial[k][l][i] * metric_vars.d1_gamma_UU[k][l][j] 
+                    rhs.v[i][j] += metric_vars.lapse * (d1.fspatial[k][l][i] * metric_vars.d1_gamma_UU[k][l][j] 
                                                         +d1.fspatial[k][l][j] * metric_vars.d1_gamma_UU[k][l][i]
                                                         +vars.fspatial[k][l] * metric_vars.d2_gamma_UU[k][l][i][j]
                                                         +gamma_UU[k][l] * d2.fspatial[k][l][i][j]);
                    
                     //Additions from g_munu m^2 H
-                    rhs.v[i][j] += m_tensor_field_mass * m_tensor_field_mass * metric_vars.lapse * metric_vars.gamma[i][j] * gamma_UU[k][l] * vars.fspatial[k][l];                   
+                    rhs.v[i][j] += -m_tensor_field_mass * m_tensor_field_mass * metric_vars.lapse * metric_vars.gamma[i][j] * gamma_UU[k][l] * vars.fspatial[k][l];                   
                     FOR1(m)
                     {
                         rhs.v[i][j] +=
@@ -286,7 +233,8 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
                                  metric_vars.d1_lapse[i]);
 
                         //Additions from D_i D_j H
-                        rhs.v[i][j] += metric_vars.lapse * chris_phys.ULL[m][i][j] * (vars.fspatial[k][l] * metric_vars.d1_gamma_UU[k][l][m] + gamma_UU[k][l] * d1.fspatial[k][l][m]);
+                        rhs.v[i][j] += -metric_vars.lapse * chris_phys.ULL[m][i][j] * (vars.fspatial[k][l] * metric_vars.d1_gamma_UU[k][l][m] 
+                                                                                                    + gamma_UU[k][l] * d1.fspatial[k][l][m]);
 
                         
                         FOR1(n)
