@@ -175,7 +175,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
             rhs.v[i][j] += -1.0 * (d1.fhat[i] * metric_vars.d1_ln_lapse[j] + d1.fhat[j] * metric_vars.d1_ln_lapse[i]
                             - vars.fhat * metric_vars.d1_ln_lapse[i] * metric_vars.d1_ln_lapse[j]);
 
-            rhs.v[i][j] += +d2.fhat[i][j]
+            rhs.v[i][j] += d2.fhat[i][j]
                             - vars.fhat * metric_vars.d2_ln_lapse[i][j];
                            
             //Additions from g_munu m^2 H

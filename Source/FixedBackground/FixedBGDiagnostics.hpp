@@ -173,9 +173,9 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
             }
             // TRACE DIAGNOSTICS
 
-            trace_field = vars.fhat / metric_vars.lapse;
+            trace_field = vars.fhat;
 
-            FOR2(i, j) { trace_field += gamma_UU[i][j] * vars.fspatial[i][j]; }
+            FOR2(i, j) { trace_field += gamma_UU[i][j] * vars.fspatial[i][j] * metric_vars.lapse; }
 
             FOR2(i, j) { trace_momentum += gamma_UU[i][j] * vars.v[i][j]; }
 
