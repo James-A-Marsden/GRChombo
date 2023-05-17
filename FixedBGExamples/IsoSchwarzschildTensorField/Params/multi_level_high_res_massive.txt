@@ -1,0 +1,130 @@
+#Params for runtime inputs
+
+verbosity = 0
+integral_filename = RhoIntegral
+
+# location / naming of output files
+# output_path = "" # Main path for all files. Must exist!
+output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/multi_level_high_res_massive"
+chk_prefix =  MultiLevel_m1_L128_N160_Chk_
+plot_prefix = MultiLevel_m1_L128_N160_Plt_
+#restart_file = 
+
+# subpaths - specific directories for hdf5, pout, extraction data
+# (these are created at runtime)
+
+hdf5_subpath = ""
+pout_subpath = "pout"
+data_subpath = "data"
+
+# change the name of output files
+# pout_prefix = "pout"
+
+#print_progress_only_to_rank_0 = 1
+
+# Set up time steps
+# dt will be dx*dt_multiplier on each grid level
+# HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
+
+checkpoint_interval = 10
+plot_interval = 5
+
+#num_plot_vars = 30
+#plot_vars = fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
+
+num_plot_vars = 4
+plot_vars = primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
+
+stop_time = 64.0
+dt_multiplier = 0.1
+
+# Set up grid spacings and regrid params
+# NB - the N values need to be multiples of block_factor
+
+L = 128.0
+bh_center = 64.0 64.0 64.0
+
+N1 = 160
+N2 = 160
+N3 = 160
+
+# Regridding
+#tag_buffer_size = 0
+#regrid_length = 2048
+
+regrid_buffer = 8
+
+# Level data
+# Maximum number of times you can regrid above coarsest level
+max_level = 3 There are (max_level+1) grids, so min is zero
+# Frequency of regridding at each level
+# Need one for each level, ie max_level+1 items
+# Generally you do not need to regrid frequently on every level
+regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
+
+tensor_field_mass = 1.0
+
+#Value of the damping coefficient
+damping_kappa = 1.0
+
+#switch constaint damping on or off --- true or false
+damping_is_active = false
+
+
+
+# Max box size
+max_grid_size = 16
+# Min box size
+block_factor = 16
+tag_buffer_size = 0
+
+#boundaries and periodicity of grid
+#Periodic directions - 0 = false, 1 = true
+isPeriodic = 0 0 0
+
+# if not periodic, then specify the boundary type
+# 0 = static, 1 = sommerfeld, 2 = reflective, 3 = extrapolating
+# (see BoundaryConditions.hpp for details)
+hi_boundary = 1 1 1
+lo_boundary = 1 1 1  
+
+# if reflective boundaries selected, must select 
+# parity values (in order given by UserVariables.hpp)
+# 0 = even
+# 1,2,3 = odd x, y, z
+# 4,5,6 = odd xy, yz, xz
+# 7 = odd xyz
+vars_parity            = 4 0 5 4 6 4 2 1 7 7 4 0 5 4 6 4 2 1 7 7
+#vars_parity_diagnostic = 0 0 0 0 0 0 0 0    #chi and rho rhoJ
+
+# specify non zero asympotitic vars
+num_nonzero_asymptotic_vars = 0
+nonzero_asymptotic_vars = fspatial11
+nonzero_asymptotic_values = 0.0
+
+# if mixed boundaries selected, must specify which are extrapolating
+# (the rest are assumed to be all sommerfeld)
+#num_extrapolating_vars = 2
+#extrapolating_vars = phi Pi
+#extrapolation_order = 1
+
+# coefficient for KO numerical dissipation
+
+sigma = 1.0
+
+# Boosted BH initial data, boost in x direction, spin in z direction
+bh_mass = 1.0
+bh_spin = 0.0 # This is a, so needs to be <= M
+#inner_r = 5.0
+#outer_r = 500.0
+
+# for extraction
+activate_extraction = 0
+write_extraction = 0
+#num_points_phi = 36
+#num_points_t = 24
+#zaxis_over_xaxis = 1.0
+
+num_extraction_radii = 0
+extraction_levels = 0 0
+#extraction_radii = 0.0 0.0

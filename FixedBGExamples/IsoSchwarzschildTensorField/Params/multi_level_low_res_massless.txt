@@ -5,9 +5,9 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/paper_convergence/profile_debug"
-chk_prefix =  IsoTensor_ThreeLevel_m0p0_k1_L16_N128_gauge_Chk_
-plot_prefix = IsoTensor_ThreeLevel_m0p0_k1_L16_N128_gauge_Plt_
+output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/multi_level_low_res_massless"
+chk_prefix =  MultiLevel_m0_L128_N128_Chk_
+plot_prefix = MultiLevel_m0_L128_N128_Plt_
 #restart_file = 
 
 # subpaths - specific directories for hdf5, pout, extraction data
@@ -35,14 +35,14 @@ plot_interval = 5
 num_plot_vars = 4
 plot_vars = primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
 
-stop_time = 16.0
+stop_time = 64.0
 dt_multiplier = 0.1
 
 # Set up grid spacings and regrid params
 # NB - the N values need to be multiples of block_factor
 
-L = 16.0
-bh_center = 8.0 8.0 8.0
+L = 128.0
+bh_center = 64.0 64.0 64.0
 
 N1 = 128
 N2 = 128
@@ -56,7 +56,7 @@ regrid_buffer = 8
 
 # Level data
 # Maximum number of times you can regrid above coarsest level
-max_level = 2 There are (max_level+1) grids, so min is zero
+max_level = 3 There are (max_level+1) grids, so min is zero
 # Frequency of regridding at each level
 # Need one for each level, ie max_level+1 items
 # Generally you do not need to regrid frequently on every level
@@ -68,7 +68,7 @@ tensor_field_mass = 0.0
 damping_kappa = 1.0
 
 #switch constaint damping on or off --- true or false
-damping_is_active = true
+damping_is_active = false
 
 
 
@@ -110,7 +110,7 @@ nonzero_asymptotic_values = 0.0
 
 # coefficient for KO numerical dissipation
 
-sigma = 0.1
+sigma = 1.0
 
 # Boosted BH initial data, boost in x direction, spin in z direction
 bh_mass = 1.0
