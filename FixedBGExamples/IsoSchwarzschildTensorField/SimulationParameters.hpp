@@ -38,6 +38,9 @@ class SimulationParameters : public FixedBGSimulationParametersBase
         pp.load("damping_kappa", damping_kappa, 1.0);
         pp.load("damping_is_active", damping_is_active, false);
 
+        pp.load("dRGT_ij_is_active", dRGT_ij_is_active, true);
+        pp.load("dRGT_mass_is_active", dRGT_mass_is_active, true);
+
         pp.load("inner_r", inner_r, 1.0);
         pp.load("outer_r", outer_r, 0.75 * L);
 
@@ -52,6 +55,9 @@ class SimulationParameters : public FixedBGSimulationParametersBase
     double tensor_field_mass;
     double damping_kappa;
     bool damping_is_active;
+
+    bool dRGT_ij_is_active;
+    bool dRGT_mass_is_active;
 
     std::string integral_filename;
     // Collection of parameters necessary for the sims

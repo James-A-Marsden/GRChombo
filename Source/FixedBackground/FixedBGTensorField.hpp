@@ -26,16 +26,22 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
     double m_tensor_field_mass;
     double m_damping_kappa;
     bool m_damping_is_active;
+    bool m_dRGT_ij_is_active;
+    bool m_dRGT_mass_is_active;
 
   public:
     //!  Constructor of class FixedBGTensorField, inputs are the matter
     // //!  parameters.
     FixedBGTensorField(const potential_t a_potential,
                        double a_tensor_field_mass, double a_damping_kappa,
-                       bool a_damping_is_active)
+                       bool a_damping_is_active,
+                       bool a_dRGT_ij_is_active,
+                       bool a_dRGT_mass_is_active)
         : my_potential(a_potential), m_tensor_field_mass(a_tensor_field_mass),
           m_damping_kappa(a_damping_kappa),
-          m_damping_is_active(a_damping_is_active)
+          m_damping_is_active(a_damping_is_active),
+          m_dRGT_ij_is_active(a_dRGT_ij_is_active),
+          m_dRGT_mass_is_active(a_dRGT_mass_is_active)
     {
     }
     //! Structure containing the rhs variables for the matter fields
