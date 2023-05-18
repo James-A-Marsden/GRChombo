@@ -5,7 +5,7 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/multi_level_high_res_massless"
+output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/modified_multi_level_high_res_massless"
 chk_prefix =  MultiLevel_m0_L128_N160_Chk_
 plot_prefix = MultiLevel_m0_L128_N160_Plt_
 #restart_file = 
@@ -32,8 +32,8 @@ plot_interval = 5
 #num_plot_vars = 30
 #plot_vars = fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
 
-num_plot_vars = 4
-plot_vars = primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
+num_plot_vars = 5
+plot_vars = trace_field primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
 
 stop_time = 64.0
 dt_multiplier = 0.1

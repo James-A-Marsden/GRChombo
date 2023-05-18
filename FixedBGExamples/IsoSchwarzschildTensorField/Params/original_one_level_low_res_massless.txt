@@ -5,9 +5,9 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/modified_multi_level_high_res_massive"
-chk_prefix =  MultiLevel_m1_L128_N160_Chk_
-plot_prefix = MultiLevel_m1_L128_N160_Plt_
+output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/original_one_level_low_res_massless"
+chk_prefix =  OneLevel_m0_L4_N192_Chk_
+plot_prefix = OneLevel_m0_L4_N192_Plt_
 #restart_file = 
 
 # subpaths - specific directories for hdf5, pout, extraction data
@@ -26,7 +26,7 @@ data_subpath = "data"
 # dt will be dx*dt_multiplier on each grid level
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
 
-checkpoint_interval = 10
+checkpoint_interval = 50
 plot_interval = 5
 
 #num_plot_vars = 30
@@ -35,18 +35,18 @@ plot_interval = 5
 num_plot_vars = 5
 plot_vars = trace_field primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
 
-stop_time = 64.0
+stop_time = 1.0
 dt_multiplier = 0.1
 
 # Set up grid spacings and regrid params
 # NB - the N values need to be multiples of block_factor
 
-L = 128.0
-bh_center = 64.0 64.0 64.0
+L = 4.0
+bh_center = 2.0 2.0 2.0
 
-N1 = 160
-N2 = 160
-N3 = 160
+N1 = 192
+N2 = 192
+N3 = 192
 
 # Regridding
 #tag_buffer_size = 0
@@ -56,13 +56,13 @@ regrid_buffer = 8
 
 # Level data
 # Maximum number of times you can regrid above coarsest level
-max_level = 3 There are (max_level+1) grids, so min is zero
+max_level = 0 There are (max_level+1) grids, so min is zero
 # Frequency of regridding at each level
 # Need one for each level, ie max_level+1 items
 # Generally you do not need to regrid frequently on every level
 regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
 
-tensor_field_mass = 1.0
+tensor_field_mass = 0.0
 
 #Value of the damping coefficient
 damping_kappa = 1.0
@@ -110,7 +110,7 @@ nonzero_asymptotic_values = 0.0
 
 # coefficient for KO numerical dissipation
 
-sigma = 1.0
+sigma = 0.1
 
 # Boosted BH initial data, boost in x direction, spin in z direction
 bh_mass = 1.0
