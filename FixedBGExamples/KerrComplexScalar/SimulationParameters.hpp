@@ -12,7 +12,7 @@
 #include "GRParmParse.hpp"
 // Problem specific includes:
 #include "ComplexScalarPotential.hpp"
-#include "KerrSchildFixedBG.hpp"
+#include "IsoSchwarzschildFixedBG.hpp"
 
 class SimulationParameters : public FixedBGSimulationParametersBase
 {
@@ -32,7 +32,7 @@ class SimulationParameters : public FixedBGSimulationParametersBase
         // Initial and Kerr data
         pp.load("bh_mass", bg_params.mass, 1.0);
         //        pp.load("bh_velocity", bg_params.velocity, 0.0);
-        pp.load("bh_spin", bg_params.spin, 0.0);
+//        pp.load("bh_spin", bg_params.spin, 0.0);
         pp.load("bh_center", bg_params.center, center);
         pp.load("field_amplitude_re", field_amplitude_re);
         pp.load("field_amplitude_im", field_amplitude_im);
@@ -46,7 +46,7 @@ class SimulationParameters : public FixedBGSimulationParametersBase
     double inner_r, outer_r;
     std::string integral_filename;
     // Collection of parameters necessary for the sims
-    KerrSchildFixedBG::params_t bg_params;
+    IsoSchwarzschildFixedBG::params_t bg_params;
     ComplexScalarPotential::params_t potential_params;
 };
 

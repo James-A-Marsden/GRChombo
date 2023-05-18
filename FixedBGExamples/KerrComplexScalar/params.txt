@@ -79,7 +79,7 @@ stop_time = 100.0
 sigma = 1.0
 
 # SF Initial data
-scalar_mass = 0.05
+scalar_mass = 0.1
 field_amplitude_re = 0.1
 field_amplitude_im = 0.0
 # not used

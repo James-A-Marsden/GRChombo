@@ -20,12 +20,12 @@
 #include "ExcisionDiagnostics.hpp"
 #include "ExcisionEvolution.hpp"
 #include "FixedBGComplexScalarField.hpp"
-#include "FixedBGDensities.hpp"
+//#include "FixedBGDensities.hpp"
 #include "FixedBGEvolution.hpp"
 #include "FixedBGFluxes.hpp"
 #include "FluxExtraction.hpp"
 #include "InitialConditions.hpp"
-#include "KerrSchildFixedBG.hpp"
+#include "IsoSchwarzschildFixedBG.hpp"
 
 // Things to do at each advance step, after the RK4 is calculated
 void ScalarFieldLevel::specificAdvance()
@@ -46,7 +46,7 @@ void ScalarFieldLevel::initialData()
     // First set everything to zero ... we don't want undefined values in
     // constraints etc, then initial conditions for fields
     SetValue set_zero(0.0);
-    KerrSchildFixedBG boosted_bh(m_p.bg_params, m_dx); // just calculates chi
+    IsoSchwarzschildFixedBG boosted_bh(m_p.bg_params, m_dx); // just calculates chi
     InitialConditions set_phi(m_p.field_amplitude_re, m_p.field_amplitude_im,
                               m_p.potential_params.scalar_mass, m_p.center,
                               m_p.bg_params, m_dx);
@@ -57,7 +57,7 @@ void ScalarFieldLevel::initialData()
 
     // excise within horizon, no simd
     BoxLoops::loop(
-        ExcisionEvolution<ScalarFieldWithPotential, KerrSchildFixedBG>(
+        ExcisionEvolution<ScalarFieldWithPotential, IsoSchwarzschildFixedBG>(
             m_dx, m_p.center, boosted_bh),
         m_state_new, m_state_new, SKIP_GHOST_CELLS, disable_simd());
 }
@@ -74,14 +74,14 @@ void ScalarFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     // zero these
     ComplexScalarPotential potential(m_p.potential_params);
     ScalarFieldWithPotential scalar_field(potential);
-    KerrSchildFixedBG boosted_bh(m_p.bg_params, m_dx);
-    FixedBGEvolution<ScalarFieldWithPotential, KerrSchildFixedBG> my_matter(
+    IsoSchwarzschildFixedBG boosted_bh(m_p.bg_params, m_dx);
+    FixedBGEvolution<ScalarFieldWithPotential, IsoSchwarzschildFixedBG> my_matter(
         scalar_field, boosted_bh, m_p.sigma, m_dx, m_p.center);
     BoxLoops::loop(my_matter, a_soln, a_rhs, SKIP_GHOST_CELLS);
 
     // excise within horizon, no simd
     BoxLoops::loop(
-        ExcisionEvolution<ScalarFieldWithPotential, KerrSchildFixedBG>(
+        ExcisionEvolution<ScalarFieldWithPotential, IsoSchwarzschildFixedBG>(
             m_dx, m_p.center, boosted_bh),
         a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd());
 }
@@ -97,16 +97,16 @@ void ScalarFieldLevel::specificPostTimeStep()
         fillAllGhosts();
         ComplexScalarPotential potential(m_p.potential_params);
         ScalarFieldWithPotential scalar_field(potential);
-        KerrSchildFixedBG boosted_bh(m_p.bg_params, m_dx);
-        FixedBGDensities<ScalarFieldWithPotential, KerrSchildFixedBG> densities(
-            scalar_field, boosted_bh, m_dx, m_p.center);
-        FixedBGFluxes<ScalarFieldWithPotential, KerrSchildFixedBG>
+        IsoSchwarzschildFixedBG boosted_bh(m_p.bg_params, m_dx);
+//        FixedBGDensities<ScalarFieldWithPotential, IsoSchwarzschildFixedBG> densities(
+//            scalar_field, boosted_bh, m_dx, m_p.center);
+        FixedBGFluxes<ScalarFieldWithPotential, IsoSchwarzschildFixedBG>
             energy_fluxes(scalar_field, boosted_bh, m_dx, m_p.center);
-        BoxLoops::loop(make_compute_pack(densities, energy_fluxes), m_state_new,
+        BoxLoops::loop(make_compute_pack(/*densities,*/ energy_fluxes), m_state_new,
                        m_state_diagnostics, SKIP_GHOST_CELLS);
         // excise within horizon
         BoxLoops::loop(
-            ExcisionDiagnostics<ScalarFieldWithPotential, KerrSchildFixedBG>(
+            ExcisionDiagnostics<ScalarFieldWithPotential, IsoSchwarzschildFixedBG>(
                 m_dx, m_p.center, boosted_bh, m_p.inner_r, m_p.outer_r),
             m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
             disable_simd());
