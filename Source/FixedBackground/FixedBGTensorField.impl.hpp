@@ -106,17 +106,27 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
     // Evolution equations for the field and the conjugate variables:
 
-    rhs.fhat = 0.0;
+    double trace_damping = 0.0;
+    data_t Htrace = vars.fhat;
+    FOR2(i, j)
+    { 
+        Htrace += metric_vars.lapse * gamma_UU[i][j] * vars.fspatial[i][j];
+    }
+
+    rhs.fhat = - trace_damping * Htrace;
     FOR2(i, j)
     {
         rhs.fhat += -metric_vars.lapse * gamma_UU[i][j] * d1.fbar[i][j] -
                     gamma_UU[i][j] * vars.fbar[i] * metric_vars.d1_lapse[j];
+
         FOR1(k)
         {
             rhs.fhat += metric_vars.lapse * gamma_UU[i][j] *
                         chris_phys.ULL[k][i][j] * vars.fbar[k];
         }
     }
+    // DEBUG:
+    rhs.fhat = 0.0;
 
     FOR1(i)
     {
@@ -136,11 +146,15 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
                                 chris_phys.ULL[l][k][j] * vars.fspatial[i][l]);
             }
         }
+
+        // DEBUG:
+        rhs.fbar[i] = 0.0;
     }
 
     FOR2(i, j)
     {
-        rhs.fspatial[i][j] = -metric_vars.lapse * vars.v[i][j] +
+        rhs.fspatial[i][j] = - metric_vars.lapse * vars.v[i][j]
+                             - trace_damping * Htrace * metric_vars.gamma[i][j] +
                              vars.fbar[i] * metric_vars.d1_ln_lapse[j] +
                              vars.fbar[j] * metric_vars.d1_ln_lapse[i];
     }
