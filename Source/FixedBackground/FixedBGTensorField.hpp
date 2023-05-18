@@ -34,8 +34,7 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
     // //!  parameters.
     FixedBGTensorField(const potential_t a_potential,
                        double a_tensor_field_mass, double a_damping_kappa,
-                       bool a_damping_is_active,
-                       bool a_dRGT_ij_is_active,
+                       bool a_damping_is_active, bool a_dRGT_ij_is_active,
                        bool a_dRGT_mass_is_active)
         : my_potential(a_potential), m_tensor_field_mass(a_tensor_field_mass),
           m_damping_kappa(a_damping_kappa),

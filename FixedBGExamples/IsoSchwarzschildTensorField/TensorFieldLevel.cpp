@@ -78,11 +78,9 @@ void TensorFieldLevel::prePlotLevel()
     fillAllGhosts();
     TensorPotential potential(m_p.potential_params);
 
-    TensorFieldWithPotential tensor_field(potential, m_p.tensor_field_mass,
-                                          m_p.damping_kappa,
-                                          m_p.damping_is_active,
-                                          m_p.dRGT_ij_is_active,
-                                          m_p.dRGT_mass_is_active);
+    TensorFieldWithPotential tensor_field(
+        potential, m_p.tensor_field_mass, m_p.damping_kappa,
+        m_p.damping_is_active, m_p.dRGT_ij_is_active, m_p.dRGT_mass_is_active);
     IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
 
     FixedBGDiagnostics<TensorFieldWithPotential, IsoSchwarzschildFixedBG>
@@ -117,11 +115,9 @@ void TensorFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     SetValue set_zero(0.0);
     IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
     TensorPotential potential(m_p.potential_params);
-    TensorFieldWithPotential tensor_field(potential, m_p.tensor_field_mass,
-                                          m_p.damping_kappa,
-                                          m_p.damping_is_active,
-                                          m_p.dRGT_ij_is_active,
-                                          m_p.dRGT_mass_is_active);
+    TensorFieldWithPotential tensor_field(
+        potential, m_p.tensor_field_mass, m_p.damping_kappa,
+        m_p.damping_is_active, m_p.dRGT_ij_is_active, m_p.dRGT_mass_is_active);
     FixedBGEvolution<TensorFieldWithPotential, IsoSchwarzschildFixedBG>
         my_matter(tensor_field, isoschwarzschild_bg, m_p.sigma, m_dx,
                   m_p.center);
