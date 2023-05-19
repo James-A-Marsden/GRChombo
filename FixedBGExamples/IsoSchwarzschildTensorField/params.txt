@@ -14,7 +14,7 @@ plot_prefix = MultiLevel_m0_L128_N160_Plt_
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
 
-hdf5_subpath = "hdf5_3"
+hdf5_subpath = "hdf5"
 pout_subpath = "pout"
 data_subpath = "data"
 
@@ -36,7 +36,7 @@ plot_interval = 5
 num_plot_vars = 5
 plot_vars = trace_field primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
 
-stop_time = 64.0
+stop_time = 12.0
 dt_multiplier = 0.1
 
 # Set up grid spacings and regrid params
@@ -63,7 +63,7 @@ max_level = 5 There are (max_level+1) grids, so min is zero
 # Generally you do not need to regrid frequently on every level
 regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
 
-tensor_field_mass = 0.0
+tensor_field_mass = 1.0
 
 #Value of the damping coefficient
 damping_kappa = 1.0
