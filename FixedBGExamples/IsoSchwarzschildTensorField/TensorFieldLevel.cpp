@@ -118,6 +118,11 @@ void TensorFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     TensorFieldWithPotential tensor_field(
         potential, m_p.tensor_field_mass, m_p.damping_kappa,
         m_p.damping_is_active, m_p.dRGT_ij_is_active, m_p.dRGT_mass_is_active);
+
+    // enforce continuous prescription for sigma as per arXiv:2104.06978
+    // const int ratio = pow(2, 5 * (m_level - m_p.max_level));
+    // const double sigma = m_p.sigma * double(ratio);
+    
     FixedBGEvolution<TensorFieldWithPotential, IsoSchwarzschildFixedBG>
         my_matter(tensor_field, isoschwarzschild_bg, m_p.sigma, m_dx,
                   m_p.center);

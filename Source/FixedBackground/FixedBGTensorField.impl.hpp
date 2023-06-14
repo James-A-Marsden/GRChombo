@@ -106,14 +106,16 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
 
     // Evolution equations for the field and the conjugate variables:
 
-    double trace_damping = 0.05;
+    
+    double trace_damping = 5.0;
     data_t Htrace = vars.fhat;
     FOR2(i, j)
     { 
         Htrace += metric_vars.lapse * gamma_UU[i][j] * vars.fspatial[i][j];
     }
-/*
+    
     rhs.fhat = - trace_damping * Htrace;
+    //rhs.fhat = 0.0;
     FOR2(i, j)
     {
         rhs.fhat += -metric_vars.lapse * gamma_UU[i][j] * d1.fbar[i][j] -
@@ -125,8 +127,8 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
                         chris_phys.ULL[k][i][j] * vars.fbar[k];
         }
     }
-*/
-    rhs.fhat = 0.0;
+
+    //rhs.fhat = 0.0;
 
     FOR1(i)
     {
@@ -447,6 +449,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     // Damping evolution
     rhs.Xhat = -0.5 * m_damping_kappa * vars.Xhat -
                0.5 * primaryScalar / metric_vars.lapse;
+               //0.5 * primaryScalar;
 
     FOR1(i)
     {
@@ -454,6 +457,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
                           metric_vars.lapse * d1.Xhat[i] -
                           vars.Xhat * metric_vars.d1_lapse[i] -
                           primaryVector[i] / metric_vars.lapse;
+                          //primaryVector[i];
 
         FOR1(j)
         {
@@ -468,7 +472,8 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
         FOR2(i, j)
         {
             rhs.v[i][j] +=
-                metric_vars.gamma[i][j] * m_damping_kappa * vars.Xhat -
+                //metric_vars.gamma[i][j] * m_damping_kappa * vars.Xhat -
+                metric_vars.gamma[i][j] * metric_vars.lapse * m_damping_kappa * vars.Xhat -
                 metric_vars.lapse * (d1.Xspatial[i][j] + d1.Xspatial[j][i]);
 
             FOR1(k)

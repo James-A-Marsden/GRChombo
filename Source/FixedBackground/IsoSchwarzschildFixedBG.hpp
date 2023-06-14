@@ -162,31 +162,59 @@ class IsoSchwarzschildFixedBG
             }
         }
 
-        vars.lapse = (1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
-        // Flip to minus sign inside horizon, not zeroing?
-
-        // calculate derivs of lapse and shift
-        FOR1(i)
+        if (simd_compare_gt(r, M / 2.0))
         {
-            vars.d1_lapse[i] =
-                4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
+            vars.lapse = (1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
+            // calculate derivs of lapse and shift
+            FOR1(i)
+            {
+                vars.d1_lapse[i] =
+                    4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
 
-            vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
+                vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
+            }
+
+            FOR2(i, j)
+            {
+                vars.d2_lapse[i][j] =
+                    4.0 * M *
+                    (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) *
+                    pow(M + 2.0 * r, -3.0);
+
+                vars.d2_ln_lapse[i][j] =
+                    -(4.0 * M *
+                    (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
+                    4.0 * r2 * d2_r[i][j])) /
+                    (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
+            }
         }
-
-        FOR2(i, j)
+        else
         {
-            vars.d2_lapse[i][j] =
-                4.0 * M *
-                (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) *
-                pow(M + 2.0 * r, -3.0);
+            //Signs are flipped inside the horizon except for the log terms 
+            vars.lapse = -(1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
+            // calculate derivs of lapse and shift
+            FOR1(i)
+            {
+                vars.d1_lapse[i] =
+                    -4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
 
-            vars.d2_ln_lapse[i][j] =
-                -(4.0 * M *
-                  (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
-                   4.0 * r2 * d2_r[i][j])) /
-                (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
-        }
+                vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
+            }
+
+            FOR2(i, j)
+            {
+                vars.d2_lapse[i][j] =
+                    -4.0 * M *
+                    (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) *
+                    pow(M + 2.0 * r, -3.0);
+
+                vars.d2_ln_lapse[i][j] =
+                    -(4.0 * M *
+                    (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
+                    4.0 * r2 * d2_r[i][j])) /
+                    (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
+            }
+        }   
 
         data_t alpha2 = vars.lapse * vars.lapse;
 

@@ -5,16 +5,15 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = ""
-#"/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/modified_multi_level_high_res_massless"
-chk_prefix =  MultiLevel_m0_L128_N160_Chk_
-plot_prefix = MultiLevel_m0_L128_N160_Plt_
+output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/exc_ja_high_res_massive_damping_4l"
+chk_prefix =  MultiLevel_m5_dT_L32_N128_Chk_
+plot_prefix = MultiLevel_m5_dT_L32_N128_Plt_
 #restart_file = 
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
 
-hdf5_subpath = "hdf5"
+hdf5_subpath = ""
 pout_subpath = "pout"
 data_subpath = "data"
 
@@ -36,14 +35,14 @@ plot_interval = 5
 num_plot_vars = 5
 plot_vars = trace_field primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
 
-stop_time = 12.0
+stop_time = 16.0
 dt_multiplier = 0.1
 
 # Set up grid spacings and regrid params
 # NB - the N values need to be multiples of block_factor
 
-L = 128.0
-bh_center = 64.0 64.0 64.0
+L = 64.0
+#bh_center = 16.0 16.0 16.0
 
 N1 = 128
 N2 = 128
@@ -57,21 +56,21 @@ regrid_buffer = 8
 
 # Level data
 # Maximum number of times you can regrid above coarsest level
-max_level = 5 There are (max_level+1) grids, so min is zero
+max_level = 4 There are (max_level+1) grids, so min is zero
 # Frequency of regridding at each level
 # Need one for each level, ie max_level+1 items
 # Generally you do not need to regrid frequently on every level
 regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
 
-tensor_field_mass = 1.0
+tensor_field_mass = 5.0
 
 #Value of the damping coefficient
-damping_kappa = 1.0
+damping_kappa = 0.03125
 
 #switch constaint damping on or off --- true or false
 damping_is_active = 0
-dRGT_ij_is_active = 1
-dRGT_mass_is_active = 1
+dRGT_ij_is_active = 0
+dRGT_mass_is_active = 0
 
 # Max box size
 max_grid_size = 16
@@ -86,8 +85,8 @@ isPeriodic = 0 0 0
 # if not periodic, then specify the boundary type
 # 0 = static, 1 = sommerfeld, 2 = reflective, 3 = extrapolating
 # (see BoundaryConditions.hpp for details)
-hi_boundary = 1 1 1
-lo_boundary = 1 1 1  
+hi_boundary = 3 3 3
+lo_boundary = 2 2 2
 
 # if reflective boundaries selected, must select 
 # parity values (in order given by UserVariables.hpp)
@@ -95,8 +94,20 @@ lo_boundary = 1 1 1
 # 1,2,3 = odd x, y, z
 # 4,5,6 = odd xy, yz, xz
 # 7 = odd xyz
-vars_parity            = 4 0 5 4 6 4 2 1 7 7 4 0 5 4 6 4 2 1 7 7
-#vars_parity_diagnostic = 0 0 0 0 0 0 0 0    #chi and rho rhoJ
+vars_parity            = 4 0 5 4 6 4   #hij
+                         2 1 7         #hbar
+                         4             #hhat
+                         4 0 5 4 6 4   #Bij
+                         4             #Xhat
+                         2 1 7         #Xi
+
+vars_parity_diagnostic = 0 0 0 0 0 #Unused chi and rho rhoJ
+                         4         #Trace field
+                         0         #Trace momentum (update)
+                         0 0 0 0   #Transverse (unused)
+                         4         #Primary scalar 
+                         2 1 7     #Primary vector 
+                         0         #Rho eff (check)
 
 # specify non zero asympotitic vars
 num_nonzero_asymptotic_vars = 0

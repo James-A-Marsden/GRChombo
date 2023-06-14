@@ -193,17 +193,22 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
                 }
             }
 
-            rho_eff = 0.0;
-            FOR3(i, j, k)
+            rho_eff = - 0.75 * m_tensor_field_mass * m_tensor_field_mass * vars.fhat * vars.fhat;
+            FOR2(i, j)
             {
-                FOR1(l)
+                rho_eff += 0.5 *  m_tensor_field_mass *  m_tensor_field_mass * gamma_UU[i][j] * vars.fbar[i] * vars.fbar[j];
+                FOR1(k)
                 {
-                    rho_eff += 0.25 * m_tensor_field_mass *
-                               m_tensor_field_mass * gamma_UU[i][k] *
-                               gamma_UU[j][l] * vars.fspatial[i][j] *
-                               vars.fspatial[k][l];
+                    FOR1(l)
+                    {
+                        rho_eff += 0.25 * m_tensor_field_mass *
+                                m_tensor_field_mass * gamma_UU[i][k] *
+                                gamma_UU[j][l] * vars.fspatial[i][j] *
+                                vars.fspatial[k][l] * metric_vars.lapse * metric_vars.lapse;
+                    }
                 }
             }
+
 
             primaryScalar = metric_vars.lapse * m_tensor_field_mass *
                             m_tensor_field_mass * fspatial_trace;
