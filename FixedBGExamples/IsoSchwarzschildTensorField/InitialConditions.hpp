@@ -121,7 +121,7 @@ class InitialConditions
         const double M = m_bg_params.mass;
         const double M2 = M * M;
 
-        data_t A = pow(M + 2.0 * r, -2.0);
+        //data_t A = pow(M + 2.0 * r, -2.0);
         /*
         vars.fspatial[0][0] = -A * sintheta * sintheta * sin2phi / r;
         vars.fspatial[1][1] = A * sintheta * sintheta * sin2phi / r;
@@ -134,14 +134,27 @@ class InitialConditions
         vars.fspatial[2][0] = vars.fspatial[0][2];
         vars.fspatial[2][1] = vars.fspatial[1][2];
         */
-        
+        /*
         vars.v[0][0] = -2 * A * cosphi * sinphi * pow(sintheta, 2.0) / r;
         vars.v[1][1] = 2 * A * cosphi * sinphi * pow(sintheta, 2.0) / r;
         vars.v[2][2] = 0;
         vars.v[0][1] = A * cos2phi * pow(sintheta, 2.0) / r;
         vars.v[0][2] = -A * costheta * sintheta * sinphi / r;
         vars.v[1][2] = A * costheta * sintheta * cosphi / r;
-
+        */
+        /*
+        vars.v[0][0] = - M * sintheta * costheta * sin2phi / r;
+        vars.v[0][1] = M * sintheta * costheta * cos2phi / r;
+        vars.v[1][1] = M * costheta * sintheta * sin2phi / r;
+        vars.v[0][2] = -(2.0 + M * costheta * costheta / r) * sinphi;
+        vars.v[1][2] = (2.0 + M * costheta * costheta / r) * cosphi;
+        vars.v[2][2] = 0.0; 
+        */
+        vars.v[0][0] = - (2.0 * M + r) * sintheta * sintheta * costheta * sinphi * cosphi / r;
+        vars.v[1][1] =   (2.0 * M + r) * sintheta * sintheta * costheta * sinphi * cosphi / r;
+        vars.v[0][1] =   (2.0 * M + r) * sintheta * sintheta * costheta * cos2phi / (2.0 * r);
+        vars.v[0][2] = - ((2.0 * M + r) * costheta * costheta + 3.0 * r) * sintheta * sinphi / (2.0 * r);
+        vars.v[1][2] =   ((2.0 * M + r) * costheta * costheta + 3.0 * r) * sintheta * cosphi / (2.0 * r);
         vars.v[1][0] = vars.v[0][1];
         vars.v[2][0] = vars.v[0][2];
         vars.v[2][1] = vars.v[1][2];

@@ -16,15 +16,12 @@ enum
     c_Jdot, // the energy density of the SF
     c_trace_field,
     c_trace_momentum,
-    c_transverseScalar,
-    c_transverseVector1,
-    c_transverseVector2,
-    c_transverseVector3,
     c_primaryConstraintScalar,
     c_primaryConstraintVector1,
     c_primaryConstraintVector2,
     c_primaryConstraintVector3,
     c_rho_eff,
+    c_field_amplitude,
     NUM_DIAGNOSTIC_VARS
 };
 
@@ -38,15 +35,12 @@ static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
     "Jdot",
     "trace_field",
     "trace_momentum",
-    "transverseScalar",
-    "transverseVector1",
-    "transverseVector2",
-    "transverseVector3",
     "primaryConstraintScalar",
     "primaryConstraintVector1",
     "primaryConstraintVector2",
     "primaryConstraintVector3",
     "rho_eff",
+    "field_amplitude"
 };
 
 }

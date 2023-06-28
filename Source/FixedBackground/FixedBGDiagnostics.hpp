@@ -100,6 +100,8 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
 
         data_t primaryScalar = 0.0;
 
+        data_t field_amplitude = 0.0;
+
         Tensor<1, data_t> primaryVector;
         FOR1(i) { primaryVector[i] = 0.0; }
 
@@ -193,10 +195,10 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
                 }
             }
 
-            rho_eff = - 0.75 * m_tensor_field_mass * m_tensor_field_mass * vars.fhat * vars.fhat;
+            rho_eff = - 0.75 * m_tensor_field_mass * m_tensor_field_mass * vars.fhat * vars.fhat / metric_vars.lapse / metric_vars.lapse;
             FOR2(i, j)
             {
-                rho_eff += 0.5 *  m_tensor_field_mass *  m_tensor_field_mass * gamma_UU[i][j] * vars.fbar[i] * vars.fbar[j];
+                rho_eff += 0.5 *  m_tensor_field_mass *  m_tensor_field_mass * gamma_UU[i][j] * vars.fbar[i] * vars.fbar[j] / metric_vars.lapse / metric_vars.lapse;
                 FOR1(k)
                 {
                     FOR1(l)
@@ -204,7 +206,7 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
                         rho_eff += 0.25 * m_tensor_field_mass *
                                 m_tensor_field_mass * gamma_UU[i][k] *
                                 gamma_UU[j][l] * vars.fspatial[i][j] *
-                                vars.fspatial[k][l] * metric_vars.lapse * metric_vars.lapse;
+                                vars.fspatial[k][l];
                     }
                 }
             }
@@ -212,6 +214,19 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
 
             primaryScalar = metric_vars.lapse * m_tensor_field_mass *
                             m_tensor_field_mass * fspatial_trace;
+
+
+            field_amplitude = vars.fhat * vars.fhat / metric_vars.lapse / metric_vars.lapse;
+
+            FOR2(i,j)
+            {
+                field_amplitude += -2.0 * gamma_UU[i][j] * vars.fbar[i] * vars.fbar[j] / metric_vars.lapse / metric_vars.lapse;
+
+                FOR2(k,l)
+                {
+                    field_amplitude += gamma_UU[i][k] * gamma_UU[j][l] * vars.fspatial[i][j] * vars.fspatial[k][l];
+                }
+            }
 
             FOR2(i, j)
             {
@@ -362,6 +377,8 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
         current_cell.store_vars(primaryVector[2], c_primaryConstraintVector3);
 
         current_cell.store_vars(rho_eff, c_rho_eff);
+
+        current_cell.store_vars(field_amplitude, c_field_amplitude);
     }
 };
 
