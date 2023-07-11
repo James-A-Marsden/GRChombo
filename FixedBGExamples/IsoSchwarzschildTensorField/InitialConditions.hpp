@@ -150,11 +150,12 @@ class InitialConditions
         vars.v[1][2] = (2.0 + M * costheta * costheta / r) * cosphi;
         vars.v[2][2] = 0.0; 
         */
-        vars.v[0][0] = - (2.0 * M + r) * sintheta * sintheta * costheta * sinphi * cosphi / r;
-        vars.v[1][1] =   (2.0 * M + r) * sintheta * sintheta * costheta * sinphi * cosphi / r;
-        vars.v[0][1] =   (2.0 * M + r) * sintheta * sintheta * costheta * cos2phi / (2.0 * r);
-        vars.v[0][2] = - ((2.0 * M + r) * costheta * costheta + 3.0 * r) * sintheta * sinphi / (2.0 * r);
-        vars.v[1][2] =   ((2.0 * M + r) * costheta * costheta + 3.0 * r) * sintheta * cosphi / (2.0 * r);
+        const double A = 1.0;
+        vars.v[0][0] = - A * (2.0 * M + r) * sintheta * sintheta * costheta * sinphi * cosphi / r;
+        vars.v[1][1] =   A * (2.0 * M + r) * sintheta * sintheta * costheta * sinphi * cosphi / r;
+        vars.v[0][1] =   A * (2.0 * M + r) * sintheta * sintheta * costheta * cos2phi / (2.0 * r);
+        vars.v[0][2] = - A * ((2.0 * M + r) * costheta * costheta + 3.0 * r) * sintheta * sinphi / (2.0 * r);
+        vars.v[1][2] =   A * ((2.0 * M + r) * costheta * costheta + 3.0 * r) * sintheta * cosphi / (2.0 * r);
         vars.v[1][0] = vars.v[0][1];
         vars.v[2][0] = vars.v[0][2];
         vars.v[2][1] = vars.v[1][2];
