@@ -47,40 +47,14 @@ template <class matter_t, class background_t> class ExcisionEvolution
         const Coordinates<double> coords(current_cell, m_dx, m_center);
         double horizon_distance = m_background.excise(current_cell);
 
-        // if (horizon_distance < 0.5)
-        if (horizon_distance < 0.5)
+        if (horizon_distance < 0.95)
         {
             // the matter rhs vars within the excision zone
             // recalculate them - for now set to decay to zero
             Vars vars;
-
-            // const auto d1 = m_deriv.template diff1<Vars>(current_cell);
             VarsTools::assign(vars, 0.0);
-            // VarsTools::assign(d1, 0.0);
-
-            /// EXCISE d1
-
-            // assign values of rhs or vars in output box
             current_cell.store_vars(vars);
-            // current_cell.store_vars(d1);
-        } // else do nothing
-        if (horizon_distance < 0.5)
-        {
-            // the matter rhs vars within the excision zone
-            // recalculate them - for now set to decay to zero
-            Vars vars;
 
-            // const auto d1 = m_deriv.template diff1<Vars>(current_cell);
-
-            /// EXCISE the damping variables inside horizon
-            current_cell.store_vars(0.0, c_Xhat);
-            current_cell.store_vars(0.0, c_Xspatial1);
-            current_cell.store_vars(0.0, c_Xspatial2);
-            current_cell.store_vars(0.0, c_Xspatial3);
-
-            // assign values of rhs or vars in output box
-            // current_cell.store_vars(vars);
-            // current_cell.store_vars(d1);
         } // else do nothing
     }
 };

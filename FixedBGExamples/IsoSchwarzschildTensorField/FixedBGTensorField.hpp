@@ -8,21 +8,16 @@
 
 #include "ADMFixedBGVars.hpp"
 #include "CCZ4Geometry.hpp"
-#include "DefaultPotential.hpp"
 #include "DimensionDefinitions.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "Tensor.hpp"
 #include "TensorAlgebra.hpp"
-#include "TensorPotential.hpp"
 #include "UserVariables.hpp" //This files needs NUM_VARS, total num of components
 #include "VarsTools.hpp"
 
-template <class potential_t = TensorPotential> class FixedBGTensorField
+class FixedBGTensorField
 {
   protected:
-    //! The local copy of the potential
-    potential_t my_potential;
-
     double m_tensor_field_mass;
     double m_damping_kappa;
     bool m_damping_is_active;
@@ -32,11 +27,10 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
   public:
     //!  Constructor of class FixedBGTensorField, inputs are the matter
     // //!  parameters.
-    FixedBGTensorField(const potential_t a_potential,
-                       double a_tensor_field_mass, double a_damping_kappa,
+    FixedBGTensorField(double a_tensor_field_mass, double a_damping_kappa,
                        bool a_damping_is_active, bool a_dRGT_ij_is_active,
                        bool a_dRGT_mass_is_active)
-        : my_potential(a_potential), m_tensor_field_mass(a_tensor_field_mass),
+        : m_tensor_field_mass(a_tensor_field_mass),
           m_damping_kappa(a_damping_kappa),
           m_damping_is_active(a_damping_is_active),
           m_dRGT_ij_is_active(a_dRGT_ij_is_active),
@@ -125,7 +119,7 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         const; //!< the physical christoffel symbol
 
     //! The function which calculates the EM Tensor, given the vars and
-    //! derivatives, excluding the potential
+    //! derivatives, excluding the mass terms
     template <class data_t, template <typename> class vars_t>
     static void emtensor_excl_potential(
         emtensor_t<data_t> &out,    //!< the em tensor output
@@ -139,8 +133,7 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         const Tensor<3, data_t>
             &chris_phys_ULL); //!< the physical christoffel symbol
 
-    //! The function which adds in the RHS for the matter field vars,
-    //! including the potential
+    //! The function which adds in the RHS for the matter field vars
     template <class data_t, template <typename> class vars_t,
               template <typename> class diff2_vars_t,
               template <typename> class rhs_vars_t>
@@ -155,7 +148,7 @@ template <class potential_t = TensorPotential> class FixedBGTensorField
         const; //!< the value of the advection terms
 
     //! The function which calculates the RHS for the matter field vars
-    //! excluding the potential
+    // excluding the mass terms
     template <class data_t, template <typename> class vars_t,
               template <typename> class diff2_vars_t,
               template <typename> class rhs_vars_t>

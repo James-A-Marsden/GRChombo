@@ -5,9 +5,9 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 output_path = "" # Main path for all files. Must exist!
-chk_prefix =  MultiLevel_m1p0_L128_N160_Chk_
-plot_prefix = MultiLevel_m1p0_L128_N160_Plt_
-#restart_file = MultiLevel_m5_L128_N128_Chk_000160.3d.hdf5
+chk_prefix =  IsoField_Chk_
+plot_prefix = IsoField_Plt_
+#restart_file = IsoField_Chk_000160.3d.hdf5
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
@@ -19,22 +19,21 @@ data_subpath = "data"
 # change the name of output files
 # pout_prefix = "pout"
 
-#print_progress_only_to_rank_0 = 1
+print_progress_only_to_rank_0 = 1
 
 # Set up time steps
 # dt will be dx*dt_multiplier on each grid level
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
-
 checkpoint_interval = 10
-plot_interval = 5
+plot_interval = 1
 
 #num_plot_vars = 30
 #plot_vars = fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
 
-num_plot_vars = 6
-plot_vars = trace_field primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3 rho_eff
+num_plot_vars = 7
+plot_vars = fhat fbar1 fspatial11 trace_field primaryConstraintScalar primaryConstraintVector1 rho_eff
 
-stop_time = 64.0
+stop_time = 50.0
 dt_multiplier = 0.1
 
 # Set up grid spacings and regrid params
@@ -43,12 +42,12 @@ dt_multiplier = 0.1
 L = 128.0
 #bh_center = 16.0 16.0 16.0
 
-N1 = 160
-N2 = 160
-N3 = 160
+N1 = 128
+N2 = 128
+N3 = 128
 
 # Regridding
-#tag_buffer_size = 0
+tag_buffer_size = 0
 #regrid_length = 2048
 
 regrid_buffer = 8
@@ -61,13 +60,15 @@ max_level = 6 There are (max_level+1) grids, so min is zero
 # Generally you do not need to regrid frequently on every level
 regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
 
+# mass of tensor field
 tensor_field_mass = 1.0
-
-#Value of the damping coefficient
-damping_kappa = 1.0
 
 #switch constaint damping on or off --- true or false
 damping_is_active = 0
+#Value of the damping coefficient
+damping_kappa = 1.0
+
+# addition of extra (zero) terms
 dRGT_ij_is_active = 0
 dRGT_mass_is_active = 0
 
@@ -75,7 +76,6 @@ dRGT_mass_is_active = 0
 max_grid_size = 16
 # Min box size
 block_factor = 16
-tag_buffer_size = 0
 
 #boundaries and periodicity of grid
 #Periodic directions - 0 = false, 1 = true
@@ -85,7 +85,7 @@ isPeriodic = 0 0 0
 # 0 = static, 1 = sommerfeld, 2 = reflective, 3 = extrapolating
 # (see BoundaryConditions.hpp for details)
 hi_boundary = 3 3 3
-lo_boundary = 3 3 2
+lo_boundary = 3 3 3
 
 # if reflective boundaries selected, must select 
 # parity values (in order given by UserVariables.hpp)
@@ -95,18 +95,17 @@ lo_boundary = 3 3 2
 # 7 = odd xyz
 vars_parity            = 0 4 6 0 5 0   #hij
                          1 2 3         #hbar
-                         0            #hhat
+                         0             #hhat
                          0 4 6 0 5 0   #Bij
                          0             #Xhat
                          1 2 3         #Xi
 
-vars_parity_diagnostic = 0 0 0 0 0 #Unused chi and rho rhoJ
+vars_parity_diagnostic = 0         #chi
                          0         #Trace field
-                         0         #Trace momentum (update)
-                         0 0 0 0   #Transverse (unused)
+                         0         #Trace momentum
                          0         #Primary scalar 
                          1 2 3     #Primary vector 
-                         0         #Rho eff (check)
+                         0 0       #Rho_eff and field amplitude
 
 # specify non zero asympotitic vars
 num_nonzero_asymptotic_vars = 0
@@ -117,10 +116,10 @@ nonzero_asymptotic_values = 0.0
 # (the rest are assumed to be all sommerfeld)
 #num_extrapolating_vars = 2
 #extrapolating_vars = phi Pi
-#extrapolation_order = 1
+extrapolation_order = 0
 
 # coefficient for KO numerical dissipation
-sigma = 0.5
+sigma = 1.0
 
 # Boosted BH initial data, boost in x direction, spin in z direction
 bh_mass = 1.0

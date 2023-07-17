@@ -12,7 +12,6 @@
 #include "GRParmParse.hpp"
 // Problem specific includes:
 #include "IsoSchwarzschildFixedBG.hpp"
-#include "TensorPotential.hpp"
 
 class SimulationParameters : public FixedBGSimulationParametersBase
 {
@@ -62,7 +61,6 @@ class SimulationParameters : public FixedBGSimulationParametersBase
     std::string integral_filename;
     // Collection of parameters necessary for the sims
     IsoSchwarzschildFixedBG::params_t bg_params;
-    TensorPotential::params_t potential_params;
 };
 
 #endif /* SIMULATIONPARAMETERS_HPP_ */

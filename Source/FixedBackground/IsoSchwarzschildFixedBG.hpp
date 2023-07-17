@@ -183,14 +183,14 @@ class IsoSchwarzschildFixedBG
 
                 vars.d2_ln_lapse[i][j] =
                     -(4.0 * M *
-                    (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
-                    4.0 * r2 * d2_r[i][j])) /
+                      (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
+                       4.0 * r2 * d2_r[i][j])) /
                     (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
             }
         }
         else
         {
-            //Signs are flipped inside the horizon except for the log terms 
+            // Signs are flipped inside the horizon except for the log terms
             vars.lapse = -(1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
             // calculate derivs of lapse and shift
             FOR1(i)
@@ -210,11 +210,11 @@ class IsoSchwarzschildFixedBG
 
                 vars.d2_ln_lapse[i][j] =
                     -(4.0 * M *
-                    (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
-                    4.0 * r2 * d2_r[i][j])) /
+                      (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
+                       4.0 * r2 * d2_r[i][j])) /
                     (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
             }
-        }   
+        }
 
         data_t alpha2 = vars.lapse * vars.lapse;
 

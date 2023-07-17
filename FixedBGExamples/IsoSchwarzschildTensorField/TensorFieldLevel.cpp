@@ -13,32 +13,16 @@
 #include "SmallDataIO.hpp"
 
 // For tag cells
-#include "TensorFieldTaggingCriterion.hpp"
+#include "FixedGridsTaggingCriterion.hpp"
 
 // Problem specific includes
 #include "ExcisionDiagnostics.hpp"
 #include "ExcisionEvolution.hpp"
-#include "FixedBGDiagnostics.hpp"
 #include "FixedBGEvolution.hpp"
-#include "FixedBGFluxes.hpp"
 #include "FixedBGTensorField.hpp"
-#include "FluxExtraction.hpp"
 #include "InitialConditions.hpp"
 #include "IsoSchwarzschildFixedBG.hpp"
-#include "TensorPotential.hpp"
-#include "TraceFieldRemoval.hpp"
-
-// Things to do at each advance step, after the RK4 is calculated
-void TensorFieldLevel::specificAdvance()
-{
-
-    //    IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
-
-    // Check for nan's
-    if (m_p.nan_check)
-        BoxLoops::loop(NanCheck(), m_state_new, m_state_new, SKIP_GHOST_CELLS,
-                       disable_simd());
-}
+#include "TensorDiagnostics.hpp"
 
 // Initial data for field and metric variables
 void TensorFieldLevel::initialData()
@@ -66,7 +50,7 @@ void TensorFieldLevel::initialData()
 
     // excise within horizon, no simd
     BoxLoops::loop(
-        ExcisionEvolution<TensorFieldWithPotential, IsoSchwarzschildFixedBG>(
+        ExcisionEvolution<FixedBGTensorField, IsoSchwarzschildFixedBG>(
             m_dx, m_p.center, isoschwarzschild_bg),
         m_state_new, m_state_new, INCLUDE_GHOST_CELLS, disable_simd());
 }
@@ -77,29 +61,26 @@ void TensorFieldLevel::prePlotLevel()
 
     CH_TIME("TensorFieldLevel::prePlotLevel");
     fillAllGhosts();
-    TensorPotential potential(m_p.potential_params);
 
-    TensorFieldWithPotential tensor_field(
-        potential, m_p.tensor_field_mass, m_p.damping_kappa,
-        m_p.damping_is_active, m_p.dRGT_ij_is_active, m_p.dRGT_mass_is_active);
+    FixedBGTensorField tensor_field(
+        m_p.tensor_field_mass, m_p.damping_kappa, m_p.damping_is_active,
+        m_p.dRGT_ij_is_active, m_p.dRGT_mass_is_active);
     IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
 
-    FixedBGDiagnostics<TensorFieldWithPotential, IsoSchwarzschildFixedBG>
-        diagnostics(tensor_field, isoschwarzschild_bg, m_dx, m_p.center,
-                    m_p.tensor_field_mass);
-    
+    TensorDiagnostics<FixedBGTensorField, IsoSchwarzschildFixedBG> diagnostics(
+        tensor_field, isoschwarzschild_bg, m_dx, m_p.center,
+        m_p.tensor_field_mass);
+
     // Calculate diagnostics
-    BoxLoops::loop(make_compute_pack(diagnostics), m_state_new,
-                   m_state_diagnostics, SKIP_GHOST_CELLS, disable_simd());
+    BoxLoops::loop(diagnostics, m_state_new, m_state_diagnostics,
+                   SKIP_GHOST_CELLS, disable_simd());
 
     // excise within horizon
     BoxLoops::loop(
-        ExcisionDiagnostics<TensorFieldWithPotential, IsoSchwarzschildFixedBG>(
+        ExcisionDiagnostics<FixedBGTensorField, IsoSchwarzschildFixedBG>(
             m_dx, m_p.center, isoschwarzschild_bg, m_p.inner_r, m_p.outer_r),
         m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
         disable_simd());
-
-    //fillAllGhosts();  
 }
 
 // Things to do in RHS update, at each RK4 step
@@ -107,47 +88,40 @@ void TensorFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
                                        const double a_time)
 {
     CH_TIME("TensorFieldLevel::specificEvalRHS");
-    //SetValue set_zero(0.0);
     IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
-    TensorPotential potential(m_p.potential_params);
-    TensorFieldWithPotential tensor_field(
-        potential, m_p.tensor_field_mass, m_p.damping_kappa,
-        m_p.damping_is_active, m_p.dRGT_ij_is_active, m_p.dRGT_mass_is_active);
+    FixedBGTensorField tensor_field(
+        m_p.tensor_field_mass, m_p.damping_kappa, m_p.damping_is_active,
+        m_p.dRGT_ij_is_active, m_p.dRGT_mass_is_active);
 
     // enforce continuous prescription for sigma as per arXiv:2104.06978
-    //const int ratio = pow(2, 5 * (m_level - m_p.max_level));
-    //const double sigma = m_p.sigma * double(ratio);
-    
-    FixedBGEvolution<TensorFieldWithPotential, IsoSchwarzschildFixedBG>
-        my_matter(tensor_field, isoschwarzschild_bg, m_p.sigma, m_dx,
-                  m_p.center);
+    // const int ratio = pow(2, 5 * (m_level - m_p.max_level));
+    // const double sigma = m_p.sigma * double(ratio);
 
+    FixedBGEvolution<FixedBGTensorField, IsoSchwarzschildFixedBG> my_matter(
+        tensor_field, isoschwarzschild_bg, m_p.sigma, m_dx, m_p.center);
 
     // Calculate!
     BoxLoops::loop(my_matter, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
 
     // excise within horizon, no simd
     BoxLoops::loop(
-        ExcisionEvolution<TensorFieldWithPotential, IsoSchwarzschildFixedBG>(
+        ExcisionEvolution<FixedBGTensorField, IsoSchwarzschildFixedBG>(
             m_dx, m_p.center, isoschwarzschild_bg),
         a_soln, a_rhs, INCLUDE_GHOST_CELLS, disable_simd());
-
-
 }
 
-void TensorFieldLevel::specificPostTimeStep() {}
-
-// enforce trace removal during RK4 substeps
-void TensorFieldLevel::specificUpdateODE(GRLevelData &a_soln,
-                                         const GRLevelData &a_rhs, Real a_dt)
+void TensorFieldLevel::specificPostTimeStep()
 {
-    
+    // Check for nan's
+    if (m_p.nan_check)
+        BoxLoops::loop(NanCheck(), m_state_new, m_state_new, SKIP_GHOST_CELLS,
+                       disable_simd());
 }
 
 void TensorFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                                const FArrayBox &current_state)
 {
-    BoxLoops::loop(TensorFieldTaggingCriterion(m_dx, m_level, m_p.regrid_length,
-                                               m_p.center),
+    BoxLoops::loop(FixedGridsTaggingCriterion(m_dx, m_level, m_p.regrid_length,
+                                              m_p.center),
                    current_state, tagging_criterion, disable_simd());
 }

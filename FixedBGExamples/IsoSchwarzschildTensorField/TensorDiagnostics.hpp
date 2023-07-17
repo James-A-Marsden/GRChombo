@@ -3,8 +3,8 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#ifndef FIXEDBGDIAGNOSTICS_HPP_
-#define FIXEDBGDIAGNOSTICS_HPP_
+#ifndef TENSORDIAGNOSTICS_HPP_
+#define TENSORDIAGNOSTICS_HPP_
 
 #include "ADMFixedBGVars.hpp"
 #include "CCZ4Geometry.hpp"
@@ -19,7 +19,7 @@
 
 //! Calculates the energy density rho and angular momentum density rhoJ
 //! with matter type matter_t and writes it to the grid
-template <class matter_t, class background_t> class FixedBGDiagnostics
+template <class matter_t, class background_t> class TensorDiagnostics
 {
     // Use the variable definition in the matter class
     template <class data_t>
@@ -38,9 +38,9 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
     const double m_tensor_field_mass;
 
   public:
-    FixedBGDiagnostics(matter_t a_matter, background_t a_background,
-                       double a_dx, std::array<double, CH_SPACEDIM> a_center,
-                       double a_tensor_field_mass)
+    TensorDiagnostics(matter_t a_matter, background_t a_background, double a_dx,
+                      std::array<double, CH_SPACEDIM> a_center,
+                      double a_tensor_field_mass)
         : m_matter(a_matter), m_deriv(a_dx), m_dx(a_dx),
           m_background(a_background), m_center(a_center),
           m_tensor_field_mass(a_tensor_field_mass)
@@ -195,36 +195,43 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
                 }
             }
 
-            rho_eff = - 0.75 * m_tensor_field_mass * m_tensor_field_mass * vars.fhat * vars.fhat / metric_vars.lapse / metric_vars.lapse;
+            rho_eff = -0.75 * m_tensor_field_mass * m_tensor_field_mass *
+                      vars.fhat * vars.fhat / metric_vars.lapse /
+                      metric_vars.lapse;
             FOR2(i, j)
             {
-                rho_eff += 0.5 *  m_tensor_field_mass *  m_tensor_field_mass * gamma_UU[i][j] * vars.fbar[i] * vars.fbar[j] / metric_vars.lapse / metric_vars.lapse;
+                rho_eff += 0.5 * m_tensor_field_mass * m_tensor_field_mass *
+                           gamma_UU[i][j] * vars.fbar[i] * vars.fbar[j] /
+                           metric_vars.lapse / metric_vars.lapse;
                 FOR1(k)
                 {
                     FOR1(l)
                     {
                         rho_eff += 0.25 * m_tensor_field_mass *
-                                m_tensor_field_mass * gamma_UU[i][k] *
-                                gamma_UU[j][l] * vars.fspatial[i][j] *
-                                vars.fspatial[k][l];
+                                   m_tensor_field_mass * gamma_UU[i][k] *
+                                   gamma_UU[j][l] * vars.fspatial[i][j] *
+                                   vars.fspatial[k][l];
                     }
                 }
             }
 
-
             primaryScalar = metric_vars.lapse * m_tensor_field_mass *
                             m_tensor_field_mass * fspatial_trace;
 
+            field_amplitude =
+                vars.fhat * vars.fhat / metric_vars.lapse / metric_vars.lapse;
 
-            field_amplitude = vars.fhat * vars.fhat / metric_vars.lapse / metric_vars.lapse;
-
-            FOR2(i,j)
+            FOR2(i, j)
             {
-                field_amplitude += -2.0 * gamma_UU[i][j] * vars.fbar[i] * vars.fbar[j] / metric_vars.lapse / metric_vars.lapse;
+                field_amplitude += -2.0 * gamma_UU[i][j] * vars.fbar[i] *
+                                   vars.fbar[j] / metric_vars.lapse /
+                                   metric_vars.lapse;
 
-                FOR2(k,l)
+                FOR2(k, l)
                 {
-                    field_amplitude += gamma_UU[i][k] * gamma_UU[j][l] * vars.fspatial[i][j] * vars.fspatial[k][l];
+                    field_amplitude += gamma_UU[i][k] * gamma_UU[j][l] *
+                                       vars.fspatial[i][j] *
+                                       vars.fspatial[k][l];
                 }
             }
 
@@ -382,4 +389,4 @@ template <class matter_t, class background_t> class FixedBGDiagnostics
     }
 };
 
-#endif /* FIXEDBGDIAGNOSTICS_HPP_ */
+#endif /* TENSORDIAGNOSTICS_HPP_ */

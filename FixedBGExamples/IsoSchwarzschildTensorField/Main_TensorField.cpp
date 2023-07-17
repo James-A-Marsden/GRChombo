@@ -41,7 +41,7 @@ int runGRChombo(int argc, char *argv[])
     // Engage! Run the evolution
     gr_amr.run(sim_params.stop_time, sim_params.max_steps);
     gr_amr.conclude();
-    
+
     CH_TIMER_REPORT();
 
     return 0;
