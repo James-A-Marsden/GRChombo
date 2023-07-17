@@ -105,9 +105,8 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     const auto chris_phys = compute_christoffel(metric_vars.d1_gamma, gamma_UU);
 
     // Evolution equations for the field and the conjugate variables:
-
     
-    double trace_damping = 5.0;
+    double trace_damping = 0.25;
     data_t Htrace = vars.fhat;
     FOR2(i, j)
     { 
