@@ -41,7 +41,7 @@ class NanCheck
         }
         if (stop)
         {
-#pragma omp single
+#pragma omp master
             {
                 pout() << m_error_info
                        << "::Values have become nan. The current state is: \n";

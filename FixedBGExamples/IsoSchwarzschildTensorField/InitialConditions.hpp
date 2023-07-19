@@ -114,7 +114,7 @@ class InitialConditions
         const double M = m_bg_params.mass;
         const double M2 = M * M;
 
-        const double A = 1.0;
+        const double A = 0.01;
         vars.v[0][0] = -A * (2.0 * M + r) * sintheta * sintheta * costheta *
                        sinphi * cosphi / r;
         vars.v[1][1] = A * (2.0 * M + r) * sintheta * sintheta * costheta *

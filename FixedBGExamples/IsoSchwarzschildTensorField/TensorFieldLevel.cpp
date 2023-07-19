@@ -16,6 +16,7 @@
 #include "FixedGridsTaggingCriterion.hpp"
 
 // Problem specific includes
+#include "CustomExtraction.hpp"
 #include "ExcisionDiagnostics.hpp"
 #include "ExcisionEvolution.hpp"
 #include "FixedBGEvolution.hpp"
@@ -60,27 +61,7 @@ void TensorFieldLevel::prePlotLevel()
 {
 
     CH_TIME("TensorFieldLevel::prePlotLevel");
-    fillAllGhosts();
-
-    FixedBGTensorField tensor_field(
-        m_p.tensor_field_mass, m_p.damping_kappa, m_p.damping_is_active,
-        m_p.dRGT_ij_is_active, m_p.dRGT_mass_is_active);
-    IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
-
-    TensorDiagnostics<FixedBGTensorField, IsoSchwarzschildFixedBG> diagnostics(
-        tensor_field, isoschwarzschild_bg, m_dx, m_p.center,
-        m_p.tensor_field_mass);
-
-    // Calculate diagnostics
-    BoxLoops::loop(diagnostics, m_state_new, m_state_diagnostics,
-                   SKIP_GHOST_CELLS, disable_simd());
-
-    // excise within horizon
-    BoxLoops::loop(
-        ExcisionDiagnostics<FixedBGTensorField, IsoSchwarzschildFixedBG>(
-            m_dx, m_p.center, isoschwarzschild_bg, m_p.inner_r, m_p.outer_r),
-        m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
-        disable_simd());
+    // Now done in PostTimestep below
 }
 
 // Things to do in RHS update, at each RK4 step
@@ -116,6 +97,69 @@ void TensorFieldLevel::specificPostTimeStep()
     if (m_p.nan_check)
         BoxLoops::loop(NanCheck(), m_state_new, m_state_new, SKIP_GHOST_CELLS,
                        disable_simd());
+
+    int min_level = 0;
+    bool calculate_diagnostics = at_level_timestep_multiple(min_level);
+    if (calculate_diagnostics)
+    {
+        // Calculate the constraints
+        fillAllGhosts();
+
+        FixedBGTensorField tensor_field(
+            m_p.tensor_field_mass, m_p.damping_kappa, m_p.damping_is_active,
+            m_p.dRGT_ij_is_active, m_p.dRGT_mass_is_active);
+        IsoSchwarzschildFixedBG isoschwarzschild_bg(m_p.bg_params, m_dx);
+
+        TensorDiagnostics<FixedBGTensorField, IsoSchwarzschildFixedBG>
+            diagnostics(tensor_field, isoschwarzschild_bg, m_dx, m_p.center,
+                        m_p.tensor_field_mass);
+
+        // Calculate diagnostics
+        BoxLoops::loop(diagnostics, m_state_new, m_state_diagnostics,
+                       SKIP_GHOST_CELLS, disable_simd());
+
+        // excise within horizon
+        BoxLoops::loop(
+            ExcisionDiagnostics<FixedBGTensorField, IsoSchwarzschildFixedBG>(
+                m_dx, m_p.center, isoschwarzschild_bg, m_p.inner_r,
+                m_p.outer_r),
+            m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
+            disable_simd());
+
+        if (m_level == 0)
+        {
+            bool first_step = (m_time == 0.0);
+
+            // Output the constraints integral
+            AMRReductions<VariableType::diagnostic> amr_reductions(m_gr_amr);
+            double L2_Ham = amr_reductions.norm(c_primaryConstraintScalar);
+            double L2_Mom = amr_reductions.norm(Interval(
+                c_primaryConstraintVector1, c_primaryConstraintVector3));
+            SmallDataIO constraints_file(m_p.output_path + "constraint_norms",
+                                         m_dt, m_time, m_restart_time,
+                                         SmallDataIO::APPEND, first_step);
+            constraints_file.remove_duplicate_time_data();
+            if (first_step)
+            {
+                constraints_file.write_header_line({"L^2_Ham", "L^2_Mom"});
+            }
+            constraints_file.write_time_data_line({L2_Ham, L2_Mom});
+
+            // Extract data along a line
+            AMRInterpolator<Lagrange<4>> interpolator(
+                m_gr_amr, m_p.origin, m_p.dx, m_p.boundary_params,
+                m_p.verbosity);
+            bool fill_ghosts = false;
+            interpolator.refresh(fill_ghosts);
+            m_gr_amr.fill_multilevel_ghosts(
+                VariableType::evolution, Interval(c_fspatial11, c_fspatial11),
+                min_level);
+            int num_points = 100;
+            CustomExtraction extraction(c_fspatial11, num_points, m_p.L,
+                                        m_p.center, m_dt, m_time);
+            extraction.execute_query(m_gr_amr.m_interpolator, "outputs");
+        }
+    }
 }
 
 void TensorFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
@@ -123,5 +167,5 @@ void TensorFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
 {
     BoxLoops::loop(FixedGridsTaggingCriterion(m_dx, m_level, m_p.regrid_length,
                                               m_p.center),
-                   current_state, tagging_criterion, disable_simd());
+                   current_state, tagging_criterion);
 }

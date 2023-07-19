@@ -95,29 +95,33 @@ void FixedBGTensorField::matter_rhs_excl_potential(
     const auto chris_phys = compute_christoffel(metric_vars.d1_gamma, gamma_UU);
 
     // Evolution equations for the field and the conjugate variables:
-    double trace_damping = 0.25;
-    data_t Htrace = vars.fhat;
+    // double trace_damping = 0.25;
+    // data_t Htrace = vars.fhat;
+    data_t hhat = 0.0;
     FOR2(i, j)
     {
-        Htrace += metric_vars.lapse * gamma_UU[i][j] * vars.fspatial[i][j];
+        // Htrace += metric_vars.lapse * gamma_UU[i][j] * vars.fspatial[i][j];
+        hhat += -metric_vars.lapse * gamma_UU[i][j] * vars.fspatial[i][j];
     }
-
-    rhs.fhat = -trace_damping * Htrace;
-    FOR2(i, j)
-    {
-        rhs.fhat += -metric_vars.lapse * gamma_UU[i][j] * d1.fbar[i][j] -
-                    gamma_UU[i][j] * vars.fbar[i] * metric_vars.d1_lapse[j];
-
-        FOR1(k)
+    /*
+        rhs.fhat = -trace_damping * Htrace;
+        FOR2(i, j)
         {
-            rhs.fhat += metric_vars.lapse * gamma_UU[i][j] *
-                        chris_phys.ULL[k][i][j] * vars.fbar[k];
+            rhs.fhat += -metric_vars.lapse * gamma_UU[i][j] * d1.fbar[i][j] -
+                        gamma_UU[i][j] * vars.fbar[i] * metric_vars.d1_lapse[j];
+
+            FOR1(k)
+            {
+                rhs.fhat += metric_vars.lapse * gamma_UU[i][j] *
+                            chris_phys.ULL[k][i][j] * vars.fbar[k];
+            }
         }
-    }
+    */
 
     FOR1(i)
     {
-        rhs.fbar[i] = -vars.fhat * metric_vars.d1_lapse[i];
+        // rhs.fbar[i] = -vars.fhat * metric_vars.d1_lapse[i];
+        rhs.fbar[i] = -hhat * metric_vars.d1_lapse[i];
         FOR2(j, k)
         {
             rhs.fbar[i] += gamma_UU[j][k] * metric_vars.lapse *
@@ -136,10 +140,19 @@ void FixedBGTensorField::matter_rhs_excl_potential(
 
     FOR2(i, j)
     {
-        rhs.fspatial[i][j] = -metric_vars.lapse * vars.v[i][j] -
-                             trace_damping * Htrace * metric_vars.gamma[i][j] +
-                             vars.fbar[i] * metric_vars.d1_ln_lapse[j] +
-                             vars.fbar[j] * metric_vars.d1_ln_lapse[i];
+        rhs.fspatial[i][j] =
+            -metric_vars.lapse * vars.v[i][j] -
+            // trace_damping * Htrace * metric_vars.gamma[i][j] +
+            vars.fbar[i] * metric_vars.d1_ln_lapse[j] +
+            vars.fbar[j] * metric_vars.d1_ln_lapse[i];
+    }
+
+    // No longer really an evolution variable, just for tracking the value of
+    // hhat
+    rhs.fhat = 0;
+    FOR2(i, j)
+    {
+        rhs.fhat += -metric_vars.lapse * rhs.fspatial[i][j] * gamma_UU[i][j];
     }
 
     // Saves having a bunch of indices
@@ -166,7 +179,8 @@ void FixedBGTensorField::matter_rhs_excl_potential(
             rhs.v[i][j] = metric_vars.lapse * m_tensor_field_mass *
                               m_tensor_field_mass * vars.fspatial[i][j] -
                           2.0 * metric_vars.lapse * tensorRiemannTerm[i][j] +
-                          2.0 * vars.fhat * metric_vars.ricci_phys[i][j];
+                          // 2.0 * vars.fhat * metric_vars.ricci_phys[i][j];
+                          2.0 * hhat * metric_vars.ricci_phys[i][j];
 
             FOR1(k)
             {
