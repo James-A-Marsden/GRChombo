@@ -7,6 +7,7 @@ d
 o
 p
 f
+*.png
 *_F.H
 .DS_Store
 log*
