@@ -30,7 +30,8 @@ class InitialConditions
     template <class data_t>
     using Vars = FixedBGTensorField::template Vars<data_t>;
     // Now the fixed BG vars
-    template <class data_t> using MetricVars = ADMFixedBGVars::Vars<data_t>;
+    template <class data_t>
+    using MetricVars = ADMFixedBGVars::TensorVars<data_t>;
 
   public:
     //! The constructor for the class

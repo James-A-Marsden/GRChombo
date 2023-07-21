@@ -122,9 +122,8 @@ extrapolation_order = 0
 # coefficient for KO numerical dissipation
 sigma = 1.0
 
-# Boosted BH initial data, boost in x direction, spin in z direction
+# Boosted BH initial data
 bh_mass = 1.0
-bh_spin = 0.0 # This is a, so needs to be <= M
 #inner_r = 5.0
 #outer_r = 500.0
 

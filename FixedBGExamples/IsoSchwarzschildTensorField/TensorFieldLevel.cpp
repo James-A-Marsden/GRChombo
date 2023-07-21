@@ -103,7 +103,7 @@ void TensorFieldLevel::specificPostTimeStep()
     if (calculate_diagnostics)
     {
         // Calculate the constraints
-        fillAllGhosts();
+        fillAllEvolutionGhosts();
 
         FixedBGTensorField tensor_field(
             m_p.tensor_field_mass, m_p.damping_kappa, m_p.damping_is_active,
@@ -116,7 +116,7 @@ void TensorFieldLevel::specificPostTimeStep()
 
         // Calculate diagnostics
         BoxLoops::loop(diagnostics, m_state_new, m_state_diagnostics,
-                       SKIP_GHOST_CELLS, disable_simd());
+                       SKIP_GHOST_CELLS);
 
         // excise within horizon
         BoxLoops::loop(

@@ -103,7 +103,7 @@ class FixedBGTensorField
 
     // Struct for the non grid ADM vars
     template <class data_t>
-    using MetricVars = typename ADMFixedBGVars::template Vars<data_t>;
+    using MetricVars = typename ADMFixedBGVars::template TensorVars<data_t>;
 
     //! The function which calculates the EM Tensor, given the vars and
     //! derivatives, including the potential

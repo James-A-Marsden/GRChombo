@@ -26,7 +26,8 @@ template <class matter_t, class background_t> class TensorDiagnostics
     using MatterVars = typename matter_t::template Vars<data_t>;
 
     // Now the non grid ADM vars
-    template <class data_t> using MetricVars = ADMFixedBGVars::Vars<data_t>;
+    template <class data_t>
+    using MetricVars = ADMFixedBGVars::TensorVars<data_t>;
 
   protected:
     const FourthOrderDerivatives
@@ -91,301 +92,272 @@ template <class matter_t, class background_t> class TensorDiagnostics
         const data_t sin2phi = 2.0 * sinphi * cosphi;
         const data_t cos2phi = cosphi * cosphi - sinphi * sinphi;
 
-        const double horizon = 1.0 / 2.0;
-
-        const double xx = coords.x * coords.x;
-        const double yy = coords.y * coords.y;
-        const double zz = coords.z * coords.z;
-        const double rr = sqrt(xx + yy + zz);
+        const double horizon = 0.5;
 
         data_t primaryScalar = 0.0;
-
         data_t field_amplitude = 0.0;
 
         Tensor<1, data_t> primaryVector;
         FOR1(i) { primaryVector[i] = 0.0; }
 
-        data_t fspatial_trace = 0.0;
-        Tensor<1, data_t> d1_fspatial_trace;
-        FOR1(i) { d1_fspatial_trace[i] = 0.0; }
-        Tensor<2, data_t> d2_fspatial_trace;
-        FOR2(i, j) { d2_fspatial_trace[i][j] = 0.0; }
+        data_t hhat = 0.0;
+        Tensor<1, data_t> d1_hhat;
+        FOR1(i) { d1_hhat[i] = 0.0; }
+        Tensor<2, data_t> d2_hhat;
+        FOR2(i, j) { d2_hhat[i][j] = 0.0; }
         data_t trace_field = 0.0;
         data_t trace_momentum = 0.0;
-
-        const double mass = 0.0;
         data_t rho_eff = 0.0;
 
-        if (rr > horizon)
+        // replacement of fhat
+        FOR2(i, j)
         {
-            // replacement of fhat
+            hhat += -metric_vars.lapse * gamma_UU[i][j] * vars.fspatial[i][j];
+        }
 
-            FOR2(i, j)
+        // Derivatives of the hhat
+        FOR1(i)
+        {
+            d1_hhat[i] = 0.0;
+
+            FOR2(j, k)
             {
-                fspatial_trace +=
-                    -metric_vars.lapse * gamma_UU[i][j] * vars.fspatial[i][j];
+                d1_hhat[i] +=
+                    -metric_vars.d1_lapse[i] * gamma_UU[j][k] *
+                        vars.fspatial[j][k] -
+                    metric_vars.lapse * (metric_vars.d1_gamma_UU[j][k][i] *
+                                             vars.fspatial[j][k] +
+                                         gamma_UU[j][k] * d1.fspatial[j][k][i]);
             }
-            // Derivative of the trace of fspatial
+        }
 
-            FOR1(i)
+        FOR2(i, j)
+        {
+            d2_hhat[i][j] = 0.0;
+
+            FOR2(k, l)
             {
-                d1_fspatial_trace[i] = 0.0;
+                d2_hhat[i][j] +=
+                    -metric_vars.d2_lapse[i][j] * gamma_UU[k][l] *
+                        vars.fspatial[k][l] -
+                    metric_vars.d1_lapse[i] * metric_vars.d1_gamma_UU[k][l][j] *
+                        vars.fspatial[k][l] -
+                    metric_vars.d1_lapse[i] * gamma_UU[k][l] *
+                        d1.fspatial[k][l][j] -
+                    metric_vars.d1_lapse[j] * metric_vars.d1_gamma_UU[k][l][i] *
+                        vars.fspatial[k][l] -
+                    metric_vars.lapse * metric_vars.d2_gamma_UU[k][l][i][j] *
+                        vars.fspatial[k][l] -
+                    metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][i] *
+                        d1.fspatial[k][l][j] -
+                    metric_vars.d1_lapse[j] * gamma_UU[k][l] *
+                        d1.fspatial[k][l][i] -
+                    metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][j] *
+                        d1.fspatial[k][l][i] -
+                    metric_vars.lapse * gamma_UU[k][l] *
+                        d2.fspatial[k][l][i][j];
+            }
+        }
 
-                FOR2(j, k)
+        // TRACE DIAGNOSTICS
+        /*
+                trace_field = vars.fhat;
+                FOR2(i, j)
                 {
-                    d1_fspatial_trace[i] +=
-                        -metric_vars.d1_lapse[i] * gamma_UU[j][k] *
-                            vars.fspatial[j][k] -
-                        metric_vars.lapse *
-                            (metric_vars.d1_gamma_UU[j][k][i] *
-                                 vars.fspatial[j][k] +
-                             gamma_UU[j][k] * d1.fspatial[j][k][i]);
+                    trace_field +=
+                        gamma_UU[i][j] * vars.fspatial[i][j] *
+           metric_vars.lapse;
                 }
-            }
 
-            FOR2(i, j)
-            {
-                d2_fspatial_trace[i][j] = 0.0;
+                FOR2(i, j) { trace_momentum += gamma_UU[i][j] * vars.v[i][j]; }
 
-                FOR2(k, l)
+                FOR2(i, j)
                 {
-                    d2_fspatial_trace[i][j] +=
-                        -metric_vars.d2_lapse[i][j] * gamma_UU[k][l] *
-                            vars.fspatial[k][l] -
-                        metric_vars.d1_lapse[i] *
-                            metric_vars.d1_gamma_UU[k][l][j] *
-                            vars.fspatial[k][l] -
-                        metric_vars.d1_lapse[i] * gamma_UU[k][l] *
-                            d1.fspatial[k][l][j] -
-                        metric_vars.d1_lapse[j] *
-                            metric_vars.d1_gamma_UU[k][l][i] *
-                            vars.fspatial[k][l] -
-                        metric_vars.lapse *
-                            metric_vars.d2_gamma_UU[k][l][i][j] *
-                            vars.fspatial[k][l] -
-                        metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][i] *
-                            d1.fspatial[k][l][j] -
-                        metric_vars.d1_lapse[j] * gamma_UU[k][l] *
-                            d1.fspatial[k][l][i] -
-                        metric_vars.lapse * metric_vars.d1_gamma_UU[k][l][j] *
-                            d1.fspatial[k][l][i] -
-                        metric_vars.lapse * gamma_UU[k][l] *
-                            d2.fspatial[k][l][i][j];
-                }
-            }
-            // TRACE DIAGNOSTICS
-
-            trace_field = vars.fhat;
-
-            FOR2(i, j)
-            {
-                trace_field +=
-                    gamma_UU[i][j] * vars.fspatial[i][j] * metric_vars.lapse;
-            }
-
-            FOR2(i, j) { trace_momentum += gamma_UU[i][j] * vars.v[i][j]; }
-
-            FOR2(i, j)
-            {
-                trace_momentum += -gamma_UU[i][j] * d1.fbar[i][j];
-                FOR1(k)
-                {
-                    trace_momentum +=
-                        gamma_UU[i][j] * chris_phys.ULL[k][i][j] * vars.fbar[k];
-                }
-            }
-
-            rho_eff = -0.75 * m_tensor_field_mass * m_tensor_field_mass *
-                      vars.fhat * vars.fhat / metric_vars.lapse /
-                      metric_vars.lapse;
-            FOR2(i, j)
-            {
-                rho_eff += 0.5 * m_tensor_field_mass * m_tensor_field_mass *
-                           gamma_UU[i][j] * vars.fbar[i] * vars.fbar[j] /
-                           metric_vars.lapse / metric_vars.lapse;
-                FOR1(k)
-                {
-                    FOR1(l)
+                    trace_momentum += -gamma_UU[i][j] * d1.fbar[i][j];
+                    FOR1(k)
                     {
-                        rho_eff += 0.25 * m_tensor_field_mass *
-                                   m_tensor_field_mass * gamma_UU[i][k] *
-                                   gamma_UU[j][l] * vars.fspatial[i][j] *
-                                   vars.fspatial[k][l];
+                        trace_momentum +=
+                            gamma_UU[i][j] * chris_phys.ULL[k][i][j] *
+           vars.fbar[k];
                     }
                 }
-            }
-
-            primaryScalar = metric_vars.lapse * m_tensor_field_mass *
-                            m_tensor_field_mass * fspatial_trace;
-
-            field_amplitude =
-                vars.fhat * vars.fhat / metric_vars.lapse / metric_vars.lapse;
-
-            FOR2(i, j)
-            {
-                field_amplitude += -2.0 * gamma_UU[i][j] * vars.fbar[i] *
-                                   vars.fbar[j] / metric_vars.lapse /
-                                   metric_vars.lapse;
-
-                FOR2(k, l)
+        */
+        /*
+                rho_eff = -0.75 * m_tensor_field_mass * m_tensor_field_mass *
+                          vars.fhat * vars.fhat / metric_vars.lapse /
+           metric_vars.lapse; FOR2(i, j)
                 {
-                    field_amplitude += gamma_UU[i][k] * gamma_UU[j][l] *
-                                       vars.fspatial[i][j] *
-                                       vars.fspatial[k][l];
-                }
-            }
-
-            FOR2(i, j)
-            {
-                primaryScalar +=
-                    metric_vars.lapse * gamma_UU[i][j] *
-                        (fspatial_trace * metric_vars.ricci_phys[i][j] +
-                         2.0 * d1_fspatial_trace[i] *
-                             metric_vars.d1_ln_lapse[j] -
-                         2.0 * fspatial_trace * metric_vars.d1_ln_lapse[i] *
-                             metric_vars.d1_ln_lapse[j] -
-                         d2_fspatial_trace[i][j]) +
-                    gamma_UU[i][j] * fspatial_trace *
-                        metric_vars.d2_lapse[i][j];
-
-                FOR1(k)
-                {
-                    primaryScalar +=
-                        metric_vars.lapse * gamma_UU[i][j] *
-                        (chris_phys.ULL[k][i][j] * d1_fspatial_trace[k] -
-                         fspatial_trace * chris_phys.ULL[k][i][j] *
-                             metric_vars.d1_ln_lapse[k]);
-
-                    FOR1(l)
+                    rho_eff += 0.5 * m_tensor_field_mass * m_tensor_field_mass *
+                               gamma_UU[i][j] * vars.fbar[i] * vars.fbar[j] /
+                               metric_vars.lapse / metric_vars.lapse;
+                    FOR1(k)
                     {
-                        primaryScalar += gamma_UU[i][k] * gamma_UU[j][l] *
-                                         metric_vars.lapse * metric_vars.lapse *
-                                         metric_vars.ricci_phys[k][l] *
-                                         vars.fspatial[i][j];
-                        primaryScalar +=
-                            gamma_UU[i][k] * gamma_UU[j][l] *
-                            metric_vars.lapse *
-                            (-metric_vars.lapse * d2.fspatial[i][j][k][l]);
-
-                        FOR1(m)
+                        FOR1(l)
                         {
-                            primaryScalar +=
-                                -gamma_UU[i][k] * gamma_UU[j][l] *
-                                metric_vars.lapse * metric_vars.lapse *
-                                (-chris_phys.ULL[m][l][k] *
-                                     d1.fspatial[i][j][m] -
-                                 chris_phys.ULL[m][l][i] *
-                                     d1.fspatial[m][j][k] -
-                                 chris_phys.ULL[m][l][j] *
-                                     d1.fspatial[i][m][k] -
-                                 metric_vars.d1_chris_phys[m][k][i][l] *
-                                     vars.fspatial[m][j] -
-                                 chris_phys.ULL[m][k][i] *
-                                     d1.fspatial[m][j][l] -
-                                 metric_vars.d1_chris_phys[m][j][k][l] *
-                                     vars.fspatial[i][m] -
-                                 chris_phys.ULL[m][j][k] *
-                                     d1.fspatial[i][m][l]);
-
-                            FOR1(n)
-                            {
-                                primaryScalar +=
-                                    -gamma_UU[i][k] * gamma_UU[j][l] *
-                                    metric_vars.lapse * metric_vars.lapse *
-                                    (chris_phys.ULL[n][l][k] *
-                                         chris_phys.ULL[m][n][i] *
-                                         vars.fspatial[m][j] +
-                                     chris_phys.ULL[n][l][i] *
-                                         chris_phys.ULL[m][k][n] *
-                                         vars.fspatial[m][j] +
-                                     chris_phys.ULL[n][l][j] *
-                                         chris_phys.ULL[m][k][i] *
-                                         vars.fspatial[m][n] +
-                                     chris_phys.ULL[n][l][k] *
-                                         chris_phys.ULL[m][n][j] *
-                                         vars.fspatial[i][m] +
-                                     chris_phys.ULL[n][l][j] *
-                                         chris_phys.ULL[m][k][n] *
-                                         vars.fspatial[i][m] +
-                                     chris_phys.ULL[n][l][i] *
-                                         chris_phys.ULL[m][k][j] *
-                                         vars.fspatial[n][m]);
-                            }
+                            rho_eff += 0.25 * m_tensor_field_mass *
+                                       m_tensor_field_mass * gamma_UU[i][k] *
+                                       gamma_UU[j][l] * vars.fspatial[i][j] *
+                                       vars.fspatial[k][l];
                         }
                     }
                 }
-            }
 
-            FOR1(i)
-            {
-                primaryVector[i] = metric_vars.lapse * m_tensor_field_mass *
-                                   m_tensor_field_mass * vars.fbar[i];
+                field_amplitude =
+                    vars.fhat * vars.fhat / metric_vars.lapse /
+           metric_vars.lapse;
 
-                FOR2(j, k)
+                FOR2(i, j)
                 {
-                    primaryVector[i] +=
-                        metric_vars.lapse * gamma_UU[j][k] *
-                        (-metric_vars.lapse * d1.v[j][i][k] +
-                         vars.fbar[i] * metric_vars.ricci_phys[j][k] -
-                         vars.fbar[j] * metric_vars.ricci_phys[i][k] -
-                         d2.fbar[i][j][k]);
+                    field_amplitude += -2.0 * gamma_UU[i][j] * vars.fbar[i] *
+                                       vars.fbar[j] / metric_vars.lapse /
+                                       metric_vars.lapse;
 
-                    primaryVector[i] +=
-                        2.0 * gamma_UU[j][k] *
-                        (metric_vars.d1_lapse[k] * d1.fbar[i][j] -
-                         metric_vars.lapse * vars.fbar[i] *
-                             metric_vars.d1_ln_lapse[j] *
-                             metric_vars.d1_ln_lapse[k]);
-
-                    primaryVector[i] += gamma_UU[j][k] * vars.fbar[i] *
-                                        metric_vars.d2_lapse[j][k];
-
-                    FOR1(l)
+                    FOR2(k, l)
                     {
-                        primaryVector[i] +=
-                            metric_vars.lapse * gamma_UU[j][k] *
-                            (metric_vars.lapse * chris_phys.ULL[l][k][i] *
-                                 vars.v[j][l] +
-                             metric_vars.lapse * chris_phys.ULL[l][k][j] *
-                                 vars.v[l][i] +
-                             chris_phys.ULL[l][k][j] * d1.fbar[i][l] +
-                             chris_phys.ULL[l][k][i] * d1.fbar[l][j] +
-                             metric_vars.d1_chris_phys[l][j][i][k] *
-                                 vars.fbar[l] +
-                             d1.fbar[l][k] * chris_phys.ULL[l][j][i]);
+                        field_amplitude += gamma_UU[i][k] * gamma_UU[j][l] *
+                                           vars.fspatial[i][j] *
+           vars.fspatial[k][l];
+                    }
+                }
+        */
 
-                        primaryVector[i] +=
-                            -2.0 * gamma_UU[j][k] * metric_vars.d1_lapse[k] *
-                            chris_phys.ULL[l][j][i] * vars.fbar[l];
+        primaryScalar = metric_vars.lapse * m_tensor_field_mass *
+                        m_tensor_field_mass * hhat;
+        FOR2(i, j)
+        {
+            primaryScalar +=
+                metric_vars.lapse * gamma_UU[i][j] *
+                    (hhat * metric_vars.ricci_phys[i][j] +
+                     2.0 * d1_hhat[i] * metric_vars.d1_ln_lapse[j] -
+                     2.0 * hhat * metric_vars.d1_ln_lapse[i] *
+                         metric_vars.d1_ln_lapse[j] -
+                     d2_hhat[i][j]) +
+                gamma_UU[i][j] * hhat * metric_vars.d2_lapse[i][j];
 
-                        primaryVector[i] += -gamma_UU[j][k] * vars.fbar[i] *
-                                            chris_phys.ULL[l][j][k] *
-                                            metric_vars.d1_lapse[l];
-                        FOR1(m)
+            FOR1(k)
+            {
+                primaryScalar += metric_vars.lapse * gamma_UU[i][j] *
+                                 (chris_phys.ULL[k][i][j] * d1_hhat[k] -
+                                  hhat * chris_phys.ULL[k][i][j] *
+                                      metric_vars.d1_ln_lapse[k]);
+
+                FOR1(l)
+                {
+                    primaryScalar += gamma_UU[i][k] * gamma_UU[j][l] *
+                                     metric_vars.lapse * metric_vars.lapse *
+                                     metric_vars.ricci_phys[k][l] *
+                                     vars.fspatial[i][j];
+                    primaryScalar +=
+                        gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.lapse *
+                        (-metric_vars.lapse * d2.fspatial[i][j][k][l]);
+
+                    FOR1(m)
+                    {
+                        primaryScalar +=
+                            -gamma_UU[i][k] * gamma_UU[j][l] *
+                            metric_vars.lapse * metric_vars.lapse *
+                            (-chris_phys.ULL[m][l][k] * d1.fspatial[i][j][m] -
+                             chris_phys.ULL[m][l][i] * d1.fspatial[m][j][k] -
+                             chris_phys.ULL[m][l][j] * d1.fspatial[i][m][k] -
+                             metric_vars.d1_chris_phys[m][k][i][l] *
+                                 vars.fspatial[m][j] -
+                             chris_phys.ULL[m][k][i] * d1.fspatial[m][j][l] -
+                             metric_vars.d1_chris_phys[m][j][k][l] *
+                                 vars.fspatial[i][m] -
+                             chris_phys.ULL[m][j][k] * d1.fspatial[i][m][l]);
+
+                        FOR1(n)
                         {
-                            primaryVector[i] +=
-                                metric_vars.lapse * gamma_UU[j][k] *
-                                (-chris_phys.ULL[m][k][j] *
-                                     chris_phys.ULL[l][m][i] * vars.fbar[l] -
-                                 chris_phys.ULL[m][k][i] *
-                                     chris_phys.ULL[l][j][m] * vars.fbar[l]);
+                            primaryScalar += -gamma_UU[i][k] * gamma_UU[j][l] *
+                                             metric_vars.lapse *
+                                             metric_vars.lapse *
+                                             (chris_phys.ULL[n][l][k] *
+                                                  chris_phys.ULL[m][n][i] *
+                                                  vars.fspatial[m][j] +
+                                              chris_phys.ULL[n][l][i] *
+                                                  chris_phys.ULL[m][k][n] *
+                                                  vars.fspatial[m][j] +
+                                              chris_phys.ULL[n][l][j] *
+                                                  chris_phys.ULL[m][k][i] *
+                                                  vars.fspatial[m][n] +
+                                              chris_phys.ULL[n][l][k] *
+                                                  chris_phys.ULL[m][n][j] *
+                                                  vars.fspatial[i][m] +
+                                              chris_phys.ULL[n][l][j] *
+                                                  chris_phys.ULL[m][k][n] *
+                                                  vars.fspatial[i][m] +
+                                              chris_phys.ULL[n][l][i] *
+                                                  chris_phys.ULL[m][k][j] *
+                                                  vars.fspatial[n][m]);
                         }
                     }
                 }
             }
         }
-        current_cell.store_vars(trace_field, c_trace_field);
-        current_cell.store_vars(trace_momentum, c_trace_momentum);
 
+        FOR1(i)
+        {
+            primaryVector[i] = metric_vars.lapse * m_tensor_field_mass *
+                               m_tensor_field_mass * vars.fbar[i];
+
+            FOR2(j, k)
+            {
+                primaryVector[i] +=
+                    metric_vars.lapse * gamma_UU[j][k] *
+                    (-metric_vars.lapse * d1.v[j][i][k] +
+                     vars.fbar[i] * metric_vars.ricci_phys[j][k] -
+                     vars.fbar[j] * metric_vars.ricci_phys[i][k] -
+                     d2.fbar[i][j][k]);
+
+                primaryVector[i] += 2.0 * gamma_UU[j][k] *
+                                    (metric_vars.d1_lapse[k] * d1.fbar[i][j] -
+                                     metric_vars.lapse * vars.fbar[i] *
+                                         metric_vars.d1_ln_lapse[j] *
+                                         metric_vars.d1_ln_lapse[k]);
+
+                primaryVector[i] +=
+                    gamma_UU[j][k] * vars.fbar[i] * metric_vars.d2_lapse[j][k];
+
+                FOR1(l)
+                {
+                    primaryVector[i] +=
+                        metric_vars.lapse * gamma_UU[j][k] *
+                        (metric_vars.lapse * chris_phys.ULL[l][k][i] *
+                             vars.v[j][l] +
+                         metric_vars.lapse * chris_phys.ULL[l][k][j] *
+                             vars.v[l][i] +
+                         chris_phys.ULL[l][k][j] * d1.fbar[i][l] +
+                         chris_phys.ULL[l][k][i] * d1.fbar[l][j] +
+                         metric_vars.d1_chris_phys[l][j][i][k] * vars.fbar[l] +
+                         d1.fbar[l][k] * chris_phys.ULL[l][j][i]);
+
+                    primaryVector[i] += -2.0 * gamma_UU[j][k] *
+                                        metric_vars.d1_lapse[k] *
+                                        chris_phys.ULL[l][j][i] * vars.fbar[l];
+
+                    primaryVector[i] += -gamma_UU[j][k] * vars.fbar[i] *
+                                        chris_phys.ULL[l][j][k] *
+                                        metric_vars.d1_lapse[l];
+                    FOR1(m)
+                    {
+                        primaryVector[i] +=
+                            metric_vars.lapse * gamma_UU[j][k] *
+                            (-chris_phys.ULL[m][k][j] *
+                                 chris_phys.ULL[l][m][i] * vars.fbar[l] -
+                             chris_phys.ULL[m][k][i] * chris_phys.ULL[l][j][m] *
+                                 vars.fbar[l]);
+                    }
+                }
+            }
+        }
+        //        current_cell.store_vars(trace_field,      c_trace_field);
+        //        current_cell.store_vars(trace_momentum,   c_trace_momentum);
         current_cell.store_vars(primaryScalar, c_primaryConstraintScalar);
-
         current_cell.store_vars(primaryVector[0], c_primaryConstraintVector1);
         current_cell.store_vars(primaryVector[1], c_primaryConstraintVector2);
         current_cell.store_vars(primaryVector[2], c_primaryConstraintVector3);
-
-        current_cell.store_vars(rho_eff, c_rho_eff);
-
-        current_cell.store_vars(field_amplitude, c_field_amplitude);
+        //        current_cell.store_vars(rho_eff, c_rho_eff);
+        //        current_cell.store_vars(field_amplitude, c_field_amplitude);
     }
 };
 

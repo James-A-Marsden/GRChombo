@@ -31,12 +31,12 @@ template <class matter_t, class background_t> class FixedBGEvolution
     template <class data_t>
     using MatterVars = typename matter_t::template Vars<data_t>;
 
+    template <class data_t>
+    using MetricVars = typename background_t::template Vars<data_t>;
+
     //  Should not need any d2 for the metric vars (Proca and SF)
     template <class data_t>
     using MatterDiff2Vars = typename matter_t::template Diff2Vars<data_t>;
-
-    // Now the non grid ADM vars
-    template <class data_t> using MetricVars = ADMFixedBGVars::Vars<data_t>;
 
     //!  Constructor of class MatterEvolutionFixedBG
     FixedBGEvolution(matter_t a_matter, background_t a_background, double sigma,

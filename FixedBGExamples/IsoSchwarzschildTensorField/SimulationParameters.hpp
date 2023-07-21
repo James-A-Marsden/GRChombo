@@ -30,7 +30,6 @@ class SimulationParameters : public FixedBGSimulationParametersBase
 
         // Initial and Schwarzschild data
         pp.load("bh_mass", bg_params.mass, 1.0);
-        pp.load("bh_spin", bg_params.spin, 0.0);
         pp.load("bh_center", bg_params.center, center);
 
         pp.load("tensor_field_mass", tensor_field_mass, 0.0);

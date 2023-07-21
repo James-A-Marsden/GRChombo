@@ -27,14 +27,11 @@ print_progress_only_to_rank_0 = 1
 checkpoint_interval = 100
 plot_interval = 10
 
-#num_plot_vars = 30
-#plot_vars = fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
-
 num_plot_vars = 5
-plot_vars = chi fhat fbar1 fspatial11 rho_eff
+plot_vars = fhat fbar1 fspatial11 primaryConstraintScalar primaryConstraintVector1
 #trace_field primaryConstraintScalar primaryConstraintVector1 rho_eff
 
-stop_time = 120.0
+stop_time = 100.0
 dt_multiplier = 0.1
 
 # Set up grid spacings and regrid params
@@ -43,14 +40,13 @@ dt_multiplier = 0.1
 L = 256.0
 #bh_center = 16.0 16.0 16.0
 
-N1 = 128
-N2 = 128
-N3 = 128
+N1 = 160
+N2 = 160
+N3 = 160
 
 # Regridding
 tag_buffer_size = 0
 #regrid_length = 2048
-
 regrid_buffer = 8
 
 # Level data
@@ -74,9 +70,9 @@ dRGT_ij_is_active = 0
 dRGT_mass_is_active = 0
 
 # Max box size
-max_grid_size = 16
+max_grid_size = 32
 # Min box size
-block_factor = 16
+block_factor = 32
 
 #boundaries and periodicity of grid
 #Periodic directions - 0 = false, 1 = true
@@ -122,9 +118,8 @@ extrapolation_order = 0
 # coefficient for KO numerical dissipation
 sigma = 1.0
 
-# Boosted BH initial data, boost in x direction, spin in z direction
+# Boosted BH initial data
 bh_mass = 1.0
-bh_spin = 0.0 # This is a, so needs to be <= M
 #inner_r = 5.0
 #outer_r = 500.0
 

@@ -15,8 +15,8 @@
 #include "UserVariables.hpp" //This files needs NUM_VARS - total number of components
 #include "simd.hpp"
 
-//! Class which computes the initial conditions for a Kerr Schild BH
-//! https://arxiv.org/pdf/gr-qc/9805023.pdf
+//! Class which computes the initial conditions for a Schwarzschild BH (a/M=0)
+//! in Isotropic coordinates
 class IsoSchwarzschildFixedBG
 {
   public:
@@ -25,10 +25,9 @@ class IsoSchwarzschildFixedBG
     {
         double mass = 1.0;                      //!<< The mass of the BH
         std::array<double, CH_SPACEDIM> center; //!< The center of the BH
-        double spin = 0.0;                      //!< The spin param a = J / M
     };
 
-    template <class data_t> using Vars = ADMFixedBGVars::Vars<data_t>;
+    template <class data_t> using Vars = ADMFixedBGVars::TensorVars<data_t>;
 
     const params_t m_params;
     const double m_dx;
@@ -36,13 +35,6 @@ class IsoSchwarzschildFixedBG
     IsoSchwarzschildFixedBG(params_t a_params, double a_dx)
         : m_params(a_params), m_dx(a_dx)
     {
-        // check this spin param is sensible
-        if ((m_params.spin > m_params.mass) || (m_params.spin < -m_params.mass))
-        {
-            MayDay::Error(
-                "The dimensionless spin parameter must be in the range "
-                "-1.0 < spin < 1.0");
-        }
     }
 
     /// This just calculates chi which helps with regridding, debug etc
@@ -55,23 +47,21 @@ class IsoSchwarzschildFixedBG
         compute_metric_background(metric_vars, current_cell);
 
         // calculate and save chi
-        // data_t chi =
-        // TensorAlgebra::compute_determinant_sym(metric_vars.gamma); chi =
-        // pow(chi, -1.0 / 3.0);
-        current_cell.store_vars(metric_vars.d1_lapse[0], c_chi);
+        data_t chi = TensorAlgebra::compute_determinant_sym(metric_vars.gamma);
+        chi = pow(chi, -1.0 / 3.0);
+        current_cell.store_vars(chi, c_chi);
     }
 
-    // Kerr Schild solution
+    // Schwarzschild solution
     template <class data_t, template <typename> class vars_t>
     void compute_metric_background(vars_t<data_t> &vars,
                                    const Cell<data_t> &current_cell) const
     {
+        using namespace TensorAlgebra;
         const Coordinates<data_t> coords(current_cell, m_dx, m_params.center);
 
-        // black hole params - mass M and spin a
+        // black hole params - mass M
         const double M = m_params.mass;
-        const double a = m_params.spin;
-        const double a2 = a * a;
 
         // work out where we are on the grid including effect of spin
         // on x direction (length contraction)
@@ -83,23 +73,23 @@ class IsoSchwarzschildFixedBG
 
         Tensor<1, data_t> d1_r;
         Tensor<2, data_t> d2_r;
-        // For neatness
+        // For neatness, the coordinates in a vector
         Tensor<1, data_t> X;
-        // First, get the derivatives of the radius
         X[0] = coords.x;
         X[1] = coords.y;
         X[2] = coords.z;
 
-        using namespace TensorAlgebra;
-
+        // First, get the derivatives of the radius
         FOR1(i) { d1_r[i] = X[i] / r; }
 
         FOR2(i, j) { d2_r[i][j] = (delta(i, j) - X[i] * X[j] / r2) / r; }
 
+        // The spatial metric
         FOR2(i, j)
         {
             vars.gamma[i][j] = delta(i, j) * pow(1.0 + 0.5 * M / r, 4.0);
         }
+
         // Calculate partial derivative of spatial metric
         FOR3(i, j, k)
         {
@@ -119,8 +109,8 @@ class IsoSchwarzschildFixedBG
                     0.25 * pow(r, -6.0);
             }
         }
-        // Now the inverse metric
 
+        // Now the inverse metric
         const auto gamma_UU = compute_inverse_sym(vars.gamma);
         const auto chris_phys = compute_christoffel(vars.d1_gamma, gamma_UU);
         FOR3(i, j, k)
@@ -128,19 +118,20 @@ class IsoSchwarzschildFixedBG
             vars.d1_gamma_UU[i][j][k] = delta(i, j) * 64.0 * M * d1_r[k] *
                                         pow(r, 3.0) * pow(M + 2.0 * r, -5.0);
         }
-
-        FOR2(i, j)
-        {
-            FOR2(k, l)
-            {
-                vars.d2_gamma_UU[i][j][k][l] =
-                    delta(i, j) * 64.0 * M * r2 *
-                    (d1_r[k] * d1_r[l] * (3.0 * M - 4.0 * r) +
-                     r * d2_r[k][l] * (2.0 * r + M)) *
-                    pow(2.0 * r + M, -6.0);
-            }
-        }
-
+        /*
+                // KC: Is this ever used?
+                FOR2(i, j)
+                {
+                    FOR2(k, l)
+                    {
+                        vars.d2_gamma_UU[i][j][k][l] =
+                            delta(i, j) * 64.0 * M * r2 *
+                            (d1_r[k] * d1_r[l] * (3.0 * M - 4.0 * r) +
+                             r * d2_r[k][l] * (2.0 * r + M)) *
+                            pow(2.0 * r + M, -6.0);
+                    }
+                }
+        */
         // Calculate derivative of the Christoffel symbol (phys)
         FOR2(i, j)
         {
@@ -163,93 +154,78 @@ class IsoSchwarzschildFixedBG
             }
         }
 
-        //        if (simd_compare_gt(r, M / 2.0))
-        //        {
-        vars.lapse = (1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
-        // calculate derivs of lapse and shift
-        FOR1(i)
+        if (simd_compare_gt(r, M / 2.0))
         {
-            vars.d1_lapse[i] =
-                4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
-
-            vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
-        }
-
-        FOR2(i, j)
-        {
-            vars.d2_lapse[i][j] =
-                4.0 * M *
-                (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) *
-                pow(M + 2.0 * r, -3.0);
-
-            vars.d2_ln_lapse[i][j] =
-                -(4.0 * M *
-                  (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
-                   4.0 * r2 * d2_r[i][j])) /
-                (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
-        }
-        //        }
-        /*        else
-                {
-                    // Signs are flipped inside the horizon except for the log
-           terms vars.lapse = -(1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
-                    // calculate derivs of lapse and shift
-                    FOR1(i)
-                    {
-                        vars.d1_lapse[i] =
-                            -4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
-
-                        vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0
-           * r2);
-                    }
-
-                    FOR2(i, j)
-                    {
-                        vars.d2_lapse[i][j] =
-                            -4.0 * M *
-                            (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] *
-           d1_r[j]) * pow(M + 2.0 * r, -3.0);
-
-                        vars.d2_ln_lapse[i][j] =
-                            -(4.0 * M *
-                              (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j]
-           - 4.0 * r2 * d2_r[i][j])) / (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
-                    }
-                }
-        */
-        data_t alpha2 = vars.lapse * vars.lapse;
-
-        FOR1(i) { vars.shift[i] = 0.0; }
-        // use the fact that shift^i = lapse^2 * shift_i
-        FOR2(i, j) { vars.d1_shift[i][j] = 0.0; }
-
-        FOR3(i, j, k) { vars.d2_shift[i][j][k] = 0.0; }
-        // calculate the extrinsic curvature, using the fact that
-        // 2 * lapse * K_ij = D_i \beta_j + D_j \beta_i - dgamma_ij dt
-        // and dgamma_ij dt = 0 in chosen fixed gauge
-        // const auto chris_phys = compute_christoffel(vars.d1_gamma, gamma_UU);
-
-        Tensor<3, data_t> chris_local;
-        FOR3(i, j, k)
-        {
-            chris_local[i][j][k] = 0.0;
-            FOR1(l)
+            vars.lapse = (1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
+            // calculate derivs of lapse and shift
+            FOR1(i)
             {
-                chris_local[i][j][k] +=
-                    0.5 * gamma_UU[i][l] *
-                    (vars.d1_gamma[l][k][j] + vars.d1_gamma[j][l][k] -
-                     vars.d1_gamma[j][k][l]);
+                vars.d1_lapse[i] =
+                    4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
+
+                vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
+            }
+
+            FOR2(i, j)
+            {
+                vars.d2_lapse[i][j] =
+                    4.0 * M *
+                    (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) *
+                    pow(M + 2.0 * r, -3.0);
+
+                vars.d2_ln_lapse[i][j] =
+                    -(4.0 * M *
+                      (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
+                       4.0 * r2 * d2_r[i][j])) /
+                    (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
+            }
+        }
+        else
+        {
+            // Signs are flipped inside the horizon except for the log
+            // terms
+            vars.lapse = -(1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
+
+            // calculate derivs of lapse and shift
+            FOR1(i)
+            {
+                vars.d1_lapse[i] =
+                    -4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
+
+                vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
+            }
+
+            FOR2(i, j)
+            {
+                vars.d2_lapse[i][j] =
+                    -4.0 * M *
+                    (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) *
+                    pow(M + 2.0 * r, -3.0);
+
+                vars.d2_ln_lapse[i][j] =
+                    -(4.0 * M *
+                      (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
+                       4.0 * r2 * d2_r[i][j])) /
+                    (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
             }
         }
 
+        // shift is zero
+        FOR1(i) { vars.shift[i] = 0.0; }
+        FOR2(i, j) { vars.d1_shift[i][j] = 0.0; }
+        FOR3(i, j, k) { vars.d2_shift[i][j][k] = 0.0; }
+
+        // calculate the extrinsic curvature, using the fact that
+        // 2 * lapse * K_ij = D_i \beta_j + D_j \beta_i - dgamma_ij dt
+        // and dgamma_ij dt = 0 in chosen fixed gauge
         FOR2(i, j) { vars.K_tensor[i][j] = 0.0; }
         vars.K = compute_trace(gamma_UU, vars.K_tensor);
         FOR3(i, j, k) { vars.d1_K_tensor[i][j][k] = 0.0; }
+
         // Derivative of the trace, \partial_i K = \partial_i(gamma^jk K_jk)
         FOR1(i) { vars.d1_K[i] = 0.0; }
 
         // spatial riemann curvature tensor
-
         FOR1(i)
         {
             FOR3(j, k, l)
@@ -285,8 +261,6 @@ class IsoSchwarzschildFixedBG
     {
         // black hole params - mass M and spin a
         const double M = m_params.mass;
-        const double a = m_params.spin;
-        const double a2 = a * a;
 
         // work out where we are on the grid
         const Coordinates<double> coords(current_cell, m_dx, m_params.center);
