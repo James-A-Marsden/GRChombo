@@ -162,7 +162,7 @@ class IsoSchwarzschildFixedBG
             vars.d1_lapse[i] =
                 4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
 
-            vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
+            // vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
         }
 
         FOR2(i, j)
@@ -172,11 +172,11 @@ class IsoSchwarzschildFixedBG
                 (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) *
                 pow(M + 2.0 * r, -3.0);
 
-            vars.d2_ln_lapse[i][j] =
-                -(4.0 * M *
-                  (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
-                   4.0 * r2 * d2_r[i][j])) /
-                (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
+            // vars.d2_ln_lapse[i][j] =
+            //     -(4.0 * M *
+            //       (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
+            //        4.0 * r2 * d2_r[i][j])) /
+            //     (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
         }
 
         // shift is zero

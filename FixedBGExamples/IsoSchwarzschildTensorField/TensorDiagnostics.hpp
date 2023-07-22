@@ -159,103 +159,47 @@ template <class matter_t, class background_t> class TensorDiagnostics
             }
         }
 
-        // TRACE DIAGNOSTICS
-        /*
-                trace_field = vars.fhat;
-                FOR2(i, j)
-                {
-                    trace_field +=
-                        gamma_UU[i][j] * vars.fspatial[i][j] *
-           metric_vars.lapse;
-                }
-
-                FOR2(i, j) { trace_momentum += gamma_UU[i][j] * vars.v[i][j]; }
-
-                FOR2(i, j)
-                {
-                    trace_momentum += -gamma_UU[i][j] * d1.fbar[i][j];
-                    FOR1(k)
-                    {
-                        trace_momentum +=
-                            gamma_UU[i][j] * chris_phys.ULL[k][i][j] *
-           vars.fbar[k];
-                    }
-                }
-        */
-        /*
-                rho_eff = -0.75 * m_tensor_field_mass * m_tensor_field_mass *
-                          vars.fhat * vars.fhat / metric_vars.lapse /
-           metric_vars.lapse; FOR2(i, j)
-                {
-                    rho_eff += 0.5 * m_tensor_field_mass * m_tensor_field_mass *
-                               gamma_UU[i][j] * vars.fbar[i] * vars.fbar[j] /
-                               metric_vars.lapse / metric_vars.lapse;
-                    FOR1(k)
-                    {
-                        FOR1(l)
-                        {
-                            rho_eff += 0.25 * m_tensor_field_mass *
-                                       m_tensor_field_mass * gamma_UU[i][k] *
-                                       gamma_UU[j][l] * vars.fspatial[i][j] *
-                                       vars.fspatial[k][l];
-                        }
-                    }
-                }
-
-                field_amplitude =
-                    vars.fhat * vars.fhat / metric_vars.lapse /
-           metric_vars.lapse;
-
-                FOR2(i, j)
-                {
-                    field_amplitude += -2.0 * gamma_UU[i][j] * vars.fbar[i] *
-                                       vars.fbar[j] / metric_vars.lapse /
-                                       metric_vars.lapse;
-
-                    FOR2(k, l)
-                    {
-                        field_amplitude += gamma_UU[i][k] * gamma_UU[j][l] *
-                                           vars.fspatial[i][j] *
-           vars.fspatial[k][l];
-                    }
-                }
-        */
-
-        primaryScalar = metric_vars.lapse * m_tensor_field_mass *
-                        m_tensor_field_mass * hhat;
+        // this is lapse^2 * epsilon as in the notes
+        primaryScalar = metric_vars.lapse * metric_vars.lapse *
+                        m_tensor_field_mass * m_tensor_field_mass * hhat;
         FOR2(i, j)
         {
             primaryScalar +=
-                metric_vars.lapse * gamma_UU[i][j] *
-                    (hhat * metric_vars.ricci_phys[i][j] +
-                     2.0 * d1_hhat[i] * metric_vars.d1_ln_lapse[j] -
-                     2.0 * hhat * metric_vars.d1_ln_lapse[i] *
-                         metric_vars.d1_ln_lapse[j] -
-                     d2_hhat[i][j]) +
-                gamma_UU[i][j] * hhat * metric_vars.d2_lapse[i][j];
+                gamma_UU[i][j] *
+                    (metric_vars.lapse * metric_vars.lapse * hhat *
+                         metric_vars.ricci_phys[i][j] +
+                     2.0 * d1_hhat[i] * metric_vars.lapse *
+                         metric_vars.d1_lapse[j] -
+                     2.0 * hhat * metric_vars.d1_lapse[i] *
+                         metric_vars.d1_lapse[j] -
+                     metric_vars.lapse * metric_vars.lapse * d2_hhat[i][j]) +
+                metric_vars.lapse * gamma_UU[i][j] * hhat *
+                    metric_vars.d2_lapse[i][j];
 
             FOR1(k)
             {
-                primaryScalar += metric_vars.lapse * gamma_UU[i][j] *
-                                 (chris_phys.ULL[k][i][j] * d1_hhat[k] -
-                                  hhat * chris_phys.ULL[k][i][j] *
-                                      metric_vars.d1_ln_lapse[k]);
+                primaryScalar +=
+                    metric_vars.lapse * gamma_UU[i][j] *
+                    (metric_vars.lapse * chris_phys.ULL[k][i][j] * d1_hhat[k] -
+                     hhat * chris_phys.ULL[k][i][j] * metric_vars.d1_lapse[k]);
 
                 FOR1(l)
                 {
-                    primaryScalar += gamma_UU[i][k] * gamma_UU[j][l] *
-                                     metric_vars.lapse * metric_vars.lapse *
-                                     metric_vars.ricci_phys[k][l] *
-                                     vars.fspatial[i][j];
                     primaryScalar +=
                         gamma_UU[i][k] * gamma_UU[j][l] * metric_vars.lapse *
-                        (-metric_vars.lapse * d2.fspatial[i][j][k][l]);
+                        metric_vars.lapse * metric_vars.lapse *
+                        metric_vars.ricci_phys[k][l] * vars.fspatial[i][j];
+                    primaryScalar += -gamma_UU[i][k] * gamma_UU[j][l] *
+                                     metric_vars.lapse * metric_vars.lapse *
+                                     metric_vars.lapse *
+                                     d2.fspatial[i][j][k][l];
 
                     FOR1(m)
                     {
                         primaryScalar +=
                             -gamma_UU[i][k] * gamma_UU[j][l] *
                             metric_vars.lapse * metric_vars.lapse *
+                            metric_vars.lapse *
                             (-chris_phys.ULL[m][l][k] * d1.fspatial[i][j][m] -
                              chris_phys.ULL[m][l][i] * d1.fspatial[m][j][k] -
                              chris_phys.ULL[m][l][j] * d1.fspatial[i][m][k] -
@@ -269,6 +213,7 @@ template <class matter_t, class background_t> class TensorDiagnostics
                         FOR1(n)
                         {
                             primaryScalar += -gamma_UU[i][k] * gamma_UU[j][l] *
+                                             metric_vars.lapse *
                                              metric_vars.lapse *
                                              metric_vars.lapse *
                                              (chris_phys.ULL[n][l][k] *
@@ -295,69 +240,63 @@ template <class matter_t, class background_t> class TensorDiagnostics
             }
         }
 
+        // this is lapse^2 * epsilon_i in the notes
         FOR1(i)
         {
-            primaryVector[i] = metric_vars.lapse * m_tensor_field_mass *
-                               m_tensor_field_mass * vars.fbar[i];
+            primaryVector[i] = metric_vars.lapse * metric_vars.lapse *
+                               m_tensor_field_mass * m_tensor_field_mass *
+                               vars.fbar[i];
 
             FOR2(j, k)
             {
                 primaryVector[i] +=
+                    metric_vars.lapse * metric_vars.lapse * gamma_UU[j][k] *
+                        (-d1.v[j][i][k] +
+                         vars.fbar[i] * metric_vars.ricci_phys[j][k] -
+                         vars.fbar[j] * metric_vars.ricci_phys[i][k] -
+                         d2.fbar[i][j][k]) +
                     metric_vars.lapse * gamma_UU[j][k] *
-                    (-metric_vars.lapse * d1.v[j][i][k] +
-                     vars.fbar[i] * metric_vars.ricci_phys[j][k] -
-                     vars.fbar[j] * metric_vars.ricci_phys[i][k] -
-                     d2.fbar[i][j][k]);
-
-                primaryVector[i] += 2.0 * gamma_UU[j][k] *
-                                    (metric_vars.d1_lapse[k] * d1.fbar[i][j] -
-                                     metric_vars.lapse * vars.fbar[i] *
-                                         metric_vars.d1_ln_lapse[j] *
-                                         metric_vars.d1_ln_lapse[k]);
-
-                primaryVector[i] +=
-                    gamma_UU[j][k] * vars.fbar[i] * metric_vars.d2_lapse[j][k];
+                        (metric_vars.d1_lapse[k] * d1.fbar[i][j] +
+                         vars.v[j][i] * metric_vars.d1_lapse[k] -
+                         metric_vars.d1_lapse[i] * d1.fbar[j][k] -
+                         metric_vars.d2_lapse[j][i] * vars.fbar[k]) +
+                    2.0 * gamma_UU[j][k] * vars.fbar[k] *
+                        metric_vars.d1_lapse[i] * metric_vars.d1_lapse[j];
 
                 FOR1(l)
                 {
                     primaryVector[i] +=
+                        metric_vars.lapse * metric_vars.lapse * gamma_UU[j][k] *
+                            (chris_phys.ULL[l][j][i] * vars.v[k][l] +
+                             chris_phys.ULL[l][j][k] * vars.v[l][i] -
+                             chris_phys.ULL[l][k][j] * d1.fbar[i][l] -
+                             chris_phys.ULL[l][k][i] * d1.fbar[j][l] +
+                             chris_phys.ULL[l][j][i] * d1.fbar[l][k] +
+                             metric_vars.d1_chris_phys[l][j][i][k] *
+                                 vars.fbar[l]) +
                         metric_vars.lapse * gamma_UU[j][k] *
-                        (metric_vars.lapse * chris_phys.ULL[l][k][i] *
-                             vars.v[j][l] +
-                         metric_vars.lapse * chris_phys.ULL[l][k][j] *
-                             vars.v[l][i] +
-                         chris_phys.ULL[l][k][j] * d1.fbar[i][l] +
-                         chris_phys.ULL[l][k][i] * d1.fbar[l][j] +
-                         metric_vars.d1_chris_phys[l][j][i][k] * vars.fbar[l] +
-                         d1.fbar[l][k] * chris_phys.ULL[l][j][i]);
+                            (-chris_phys.ULL[l][j][i] * vars.fbar[l] *
+                                 metric_vars.d1_lapse[k] +
+                             chris_phys.ULL[l][j][i] * vars.fbar[k] *
+                                 metric_vars.d1_lapse[l]);
 
-                    primaryVector[i] += -2.0 * gamma_UU[j][k] *
-                                        metric_vars.d1_lapse[k] *
-                                        chris_phys.ULL[l][j][i] * vars.fbar[l];
-
-                    primaryVector[i] += -gamma_UU[j][k] * vars.fbar[i] *
-                                        chris_phys.ULL[l][j][k] *
-                                        metric_vars.d1_lapse[l];
                     FOR1(m)
                     {
                         primaryVector[i] +=
-                            metric_vars.lapse * gamma_UU[j][k] *
-                            (-chris_phys.ULL[m][k][j] *
-                                 chris_phys.ULL[l][m][i] * vars.fbar[l] -
-                             chris_phys.ULL[m][k][i] * chris_phys.ULL[l][j][m] *
-                                 vars.fbar[l]);
+                            metric_vars.lapse * metric_vars.lapse *
+                            gamma_UU[j][k] *
+                            (-chris_phys.ULL[l][k][j] *
+                                 chris_phys.ULL[m][l][i] * vars.fbar[m] -
+                             chris_phys.ULL[m][k][i] * chris_phys.ULL[m][j][l] *
+                                 vars.fbar[m]);
                     }
                 }
             }
         }
-        //        current_cell.store_vars(trace_field,      c_trace_field);
-        //        current_cell.store_vars(trace_momentum,   c_trace_momentum);
         current_cell.store_vars(primaryScalar, c_primaryConstraintScalar);
         current_cell.store_vars(primaryVector[0], c_primaryConstraintVector1);
         current_cell.store_vars(primaryVector[1], c_primaryConstraintVector2);
         current_cell.store_vars(primaryVector[2], c_primaryConstraintVector3);
-        //        current_cell.store_vars(rho_eff, c_rho_eff);
-        //        current_cell.store_vars(field_amplitude, c_field_amplitude);
     }
 };
 

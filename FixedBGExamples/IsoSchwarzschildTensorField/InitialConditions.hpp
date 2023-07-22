@@ -117,15 +117,15 @@ class InitialConditions
 
         const double A = 0.01;
         vars.v[0][0] = -A * (2.0 * M + r) * sintheta * sintheta * costheta *
-                       sinphi * cosphi / r;
+                       sinphi * cosphi / r * metric_vars.lapse;
         vars.v[1][1] = A * (2.0 * M + r) * sintheta * sintheta * costheta *
-                       sinphi * cosphi / r;
+                       sinphi * cosphi / r * metric_vars.lapse;
         vars.v[0][1] = A * (2.0 * M + r) * sintheta * sintheta * costheta *
-                       cos2phi / (2.0 * r);
+                       cos2phi / (2.0 * r) * metric_vars.lapse;
         vars.v[0][2] = -A * ((2.0 * M + r) * costheta * costheta + 3.0 * r) *
-                       sintheta * sinphi / (2.0 * r);
+                       sintheta * sinphi / (2.0 * r) * metric_vars.lapse;
         vars.v[1][2] = A * ((2.0 * M + r) * costheta * costheta + 3.0 * r) *
-                       sintheta * cosphi / (2.0 * r);
+                       sintheta * cosphi / (2.0 * r) * metric_vars.lapse;
         vars.v[1][0] = vars.v[0][1];
         vars.v[2][0] = vars.v[0][2];
         vars.v[2][1] = vars.v[1][2];
