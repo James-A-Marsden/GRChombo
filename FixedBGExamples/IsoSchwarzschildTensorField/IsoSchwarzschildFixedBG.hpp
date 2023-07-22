@@ -49,7 +49,7 @@ class IsoSchwarzschildFixedBG
         // calculate and save chi
         data_t chi = TensorAlgebra::compute_determinant_sym(metric_vars.gamma);
         chi = pow(chi, -1.0 / 3.0);
-        current_cell.store_vars(chi, c_chi);
+        current_cell.store_vars(metric_vars.d2_lapse[0][1], c_chi);
     }
 
     // Schwarzschild solution
@@ -118,20 +118,21 @@ class IsoSchwarzschildFixedBG
             vars.d1_gamma_UU[i][j][k] = delta(i, j) * 64.0 * M * d1_r[k] *
                                         pow(r, 3.0) * pow(M + 2.0 * r, -5.0);
         }
-        /*
-                // KC: Is this ever used?
-                FOR2(i, j)
-                {
-                    FOR2(k, l)
-                    {
-                        vars.d2_gamma_UU[i][j][k][l] =
-                            delta(i, j) * 64.0 * M * r2 *
-                            (d1_r[k] * d1_r[l] * (3.0 * M - 4.0 * r) +
-                             r * d2_r[k][l] * (2.0 * r + M)) *
-                            pow(2.0 * r + M, -6.0);
-                    }
-                }
-        */
+
+        // This is used but is probably not needed, as one can always take the
+        // spatial metric out of the covariant derivative before expanding it
+        FOR2(i, j)
+        {
+            FOR2(k, l)
+            {
+                vars.d2_gamma_UU[i][j][k][l] =
+                    delta(i, j) * 64.0 * M * r2 *
+                    (d1_r[k] * d1_r[l] * (3.0 * M - 4.0 * r) +
+                     r * d2_r[k][l] * (2.0 * r + M)) *
+                    pow(2.0 * r + M, -6.0);
+            }
+        }
+
         // Calculate derivative of the Christoffel symbol (phys)
         FOR2(i, j)
         {
@@ -154,60 +155,28 @@ class IsoSchwarzschildFixedBG
             }
         }
 
-        if (simd_compare_gt(r, M / 2.0))
+        vars.lapse = (1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
+        // calculate derivs of lapse and shift
+        FOR1(i)
         {
-            vars.lapse = (1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
-            // calculate derivs of lapse and shift
-            FOR1(i)
-            {
-                vars.d1_lapse[i] =
-                    4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
+            vars.d1_lapse[i] =
+                4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
 
-                vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
-            }
-
-            FOR2(i, j)
-            {
-                vars.d2_lapse[i][j] =
-                    4.0 * M *
-                    (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) *
-                    pow(M + 2.0 * r, -3.0);
-
-                vars.d2_ln_lapse[i][j] =
-                    -(4.0 * M *
-                      (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
-                       4.0 * r2 * d2_r[i][j])) /
-                    (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
-            }
+            vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
         }
-        else
+
+        FOR2(i, j)
         {
-            // Signs are flipped inside the horizon except for the log
-            // terms
-            vars.lapse = -(1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
+            vars.d2_lapse[i][j] =
+                4.0 * M *
+                (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) *
+                pow(M + 2.0 * r, -3.0);
 
-            // calculate derivs of lapse and shift
-            FOR1(i)
-            {
-                vars.d1_lapse[i] =
-                    -4.0 * M * d1_r[i] / (M + 2.0 * r) / (M + 2.0 * r);
-
-                vars.d1_ln_lapse[i] = -4.0 * M * d1_r[i] / (M * M - 4.0 * r2);
-            }
-
-            FOR2(i, j)
-            {
-                vars.d2_lapse[i][j] =
-                    -4.0 * M *
-                    (d2_r[i][j] * (M + 2.0 * r) - 4.0 * d1_r[i] * d1_r[j]) *
-                    pow(M + 2.0 * r, -3.0);
-
-                vars.d2_ln_lapse[i][j] =
-                    -(4.0 * M *
-                      (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
-                       4.0 * r2 * d2_r[i][j])) /
-                    (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
-            }
+            vars.d2_ln_lapse[i][j] =
+                -(4.0 * M *
+                  (8.0 * r * d1_r[i] * d1_r[j] + M * M * d2_r[i][j] -
+                   4.0 * r2 * d2_r[i][j])) /
+                (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
         }
 
         // shift is zero

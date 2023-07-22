@@ -21,19 +21,21 @@ ymax = np.max(data[:,1:num_points-1])
 ymin = np.min(data[:,1:num_points-1])
 
 for i, t_i in enumerate(timedata) :
-    labelt = "t="+str(round(t_i,2))
-    f_t = data[i, 1:num_points]
-    plt.plot(rdata, f_t, label=labelt)
-    plt.legend(loc=4)
-    plt.xlabel('r')
-    #plt.xlim(-0.2,35.0)
-    plt.ylim(1.1*ymin,1.1*ymax)
-    plt.ylabel('value over time of h_11')
-    plt.grid()
-    plt.tight_layout()
-    filename = outputfile_prefix + ('%04d' % i) + ".png"
-    plt.savefig(filename)
-    plt.close()
+
+    if(t_i > 90) :
+        labelt = "t="+str(round(t_i,2))
+        f_t = data[i, 1:num_points]
+        plt.plot(rdata, f_t, label=labelt)
+        plt.legend(loc=4)
+        plt.xlabel('r')
+        #plt.xlim(-0.2,35.0)
+        plt.ylim(1.1*ymin,1.1*ymax)
+        plt.ylabel('value over time of h_11')
+        plt.grid()
+        plt.tight_layout()
+        filename = outputfile_prefix + ('%04d' % i) + ".png"
+        plt.savefig(filename)
+        plt.close()
 
 # needs ffmpeg installed
 os.system('ffmpeg -r 5 -f image2 -s 1920x1080 -i ' + outputfile_prefix + '%04d.png -crf 25 -pix_fmt yuv420p ' + outputfile_prefix + '.mp4')

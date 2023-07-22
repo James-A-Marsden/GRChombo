@@ -46,7 +46,10 @@ template <class matter_t, class background_t> class ExcisionDiagnostics
         {
             for (int ivar = 0; ivar < NUM_DIAGNOSTIC_VARS; ivar++)
             {
-                current_cell.store_vars(0.0, ivar);
+                if (ivar != c_chi)
+                {
+                    current_cell.store_vars(0.0, ivar);
+                }
             }
         } // else do nothing
     }

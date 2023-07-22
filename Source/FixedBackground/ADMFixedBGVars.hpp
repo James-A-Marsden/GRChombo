@@ -31,7 +31,7 @@ template <class data_t> struct Vars
 template <class data_t> struct TensorVars : public ADMFixedBGVars::Vars<data_t>
 {
     // Extra variables needed for tensor field case
-    Tensor<2, data_t> gamma_UU;
+    //    Tensor<2, data_t> gamma_UU;
     Tensor<1, data_t> d1_K;
     Tensor<3, data_t> d1_K_tensor;
     Tensor<2, data_t> d2_lapse;

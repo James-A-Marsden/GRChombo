@@ -120,7 +120,6 @@ void FixedBGTensorField::matter_rhs_excl_potential(
 
     FOR1(i)
     {
-        // rhs.fbar[i] = -vars.fhat * metric_vars.d1_lapse[i];
         rhs.fbar[i] = -hhat * metric_vars.d1_lapse[i];
         FOR2(j, k)
         {
