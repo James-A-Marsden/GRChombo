@@ -163,6 +163,7 @@ class IsoSchwarzschildFixedBG
         }
 
         if (simd_compare_gt(r, M / 2.0))
+        //if (simd_compare_gt(r, 0.0))
         {
             vars.lapse = (1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
             // calculate derivs of lapse and shift
@@ -189,6 +190,27 @@ class IsoSchwarzschildFixedBG
             }
         }
         else
+        
+       {
+            //Signs are flipped inside the horizon except for the log terms 
+            vars.lapse = 0.0;
+            // calculate derivs of lapse and shift
+            FOR1(i)
+            {
+                vars.d1_lapse[i] = 0.0;
+
+                vars.d1_ln_lapse[i] = 0.0;
+            }
+
+            FOR2(i, j)
+            {
+                vars.d2_lapse[i][j] = 0.0;
+
+                vars.d2_ln_lapse[i][j] = 0.0;
+            }
+        }        
+         
+        /*
         {
             //Signs are flipped inside the horizon except for the log terms 
             vars.lapse = -(1.0 - 0.5 * M / r) / (1.0 + 0.5 * M / r);
@@ -215,7 +237,7 @@ class IsoSchwarzschildFixedBG
                     (M * M - 4.0 * r2) / (M * M - 4.0 * r2);
             }
         }   
-
+        */
         data_t alpha2 = vars.lapse * vars.lapse;
 
         FOR1(i) { vars.shift[i] = 0.0; }

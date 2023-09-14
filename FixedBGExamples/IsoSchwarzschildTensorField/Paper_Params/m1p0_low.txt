@@ -5,7 +5,7 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/paper_runs/m1p0_low"
+output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/paper_runs/m1p0_low_bath_2"
 chk_prefix =  MultiLevel_m1p0_L128_N128_Chk_
 plot_prefix = MultiLevel_m1p0_L128_N128_Plt_
 #restart_file = MultiLevel_m5_L128_N128_Chk_000160.3d.hdf5
@@ -86,7 +86,7 @@ isPeriodic = 0 0 0
 # 0 = static, 1 = sommerfeld, 2 = reflective, 3 = extrapolating
 # (see BoundaryConditions.hpp for details)
 hi_boundary = 3 3 3
-lo_boundary = 3 3 2
+lo_boundary = 3 3 3
 
 # if reflective boundaries selected, must select 
 # parity values (in order given by UserVariables.hpp)

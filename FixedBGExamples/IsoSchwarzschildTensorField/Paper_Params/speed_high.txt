@@ -5,10 +5,10 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/paper_runs/m5p0_low_bath"
-chk_prefix =  MultiLevel_m5p0_L128_N160_Chk_
-plot_prefix = MultiLevel_m5p0_L128_N160_Plt_
-#restart_file = MultiLevel_m5_L128_N128_Chk_000160.3d.hdf5
+output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/speed_tests/high"
+chk_prefix =  MultiLevel_m0p2_L128_N160_Chk_
+plot_prefix = MultiLevel_m0p2_L128_N160_Plt_
+#restart_file = MultiLevel_m5_L128_N160_Chk_000200.3d.hdf5
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
@@ -35,18 +35,18 @@ plot_interval = 5
 num_plot_vars = 6
 plot_vars = trace_field primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3 rho_eff
 
-stop_time = 64.0
-dt_multiplier = 0.1
+stop_time = 1.0
+dt_multiplier = 0.025
 
 # Set up grid spacings and regrid params
 # NB - the N values need to be multiples of block_factor
 
-L = 128.0
+L = 512.0
 #bh_center = 16.0 16.0 16.0
 
-N1 = 160
-N2 = 160
-N3 = 160
+N1 = 64
+N2 = 64
+N3 = 64
 
 # Regridding
 #tag_buffer_size = 0
@@ -56,13 +56,13 @@ regrid_buffer = 8
 
 # Level data
 # Maximum number of times you can regrid above coarsest level
-max_level = 6 There are (max_level+1) grids, so min is zero
+max_level = 9 There are (max_level+1) grids, so min is zero
 # Frequency of regridding at each level
 # Need one for each level, ie max_level+1 items
 # Generally you do not need to regrid frequently on every level
 regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
 
-tensor_field_mass = 5.0
+tensor_field_mass = 0.2
 
 #Value of the damping coefficient
 damping_kappa = 1.0
@@ -86,7 +86,7 @@ isPeriodic = 0 0 0
 # 0 = static, 1 = sommerfeld, 2 = reflective, 3 = extrapolating
 # (see BoundaryConditions.hpp for details)
 hi_boundary = 3 3 3
-lo_boundary = 3 3 2
+lo_boundary = 3 3 3
 
 # if reflective boundaries selected, must select 
 # parity values (in order given by UserVariables.hpp)
@@ -94,19 +94,19 @@ lo_boundary = 3 3 2
 # 1,2,3 = odd x, y, z
 # 4,5,6 = odd xy, yz, xz
 # 7 = odd xyz
-vars_parity            = 0 4 6 0 5 0   #hij
-                         1 2 3         #hbar
-                         0            #hhat
-                         0 4 6 0 5 0   #Bij
-                         0             #Xhat
-                         1 2 3         #Xi
+vars_parity            = 4 0 5 4 6 4   #hij
+                         2 1 7         #hbar
+                         4             #hhat
+                         4 0 5 4 6 4   #Bij
+                         4             #Xhat
+                         2 1 7         #Xi
 
 vars_parity_diagnostic = 0 0 0 0 0 #Unused chi and rho rhoJ
-                         0         #Trace field
+                         4         #Trace field
                          0         #Trace momentum (update)
                          0 0 0 0   #Transverse (unused)
-                         0         #Primary scalar 
-                         1 2 3     #Primary vector 
+                         4         #Primary scalar 
+                         2 1 7     #Primary vector 
                          0         #Rho eff (check)
 
 # specify non zero asympotitic vars

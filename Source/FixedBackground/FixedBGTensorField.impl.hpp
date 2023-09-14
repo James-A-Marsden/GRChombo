@@ -107,7 +107,8 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     // Evolution equations for the field and the conjugate variables:
 
     
-    double trace_damping = 5.0;
+    //data_t correction_factor = simd_max(metric_vars.lapse, 1e-6);
+    data_t trace_damping = 1.0;
     data_t Htrace = vars.fhat;
     FOR2(i, j)
     { 
@@ -128,6 +129,16 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
         }
     }
 
+    //Additions due to extrinsic K
+    rhs.fhat += advec.fhat; 
+    FOR2(i,j)
+    {
+        rhs.fhat += metric_vars.lapse * gamma_UU[i][j] * metric_vars.K_tensor[i][j];
+        FOR2(k,l)
+        {
+            rhs.fhat += metric_vars.lapse * gamma_UU[i][j] * gamma_UU[k][l] * metric_vars.K_tensor[k][l] * vars.fspatial[i][j];
+        }
+    }
     //rhs.fhat = 0.0;
 
     FOR1(i)
@@ -152,16 +163,60 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
         // DEBUG:
         // rhs.fbar[i] = 0.0;
     }
-
+    //Extrinsic K contributions
+    FOR1(i)
+    {
+        rhs.fbar[i] += advec.fbar[i];
+        FOR2(j,k)
+        {
+            
+            rhs.fbar[i] += metric_vars.lapse * gamma_UU[j][k] * (metric_vars.K_tensor[j][k] * vars.fbar[i]);
+        }
+    }
     FOR2(i, j)
     {
+        
         rhs.fspatial[i][j] = - metric_vars.lapse * vars.v[i][j]
                              - trace_damping * Htrace * metric_vars.gamma[i][j]
                            + vars.fbar[i] * metric_vars.d1_ln_lapse[j] +
                              vars.fbar[j] * metric_vars.d1_ln_lapse[i];
+        
+        /*
+        //Modified with the changes to B
+        rhs.fspatial[i][j] += -2.0 * metric_vars.lapse * vars.v[i][j] + d1.fbar[i][j] + d1.fbar[j][i]
+                                - trace_damping * Htrace * metric_vars.gamma[i][j];
+        */
+    }
+
+    //Extrinsic K contributions
+    FOR2(i,j)
+    {
+        rhs.fspatial[i][j] += advec.fspatial[i][j];
+        FOR2(k,l)
+        {
+            rhs.fspatial[i][j] += -metric_vars.lapse * gamma_UU[k][l] * (metric_vars.K_tensor[j][l] * vars.fspatial[i][k]
+                                                                        + metric_vars.K_tensor[i][l] * vars.fspatial[j][k]);
+        }
+    }
+
+
+ 
+    //For the sake of mistake minimisation (and sanity)
+    Tensor<3,data_t> D1_K_tensor;
+    //D_i K_jk = partial_i K_ij - Gamma^l_ij K_lk - Gamma^l_ik K_jl
+    FOR3(i,j,k)
+    {
+        //last index = derivative index
+        D1_K_tensor[j][k][i] = metric_vars.d1_K_tensor[j][k][i];
+
+        FOR1(l)
+        {
+            D1_K_tensor[j][k][i] += - chris_phys.ULL[l][i][j] * metric_vars.K_tensor[l][k] -chris_phys.ULL[l][i][k] * metric_vars.K_tensor[j][l];
+        }
     }
 
     // Saves having a bunch of indices
+    
     Tensor<2, data_t> tensorRiemannTerm;
 
     FOR2(i, j)
@@ -300,6 +355,116 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
             }
         }
     }
+    //Additions from extrinsic K
+    FOR2(i,j)
+    {
+        rhs.v[i][j] += advec.v[i][j];
+
+        FOR2(k,l)
+        {
+            rhs.v[i][j] += 2.0 * gamma_UU[k][l] * metric_vars.K_tensor[i][j] * metric_vars.K_tensor[k][l] * vars.fhat
+                                -metric_vars.lapse * gamma_UU[k][l] * (vars.v[j][l] * metric_vars.K_tensor[i][k]
+                                                                      +vars.v[i][l] * metric_vars.K_tensor[j][k])
+                                +metric_vars.lapse * gamma_UU[k][l] * vars.v[i][j] * metric_vars.K_tensor[k][l];
+
+            rhs.v[i][j] += -2.0 * gamma_UU[k][l] * vars.fbar[l] * (D1_K_tensor[j][k][i] + D1_K_tensor[i][k][j]);
+
+            rhs.v[i][j] += -gamma_UU[k][l] * (metric_vars.K_tensor[j][l] * vars.fbar[k] * metric_vars.d1_ln_lapse[i]
+                                             +metric_vars.K_tensor[k][l] * vars.fbar[j] * metric_vars.d1_ln_lapse[i]
+                                             +metric_vars.K_tensor[i][l] * vars.fbar[k] * metric_vars.d1_ln_lapse[j]
+                                             +metric_vars.K_tensor[k][l] * vars.fbar[i] * metric_vars.d1_ln_lapse[j]);         
+
+            rhs.v[i][j] += 4.0 * gamma_UU[k][l] * vars.fbar[l] * D1_K_tensor[i][j][k];       
+
+            rhs.v[i][j] += -gamma_UU[k][l] * (vars.fbar[j] * D1_K_tensor[i][l][k] + vars.fbar[i] * D1_K_tensor[j][l][k]);   
+
+            rhs.v[i][j] += -2.0 * gamma_UU[k][l] * (metric_vars.K_tensor[j][k] * d1.fbar[i][l] + metric_vars.K_tensor[i][k] * d1.fbar[j][l]);
+            FOR1(m)
+            {
+                rhs.v[i][j] += 2.0 * gamma_UU[k][l] * (metric_vars.K_tensor[j][k] * chris_phys.ULL[m][l][i] * vars.fbar[m] 
+                                                    + metric_vars.K_tensor[i][k] * chris_phys.ULL[m][l][j] * vars.fbar[m]);
+            }            
+
+            rhs.v[i][j] += gamma_UU[k][l] * (vars.fbar[i] * metric_vars.K_tensor[j][k] * metric_vars.d1_ln_lapse[l]
+                                            +vars.fbar[j] * metric_vars.K_tensor[i][k] * metric_vars.d1_ln_lapse[l]);
+            FOR2(m,n)
+            {
+                rhs.v[i][j] += -metric_vars.lapse * gamma_UU[k][m] * gamma_UU[l][n] * (metric_vars.K_tensor[j][m] * metric_vars.K_tensor[k][n] * vars.fspatial[i][l]
+                                                                                       + metric_vars.K_tensor[i][m] * metric_vars.K_tensor[k][n] * vars.fspatial[j][l]);
+
+                rhs.v[i][j] += 2.0 * metric_vars.lapse * gamma_UU[k][m] * gamma_UU[l][n] * (metric_vars.K_tensor[i][m] * metric_vars.K_tensor[j][n] * vars.fspatial[k][l]
+                                                                                            -metric_vars.K_tensor[i][j] * metric_vars.K_tensor[m][n] * vars.fspatial[k][l]);
+
+                
+            }
+        }
+    }
+    /*
+    //Contributions from the modified Bij
+    FOR2(i,j)
+    {
+        rhs.v[i][j] += -d1.fhat[i] * metric_vars.d1_ln_lapse[j] - d1.fhat[j] * metric_vars.d1_ln_lapse[i];
+
+        rhs.v[i][j] += -2.0 * vars.fhat * metric_vars.d2_ln_lapse[i][j];
+
+        FOR1(k)
+        {
+            rhs.v[i][j] +=  2.0 * vars.fhat * chris_phys.ULL[k][i][j] * metric_vars.d1_ln_lapse[k];
+            FOR1(l)
+            {
+                
+
+                rhs.v[i][j] +=  gamma_UU[k][l] * (vars.fspatial[j][k] * metric_vars.d2_lapse[i][l] + vars.fspatial[i][k] * metric_vars.d2_lapse[j][l]);
+
+                rhs.v[i][j] +=  gamma_UU[k][l] * metric_vars.d1_lapse[l] * (d1.fspatial[j][k][i] + d1.fspatial[i][k][j]);
+            
+                rhs.v[i][j] += metric_vars.lapse * gamma_UU[k][l] * (d2.fspatial[j][k][i][l] + d2.fspatial[i][k][j][l]);
+                FOR1(m)
+                {
+                    rhs.v[i][j] += -gamma_UU[k][l] * (vars.fspatial[j][k] * chris_phys.ULL[m][i][l] * metric_vars.d1_lapse[m] + vars.fspatial[i][k] * chris_phys.ULL[m][j][l] * metric_vars.d1_lapse[m]);
+                
+                    rhs.v[i][j] += -gamma_UU[k][l] * metric_vars.d1_lapse[l] * (chris_phys.ULL[m][i][j] * vars.fspatial[m][k] + chris_phys.ULL[m][i][k] * vars.fspatial[j][m] + chris_phys.ULL[m][i][j] * vars.fspatial[m][k] + chris_phys.ULL[m][j][k] * vars.fspatial[i][m]);
+            
+                    //pink term 
+                    rhs.v[i][j] += metric_vars.lapse * gamma_UU[k][l] * (
+                                    -chris_phys.ULL[m][i][l] * d1.fspatial[j][k][m]
+                                    -chris_phys.ULL[m][i][k] * d1.fspatial[j][m][l]
+                                    -chris_phys.ULL[m][i][j] * d1.fspatial[m][k][l]
+
+                                    -chris_phys.ULL[m][j][l] * d1.fspatial[i][k][m]
+                                    -chris_phys.ULL[m][j][k] * d1.fspatial[i][m][l]
+                                    -chris_phys.ULL[m][j][i] * d1.fspatial[m][k][l]                                 
+                                    );
+                    rhs.v[i][j] += metric_vars.lapse * gamma_UU[k][l] * (
+                                -metric_vars.d1_chris_phys[m][l][j][i] * vars.fspatial[m][k] - chris_phys.ULL[m][l][j] * d1.fspatial[m][k][i]
+                                -metric_vars.d1_chris_phys[m][l][k][i] * vars.fspatial[j][m] - chris_phys.ULL[m][l][k] * d1.fspatial[j][m][i]
+                                -metric_vars.d1_chris_phys[m][l][i][j] * vars.fspatial[m][k] - chris_phys.ULL[m][l][i] * d1.fspatial[m][k][j]
+                                -metric_vars.d1_chris_phys[m][l][k][j] * vars.fspatial[i][m] - chris_phys.ULL[m][l][k] * d1.fspatial[i][m][j]);
+                
+                    FOR1(n)
+                    {
+                        //pink term
+                        rhs.v[i][j] += metric_vars.lapse * gamma_UU[k][l] * (
+                            chris_phys.ULL[m][i][l] * chris_phys.ULL[n][m][j] * vars.fspatial[n][k]
+                            +chris_phys.ULL[m][i][l] * chris_phys.ULL[n][m][k] * vars.fspatial[j][n]
+                            +chris_phys.ULL[m][i][k] * chris_phys.ULL[n][l][j] * vars.fspatial[m][n]
+                            +chris_phys.ULL[m][i][k] * chris_phys.ULL[n][l][m] * vars.fspatial[j][n]
+                            +chris_phys.ULL[m][i][j] * chris_phys.ULL[n][l][m] * vars.fspatial[n][k]
+                            +chris_phys.ULL[m][i][j] * chris_phys.ULL[n][l][k] * vars.fspatial[m][n]
+
+                            +chris_phys.ULL[m][j][l] * chris_phys.ULL[n][m][i] * vars.fspatial[n][k]
+                            +chris_phys.ULL[m][j][l] * chris_phys.ULL[n][m][k] * vars.fspatial[i][n]
+                            +chris_phys.ULL[m][j][k] * chris_phys.ULL[n][l][i] * vars.fspatial[m][n]
+                            +chris_phys.ULL[m][j][k] * chris_phys.ULL[n][l][m] * vars.fspatial[i][n]
+                            +chris_phys.ULL[m][j][i] * chris_phys.ULL[n][l][m] * vars.fspatial[n][k]
+                            +chris_phys.ULL[m][j][i] * chris_phys.ULL[n][l][k] * vars.fspatial[m][n]                        
+                        );
+                    }
+                }
+            }
+        }
+    }
+    */
     // Contribution from the mass dRGT term
     if (m_dRGT_mass_is_active)
     {
@@ -447,23 +612,27 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
     }
 
     // Damping evolution
-    rhs.Xhat = -0.5 * m_damping_kappa * vars.Xhat -
+    
+    rhs.Xhat = 0.0;
+    /*
+    -0.5 * m_damping_kappa * vars.Xhat -
                0.5 * primaryScalar / metric_vars.lapse;
                //0.5 * primaryScalar;
-
+    */
     FOR1(i)
     {
-        rhs.Xspatial[i] = -m_damping_kappa * vars.Xspatial[i] +
+        rhs.Xspatial[i] = 0.0;
+        /*
+        -m_damping_kappa * vars.Xspatial[i] +
                           metric_vars.lapse * d1.Xhat[i] -
                           vars.Xhat * metric_vars.d1_lapse[i] -
                           primaryVector[i] / metric_vars.lapse;
                           //primaryVector[i];
-
+        */
         FOR1(j)
         {
 
-            rhs.Xhat +=
-                gamma_UU[i][j] * (-vars.Xspatial[i] * metric_vars.d1_lapse[j]);
+            rhs.Xhat += 0.0;//gamma_UU[i][j] * (-vars.Xspatial[i] * metric_vars.d1_lapse[j]);
         }
     }
 
@@ -472,7 +641,7 @@ void FixedBGTensorField<potential_t>::matter_rhs_excl_potential(
         FOR2(i, j)
         {
             rhs.v[i][j] +=
-                //metric_vars.gamma[i][j] * m_damping_kappa * vars.Xhat -
+                
                 metric_vars.gamma[i][j] * metric_vars.lapse * m_damping_kappa * vars.Xhat -
                 metric_vars.lapse * (d1.Xspatial[i][j] + d1.Xspatial[j][i]);
 

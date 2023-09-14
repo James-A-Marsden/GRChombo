@@ -5,9 +5,9 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/paper_runs/m5p0_low_bath"
-chk_prefix =  MultiLevel_m5p0_L128_N160_Chk_
-plot_prefix = MultiLevel_m5p0_L128_N160_Plt_
+output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/paper_runs/speed_test_7"
+chk_prefix =  MultiLevel_m0p2_L128_N128_Chk_
+plot_prefix = MultiLevel_m0p2_L128_N128_Plt_
 #restart_file = MultiLevel_m5_L128_N128_Chk_000160.3d.hdf5
 
 # subpaths - specific directories for hdf5, pout, extraction data
@@ -44,9 +44,9 @@ dt_multiplier = 0.1
 L = 128.0
 #bh_center = 16.0 16.0 16.0
 
-N1 = 160
-N2 = 160
-N3 = 160
+N1 = 128
+N2 = 128
+N3 = 128
 
 # Regridding
 #tag_buffer_size = 0
@@ -62,7 +62,7 @@ max_level = 6 There are (max_level+1) grids, so min is zero
 # Generally you do not need to regrid frequently on every level
 regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
 
-tensor_field_mass = 5.0
+tensor_field_mass = 0.2
 
 #Value of the damping coefficient
 damping_kappa = 1.0
@@ -73,9 +73,9 @@ dRGT_ij_is_active = 0
 dRGT_mass_is_active = 0
 
 # Max box size
-max_grid_size = 16
+max_grid_size = 8
 # Min box size
-block_factor = 16
+block_factor = 8
 tag_buffer_size = 0
 
 #boundaries and periodicity of grid
@@ -86,7 +86,7 @@ isPeriodic = 0 0 0
 # 0 = static, 1 = sommerfeld, 2 = reflective, 3 = extrapolating
 # (see BoundaryConditions.hpp for details)
 hi_boundary = 3 3 3
-lo_boundary = 3 3 2
+lo_boundary = 3 3 3
 
 # if reflective boundaries selected, must select 
 # parity values (in order given by UserVariables.hpp)

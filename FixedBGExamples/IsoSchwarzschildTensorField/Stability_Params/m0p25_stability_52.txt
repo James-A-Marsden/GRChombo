@@ -5,13 +5,16 @@ integral_filename = RhoIntegral
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack/paper_runs/m5p0_low_bath"
-chk_prefix =  MultiLevel_m5p0_L128_N160_Chk_
-plot_prefix = MultiLevel_m5p0_L128_N160_Plt_
+output_path = "/cosma7/data/dp092/dc-mars4/RevisedTensorIsoSchwarz/oxhack_stability/m0p25_52"
+chk_prefix =  MultiLevel_m0p25_L384_N64_Chk_
+plot_prefix = MultiLevel_m0p25_L384_N64_Plt_
 #restart_file = MultiLevel_m5_L128_N128_Chk_000160.3d.hdf5
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
+
+#0.5
+#excise horizon
 
 hdf5_subpath = ""
 pout_subpath = "pout"
@@ -26,8 +29,8 @@ data_subpath = "data"
 # dt will be dx*dt_multiplier on each grid level
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
 
-checkpoint_interval = 10
-plot_interval = 5
+checkpoint_interval = 1
+plot_interval = 1
 
 #num_plot_vars = 30
 #plot_vars = fhat fbar1 fbar2 fbar3 fspatial11 fspatial12 fspatial13 fspatial22 fspatial23 fspatial33 w q1 q2 q3 v11 v12 v13 v22 v23 v33 trace_field trace_momentum transverseScalar transverseVector1 transverseVector2 transverseVector3 primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3
@@ -36,17 +39,17 @@ num_plot_vars = 6
 plot_vars = trace_field primaryConstraintScalar primaryConstraintVector1 primaryConstraintVector2 primaryConstraintVector3 rho_eff
 
 stop_time = 64.0
-dt_multiplier = 0.1
+dt_multiplier = 0.25
 
 # Set up grid spacings and regrid params
 # NB - the N values need to be multiples of block_factor
 
-L = 128.0
+L = 384.0
 #bh_center = 16.0 16.0 16.0
 
-N1 = 160
-N2 = 160
-N3 = 160
+N1 = 64
+N2 = 64
+N3 = 64
 
 # Regridding
 #tag_buffer_size = 0
@@ -56,19 +59,19 @@ regrid_buffer = 8
 
 # Level data
 # Maximum number of times you can regrid above coarsest level
-max_level = 6 There are (max_level+1) grids, so min is zero
+max_level = 8 There are (max_level+1) grids, so min is zero
 # Frequency of regridding at each level
 # Need one for each level, ie max_level+1 items
 # Generally you do not need to regrid frequently on every level
 regrid_interval = 0 0 0 0 0 0 0 0 0 0 0
 
-tensor_field_mass = 5.0
+tensor_field_mass = 0.25
 
 #Value of the damping coefficient
 damping_kappa = 1.0
 
 #switch constaint damping on or off --- true or false
-damping_is_active = 0
+damping_is_active = 1
 dRGT_ij_is_active = 0
 dRGT_mass_is_active = 0
 
@@ -86,7 +89,7 @@ isPeriodic = 0 0 0
 # 0 = static, 1 = sommerfeld, 2 = reflective, 3 = extrapolating
 # (see BoundaryConditions.hpp for details)
 hi_boundary = 3 3 3
-lo_boundary = 3 3 2
+lo_boundary = 3 3 3
 
 # if reflective boundaries selected, must select 
 # parity values (in order given by UserVariables.hpp)
@@ -116,12 +119,14 @@ nonzero_asymptotic_values = 0.0
 
 # if mixed boundaries selected, must specify which are extrapolating
 # (the rest are assumed to be all sommerfeld)
+
 #num_extrapolating_vars = 2
 #extrapolating_vars = phi Pi
-#extrapolation_order = 1
+extrapolation_order = 0
 
 # coefficient for KO numerical dissipation
 sigma = 0.5
+#can't be larger than 2 dx / dt
 
 # Boosted BH initial data, boost in x direction, spin in z direction
 bh_mass = 1.0
